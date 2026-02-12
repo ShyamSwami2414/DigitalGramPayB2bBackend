@@ -18,12 +18,12 @@ const authenticateUser = async (req, res, next) => {
       return res.status(401).json({ success: false, message: "Invalid Token" });
     }
 
-    let roles = await Role.find(
-      { _id: { $in: verifiedToken.roleIds } },
-      { name: 1 }
-    );
+    // let roles = await Role.find(
+    //   { _id: { $in: verifiedToken.roleIds } },
+    //   { name: 1 }
+    // );
 
-    verifiedToken.roles = roles.map((role) => role.name);
+    // verifiedToken.roles = roles.map((role) => role.name);
 
     req.user = verifiedToken;
 

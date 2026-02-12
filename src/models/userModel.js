@@ -2,9 +2,9 @@ const mongoose = require("mongoose");
 
 const userSchema = new mongoose.Schema(
     {
-        firstName: { type: String, required: true },
-        lastName: { type: String, required: true },
-        userName: { type: String, required: true },
+        firstName: { type: String, required: true, trim: true },
+        lastName: { type: String, required: true, trim: true },
+        userName: { type: String, required: true, trim: true },
         email: {
             type: String,
             required: true,
@@ -33,7 +33,7 @@ const userSchema = new mongoose.Schema(
         packageId: {
             type: mongoose.Schema.Types.ObjectId,
             ref: "Package",
-            required: true
+
         },
 
         pin: { type: Number, required: true },
