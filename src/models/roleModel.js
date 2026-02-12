@@ -1,8 +1,8 @@
 const mongoose = require("mongoose");
 
 const roleSchema = new mongoose.Schema({
-    name: { type: String, required: true },
-    roleCode: { type: String, required: true, unique: true },
+    name: { type: String, required: true, unique: true, uppercase: true },
+    roleCode: { type: String, required: true, unique: true, uppercase: true },
     level: {
         type: Number,
         enum: [1, 2, 3, 4],

@@ -9,7 +9,6 @@ exports.generateToken = (payload) => {
   });
 };
 
-
 exports.verifyToken = (token) => {
   try {
     return jwt.verify(token, JWT_SECRET);
