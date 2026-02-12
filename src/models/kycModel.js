@@ -1,39 +1,35 @@
 const mongoose = require("mongoose");
 
 const kycSchema = new mongoose.Schema({
-    firstName: { type: String, required: true },
-    lastName: { type: String, required: true },
-    fatherName: { type: String, required: true },
-    email: { type: String, required: true },
-    phone: { type: String, required: true },
-
-    dob: {
-        type: Date,
-        required: true,
-    },
+    firstName: { type: String, required: true, lowercase: true, trim: true },
+    lastName: { type: String, required: true, lowercase: true, trim: true },
+    fatherName: { type: String, required: true, lowercase: true, trim: true },
+    email: { type: String, required: true, lowercase: true, trim: true },
+    phone: { type: String, required: true, trim: true },
 
     gender: {
         type: String,
+        lowercase: true,
+        trim: true,
         enum: ["male", "female", "other"],
         required: true
     },
 
     address: { type: String, required: true },
-    district: { type: String, required: true },
+    city: { type: String, required: true },
     state: { type: String, required: true },
     pincode: { type: String, required: true },
 
     aadhaarNumber: { type: String, required: true },
-    //images
-    aadharFront: { type: String, required: true },
-    aadharBack: { type: String, required: true },
+    aadharImage: { type: String, required: true },
 
     panNumber: { type: String, required: true },
     panImage: { type: String, required: true },
 
     shopName: { type: String, required: true },
-    shopAddress: { type: String, required: true },
     shopImage: { type: String, required: true },
+
+    businessPanNumber: { type: String },
 
     gstNumber: { type: String, required: true },
 

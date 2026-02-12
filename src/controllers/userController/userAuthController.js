@@ -4,15 +4,16 @@ const bcrypt = require("../../utils/bcrypt");
 const { generateToken, } = require("../../utils/jwt");
 const { generateUniquePin } = require("../../utils/uniquePinGenerator");
 const { generateUsername } = require("../../utils/generateUsername");
+const { generateUserPassword } = require("../../utils/generateUserPassword");
 const { generateWelcomeEmail } = require("../../templates/emailTemplates/welcomeEmail");
 const mongoose = require("mongoose");
 const { sendEmail } = require("../../utils/email");
 
 exports.userRegister = async (req, res) => {
     try {
-        const { firstName, lastName, phone, role, email, password } = req.body
+        const { firstName, lastName, phone, role, email } = req.body
 
-        if (!firstName || !lastName || !phone || !role || !email || !password) {
+        if (!firstName || !lastName || !phone || !role || !email) {
             return res.status(400).json({ success: false, message: "All fields are required" });
         }
 
@@ -32,6 +33,7 @@ exports.userRegister = async (req, res) => {
 
         const pin = generateUniquePin();
         const userName = await generateUsername();
+        const password = await generateUserPassword();
 
         const hashedPassword = await bcrypt.hashPassword(password);
 
