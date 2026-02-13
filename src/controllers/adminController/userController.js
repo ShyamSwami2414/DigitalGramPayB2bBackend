@@ -1,4 +1,14 @@
 const User = require("../../models/userModel");
+const Role = require("../../models/roleModel");
+const mongoose = require("mongoose");
+const { generateUserPassword } = require("../../utils/generateUserPassword");
+const { generateUsername } = require("../../utils/generateUsername");
+const { generateUniquePin } = require("../../utils/uniquePinGenerator");
+const { hashPassword } = require("../../utils/bcrypt");
+const {
+  generateWelcomeEmail,
+} = require("../../templates/emailTemplates/welcomeEmail");
+const { sendEmail } = require("../../utils/email");
 
 exports.getAllUsers = async (req, res) => {
   try {
@@ -31,10 +41,44 @@ exports.getAllUsers = async (req, res) => {
       ];
     }
 
-    const users = await User.find(filter)
-      .skip(skip)
-      .limit(limit)
-      .sort({ createdAt: -1 });
+    const users = await User.aggregate([
+      { $match: filter },
+
+      {
+        $lookup: {
+          from: "roles",
+          localField: "roleId",
+          foreignField: "_id",
+          as: "roleData",
+        },
+      },
+
+      {
+        $unwind: {
+          path: "$roleData",
+          preserveNullAndEmptyArrays: true,
+        },
+      },
+
+      // 4️⃣ Add new field "role"
+      {
+        $addFields: {
+          role: "$roleData.name",
+        },
+      },
+
+      {
+        $project: {
+          roleId: 0,
+          roleData: 0,
+        },
+      },
+
+      { $sort: { createdAt: -1 } },
+
+      { $skip: skip },
+      { $limit: limit },
+    ]);
 
     const total = await User.countDocuments(filter);
 
@@ -51,6 +95,84 @@ exports.getAllUsers = async (req, res) => {
     });
   } catch (error) {
     console.error("Error fetching users:", error);
+    return res
+      .status(500)
+      .json({ success: false, message: "Internal Server Error" });
+  }
+};
+
+exports.createUser = async (req, res) => {
+  try {
+    const { firstName, lastName, email, phone, role } = req.body;
+
+    if (!firstName || !lastName || !email || !phone || !role) {
+      return res
+        .status(400)
+        .json({ success: false, message: "All fields are required" });
+    }
+
+    if (!mongoose.Types.ObjectId.isValid(role)) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Invalid role ID" });
+    }
+
+    const isRoleValid = await Role.findOne({
+      _id: role,
+      isActive: true,
+      isDeleted: false,
+    });
+
+    if (!isRoleValid) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Role not found" });
+    }
+
+    const existingUser = await User.findOne({ email });
+    if (existingUser) {
+      return res
+        .status(400)
+        .json({ success: false, message: "User already exists" });
+    }
+
+    const password = generateUserPassword();
+    const hashedPassword = await hashPassword(password);
+
+    const userName = await generateUsername();
+    const pin = await generateUniquePin();
+
+    const newUser = new User({
+      firstName,
+      lastName,
+      email,
+      phone,
+      password: hashedPassword,
+      userName: userName,
+      roleId: role,
+      pin: pin,
+    });
+
+    const html = generateWelcomeEmail({
+      name: firstName + " " + lastName,
+      email,
+      userName: userName,
+      password,
+      pin,
+      loginUrl: "http://localhost:8000/user-login",
+    });
+
+    sendEmail(email, [], [], "Welcome to Camlenio Software", html);
+
+    await newUser.save();
+
+    return res.status(201).json({
+      success: true,
+      message: "User created successfully",
+      data: newUser,
+    });
+  } catch (error) {
+    console.error("Error creating user:", error);
     return res
       .status(500)
       .json({ success: false, message: "Internal Server Error" });

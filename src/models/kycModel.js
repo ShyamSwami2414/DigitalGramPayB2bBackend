@@ -18,6 +18,7 @@ const kycSchema = new mongoose.Schema(
       minLength: 3,
       maxLength: 30,
     },
+
     lastName: {
       type: String,
       required: true,
@@ -43,6 +44,7 @@ const kycSchema = new mongoose.Schema(
       trim: true,
       match: [/^\S+@\S+\.\S+$/, "Invalid email format"],
     },
+
     phone: {
       type: String,
       required: true,
@@ -67,7 +69,7 @@ const kycSchema = new mongoose.Schema(
       match: [/^\d{6}$/, "Invalid pincode"],
     },
 
-    aadhaarNumber: {
+    aadharNumber: {
       type: String,
       required: true,
       match: [/^\d{12}$/, "Invalid Aadhaar number"],

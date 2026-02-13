@@ -26,7 +26,7 @@ const userSchema = new mongoose.Schema(
       uppercase: true,
       trim: true,
     },
-    
+
     email: {
       type: String,
       required: true,
@@ -59,12 +59,14 @@ const userSchema = new mongoose.Schema(
     packageId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Package",
-      default : null
+      default: null,
     },
 
     pin: { type: Number, required: true },
 
     isActive: { type: Boolean, default: true },
+    isDeleted: { type: Boolean, default: false },
+    isDeletedAt: { type: Date, default: null },
   },
   { timestamps: true, versionKey: false },
 );
