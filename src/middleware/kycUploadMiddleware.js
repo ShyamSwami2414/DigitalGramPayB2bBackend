@@ -12,6 +12,7 @@ const storage = multer.diskStorage({
     destination: function (req, file, cb) {
         cb(null, uploadPath);
     },
+    
     filename: function (req, file, cb) {
         const uniqueName =
             Date.now() + "-" + file.fieldname + path.extname(file.originalname);
@@ -36,7 +37,7 @@ const fileFilter = (req, file, cb) => {
 const kycUpload = multer({
     storage,
     fileFilter,
-    limits: { fileSize: 10 * 1024 * 1024 },
+    limits: { fileSize: 10 * 1024 * 1024 }, // 10MB
 });
 
 module.exports = kycUpload;
