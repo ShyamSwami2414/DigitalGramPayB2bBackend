@@ -2,7 +2,13 @@ const Kyc = require("../../models/kycModel");
 
 exports.kycSubmission = async (req, res) => {
   try {
-    console.log(req.user, "is submitting KYC with data:", req.body, "and files:", req.files);
+    console.log(
+      req.user,
+      "is submitting KYC with data:",
+      req.body,
+      "and files:",
+      req.files,
+    );
     const aadharFile = req.files?.aadharFile?.[0];
     const panFile = req.files?.panFile?.[0];
     const shopImage = req.files?.shopImage?.[0];
@@ -14,6 +20,7 @@ exports.kycSubmission = async (req, res) => {
       gender,
       email,
       phone,
+      dob,
       address,
       city,
       state,
@@ -23,31 +30,55 @@ exports.kycSubmission = async (req, res) => {
       gstNumber,
       aadharNumber,
       panNumber,
+      accountHolderName,
+      bankName,
+      accountNumber,
+      ifscCode,
     } = req.body;
 
-    if (
-      !firstName ||
-      !lastName ||
-      !fatherName ||
-      !gender ||
-      !email ||
-      !phone ||
-      !address ||
-      !city ||
-      !state ||
-      !pincode ||
-      !shopName ||
-      !businessPanNumber ||
-      !gstNumber ||
-      !aadharNumber ||
-      !panNumber ||
-      !aadharFile ||
-      !panFile ||
-      !shopImage
-    ) {
+    const requiredFields = {
+      firstName,
+      lastName,
+      fatherName,
+      gender,
+      email,
+      phone,
+      dob,
+      address,
+      city,
+      state,
+      pincode,
+      shopName,
+      businessPanNumber,
+      gstNumber,
+      aadharNumber,
+      panNumber,
+    };
+
+    const missingFields = [];
+
+    for (const [key, value] of Object.entries(requiredFields)) {
+      if (!value || value.toString().trim() === "") {
+        missingFields.push(key);
+      }
+    }
+
+    // check files separately
+    if (!aadharFile) missingFields.push("aadharFile");
+    if (!panFile) missingFields.push("panFile");
+    if (!shopImage) missingFields.push("shopImage");
+
+    // check bank details
+    if (!accountHolderName) missingFields.push("accountHolderName");
+    if (!bankName) missingFields.push("bankName");
+    if (!accountNumber) missingFields.push("accountNumber");
+    if (!ifscCode) missingFields.push("ifscCode");
+
+    if (missingFields.length > 0) {
       return res.status(400).json({
         success: false,
-        message: "All fields are required",
+        message: `${missingFields.join(", ")} are required`,
+        missingFields,
       });
     }
 
@@ -59,15 +90,28 @@ exports.kycSubmission = async (req, res) => {
       gender,
       email,
       phone,
-      address,
-      city,
-      state,
-      pincode,
-      shopName,
-      businessPanNumber,
-      gstNumber,
+      dob,
       aadharNumber,
       panNumber,
+
+      shopName,
+      businessAddress: {
+        address,
+        city,
+        state,
+        pincode,
+      },
+
+      businessPanNumber,
+      gstNumber,
+
+      accountHolderName,
+      bankName,
+      accountNumber,
+      ifscCode,
+
+      status: "submitted",
+
       aadharFileUrl: aadharFile ? `/uploads/kyc/${aadharFile?.filename}` : null,
       panFileUrl: panFile ? `/uploads/kyc/${panFile?.filename}` : null,
       shopImageUrl: shopImage ? `/uploads/kyc/${shopImage?.filename}` : null,
@@ -81,8 +125,6 @@ exports.kycSubmission = async (req, res) => {
     });
   } catch (error) {
     console.log(error);
-    return res
-      .status(500)
-      .json({ success: false, message: "Internal server error" });
+    return res.status(500).json({ success: false, message: error.message });
   }
 };

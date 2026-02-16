@@ -49,7 +49,7 @@ const userSchema = new mongoose.Schema(
       required: true,
     },
 
-    status: {
+    kycStatus: {
       type: String,
       enum: ["pending", "approved", "rejected"],
       default: "pending",
