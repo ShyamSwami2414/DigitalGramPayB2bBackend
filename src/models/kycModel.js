@@ -52,21 +52,17 @@ const kycSchema = new mongoose.Schema(
       match: [/^[6-9]\d{9}$/, "Invalid Indian phone number"],
     },
 
+    dob: {
+      type: Date,
+      required: true,
+    },
+
     gender: {
       type: String,
       lowercase: true,
       trim: true,
       enum: ["male", "female", "other"],
       required: true,
-    },
-
-    address: { type: String, required: true, minLength: 10, maxLength: 100 },
-    city: { type: String, required: true },
-    state: { type: String, required: true },
-    pincode: {
-      type: String,
-      required: true,
-      match: [/^\d{6}$/, "Invalid pincode"],
     },
 
     aadharNumber: {
@@ -88,6 +84,17 @@ const kycSchema = new mongoose.Schema(
     shopName: { type: String, required: true },
     shopImageUrl: { type: String, required: true },
 
+    businessAddress: {
+      address: { type: String, required: true, minLength: 5, maxLength: 100 },
+      city: { type: String, required: true },
+      state: { type: String, required: true },
+      pincode: {
+        type: String,
+        required: true,
+        match: [/^\d{6}$/, "Invalid pincode"],
+      },
+    },
+
     businessPanNumber: {
       type: String,
       match: [/^[A-Z]{5}[0-9]{4}[A-Z]{1}$/, "Invalid Business PAN"],
@@ -102,9 +109,14 @@ const kycSchema = new mongoose.Schema(
       ],
     },
 
+    accountHolderName: { type: String, required: true },
+    bankName: { type: String, required: true },
+    accountNumber: { type: String, required: true },
+    ifscCode: { type: String, required: true },
+
     status: {
       type: String,
-      enum: ["pending", "approved", "rejected"],
+      enum: ["pending", "submitted", "approved", "rejected"],
       default: "pending",
     },
 

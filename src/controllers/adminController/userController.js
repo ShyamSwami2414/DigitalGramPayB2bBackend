@@ -10,6 +10,71 @@ const {
 } = require("../../templates/emailTemplates/welcomeEmail");
 const { sendEmail } = require("../../utils/email");
 
+exports.getUserStats = async (req, res) => {
+  try {
+    const result = await User.aggregate([
+      {
+        $match: {
+          isDeleted: false,
+        },
+      },
+      {
+        $lookup: {
+          from: "roles",
+          localField: "roleId",
+          foreignField: "_id",
+          as: "role",
+        },
+      },
+      {
+        $unwind: "$role",
+      },
+      {
+        $group: {
+          _id: "$role.name",
+          count: { $sum: 1 },
+        },
+      },
+      {
+        $group: {
+          _id: null,
+          totalUsers: { $sum: "$count" },
+          roles: { $push: "$$ROOT" },
+        },
+      },
+
+      { $unwind: "$roles" },
+
+      {
+        $project: {
+          _id: 0,
+          role: "$roles._id",
+          count: "$roles.count",
+          percentage: {
+            $round: [
+              {
+                $round: [{ $divide: ["$roles.count", "$totalUsers"] }, 2],
+              },
+              2,
+            ],
+          },
+        },
+      },
+    ]);
+
+    console.log(result, "user stats result");
+
+    return res
+      .status(200)
+      .json({ success: true, message: "User Stats Done", data: result });
+  } catch (error) {
+    console.error("Error fetching users:", error);
+    return res
+      .status(500)
+      .json({ success: false, message: "Internal Server Error" });
+  }
+};
+
 exports.getAllUsers = async (req, res) => {
   try {
     let { page = 1, limit = 10, status = "", search = "" } = req.query;
@@ -176,5 +241,43 @@ exports.createUser = async (req, res) => {
     return res
       .status(500)
       .json({ success: false, message: "Internal Server Error" });
+  }
+};
+
+exports.updateUserStatus = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Invalid User Id Provided" });
+    }
+
+    const existingUser = await User.findOne({
+      _id: id,
+      isDeleted: false,
+    });
+
+    if (!existingUser) {
+      return res
+        .status(404)
+        .json({ success: false, message: "User not found" });
+    }
+
+    existingUser.isActive = !existingUser.isActive;
+    await existingUser.save();
+
+    return res.status(200).json({
+      success: true,
+      message: "User status updated successfully",
+      data: existingUser,
+    });
+  } catch (error) {
+    console.error("Error updating user status:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Internal Server Error",
+    });
   }
 };

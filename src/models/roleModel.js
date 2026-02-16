@@ -18,12 +18,15 @@ const roleSchema = new mongoose.Schema(
       enum: [1, 2, 3, 4],
       required: true,
     },
+
     onBoardCharge: {
       type: Number,
       required: true,
       min: [0, "OnBoard charge cannot be negative"],
     },
-    
+
+    isPaymentRequired: { type: Boolean, default: false },
+
     isActive: { type: Boolean, default: true },
     isDeleted: { type: Boolean, default: false },
     deletedAt: { type: Date, default: null },

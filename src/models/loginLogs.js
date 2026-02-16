@@ -1,10 +1,15 @@
 const mongoose = require("mongoose");
 
-const loginLogsSchema = new mongoose.Schema({
+const loginLogsSchema = new mongoose.Schema(
+  {
     userId: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "User",
-        required: true
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+    },
+
+    email: {
+      type: String,
+      required: true,
     },
 
     ipAddress: { type: String, required: true },
@@ -12,9 +17,15 @@ const loginLogsSchema = new mongoose.Schema({
     latitude: { type: String, required: true },
 
     device: { type: String, required: true },
+    browser: { type: String, required: true },
+    os: { type: String, required: true },
+
+    isLoginSuccess: { type: Boolean, required: true, default: false },
+
     loginTime: { type: Date, default: Date.now },
     logoutTime: { type: Date, default: null },
-
-}, { timestamps: true, versionKey: false })
+  },
+  { timestamps: true, versionKey: false },
+);
 
 module.exports = mongoose.model("LoginLogs", loginLogsSchema);

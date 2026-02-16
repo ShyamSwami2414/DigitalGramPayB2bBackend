@@ -66,7 +66,7 @@ exports.superAdminLogin = async (req, res) => {
     );
     if (!isPasswordValid) {
       return res
-        .status(401)
+        .status(400)
         .json({ success: false, message: "Invalid Credentials" });
     }
 
@@ -128,12 +128,12 @@ exports.verifySuperAdminOtp = async (req, res) => {
     }
 
     if (savedOtp.otp !== otp) {
-      return res.status(401).json({ success: false, message: "Invalid OTP" });
+      return res.status(400).json({ success: false, message: "Invalid OTP" });
     }
 
     if (savedOtp.expiresAt < new Date()) {
       return res
-        .status(401)
+        .status(400)
         .json({ success: false, message: "OTP has expired" });
     }
 

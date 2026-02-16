@@ -1,10 +1,11 @@
-const Package = require("../../models/packageModel");
-const { generatePackageCode } = require("../../utils/generatePackageCode");
+const Service = require("../../models/serviceModel");
+const { handleError } = require("../../utils/errorHandler");
+const { generateServiceCode } = require("../../utils/generateServiceCode");
 const mongoose = require("mongoose");
 
-exports.createPackage = async (req, res) => {
+exports.createService = async (req, res) => {
   try {
-    let { name, role } = req.body;
+    let { name } = req.body;
     name = name?.trim();
 
     if (!name) {
@@ -13,49 +14,52 @@ exports.createPackage = async (req, res) => {
         .json({ success: false, message: "All fields are required" });
     }
 
-    const packageCode = await generatePackageCode(name);
+    const serviceCode = await generateServiceCode(name);
 
-    const existingPackage = await Package.findOne({
+    const existingService = await Service.findOne({
       name: name,
-      packageCode: packageCode,
+      serviceCode: serviceCode,
       isActive: true,
       isDeleted: false,
     });
 
-    if (existingPackage) {
+    if (existingService) {
       return res
         .status(400)
-        .json({ success: false, message: "Package already exists" });
+        .json({ success: false, message: "Service already exists" });
     }
 
-    const newPackage = new Package({
+    const newService = new Service({
       name,
-      packageCode,
+      serviceCode,
     });
 
-    await newPackage.save();
+    await newService.save();
 
     return res.status(201).json({
       success: true,
-      message: "Package created successfully",
-      data: newPackage,
+      message: "Service created successfully",
+      data: newService,
     });
   } catch (error) {
-    console.error("Error creating package:", error);
+    console.error("Error creating service:", error);
     return res.status(500).json({
       success: false,
-      message: "Internal Server Error",
+      message: handleError(error),
     });
   }
 };
 
-exports.getAllPackages = async (req, res) => {
+exports.getAllServices = async (req, res) => {
   try {
-    const packages = await Package.find({ isActive: true, isDeleted: false });
+    const services = await Service.find({ isActive: true, isDeleted: false })
+      .sort({ createdAt: -1 })
+      .lean();
+
     return res.status(200).json({
       success: true,
-      message: "Packages fetched successfully",
-      data: packages,
+      message: "Services fetched successfully",
+      data: services,
     });
   } catch (error) {
     console.log(error);
@@ -66,7 +70,7 @@ exports.getAllPackages = async (req, res) => {
   }
 };
 
-exports.updatePackage = async (req, res) => {
+exports.updateService = async (req, res) => {
   try {
     const { id } = req.params;
     let { name } = req.body;
@@ -84,39 +88,39 @@ exports.updatePackage = async (req, res) => {
         .json({ success: false, message: "Invalid Id Provided" });
     }
 
-    const existingPackage = await Package.findOne({
+    const existingService = await Service.findOne({
       name: name,
       isActive: true,
       isDeleted: false,
       _id: { $ne: id },
     });
 
-    if (existingPackage) {
+    if (existingService) {
       return res.status(400).json({
         success: false,
-        message: "Another package with the same name already exists",
+        message: "Another service with the same name already exists",
       });
     }
 
-    const updatedPackage = await Package.findByIdAndUpdate(
+    const updatedService = await Service.findByIdAndUpdate(
       id,
       { name },
       { new: true },
     );
 
-    if (!updatedPackage) {
+    if (!updatedService) {
       return res
         .status(404)
-        .json({ success: false, message: "Package not found" });
+        .json({ success: false, message: "Service not found" });
     }
 
     return res.status(200).json({
       success: true,
-      message: "Package updated successfully",
-      data: updatedPackage,
+      message: "Service updated successfully",
+      data: updatedService,
     });
   } catch (error) {
-    console.error("Error updating package:", error);
+    console.error("Error updating service:", error);
     return res.status(500).json({
       success: false,
       message: "Internal Server Error",
@@ -124,7 +128,7 @@ exports.updatePackage = async (req, res) => {
   }
 };
 
-exports.updatePackageStatus = async (req, res) => {
+exports.updateServiceStatus = async (req, res) => {
   try {
     const { id } = req.params;
 
@@ -134,27 +138,27 @@ exports.updatePackageStatus = async (req, res) => {
         .json({ success: false, message: "Invalid Id Provided" });
     }
 
-    const existingPackage = await Package.findOne({
+    const existingService = await Service.findOne({
       _id: id,
       isDeleted: false,
     });
 
-    if (!existingPackage) {
+    if (!existingService) {
       return res
         .status(404)
-        .json({ success: false, message: "Package not found" });
+        .json({ success: false, message: "Service not found" });
     }
 
-    existingPackage.isActive = !existingPackage.isActive;
-    await existingPackage.save();
+    existingService.isActive = !existingService.isActive;
+    await existingService.save();
 
     return res.status(200).json({
       success: true,
-      message: "Package status updated successfully",
-      data: existingPackage,
+      message: "Service status updated successfully",
+      data: existingService,
     });
   } catch (error) {
-    console.error("Error updating package status:", error);
+    console.error("Error updating service status:", error);
     return res.status(500).json({
       success: false,
       message: "Internal Server Error",
@@ -162,7 +166,7 @@ exports.updatePackageStatus = async (req, res) => {
   }
 };
 
-exports.deletePackage = async (req, res) => {
+exports.deleteService = async (req, res) => {
   try {
     const { id } = req.params;
 
@@ -172,7 +176,7 @@ exports.deletePackage = async (req, res) => {
         .json({ success: false, message: "Invalid Id Provided" });
     }
 
-    const existingPackage = await Package.findOneAndUpdate(
+    const existingService = await Service.findOneAndUpdate(
       {
         _id: id,
         isDeleted: false,
@@ -181,17 +185,17 @@ exports.deletePackage = async (req, res) => {
       { new: true },
     );
 
-    if (!existingPackage) {
+    if (!existingService) {
       return res
         .status(404)
-        .json({ success: false, message: "Package not found" });
+        .json({ success: false, message: "Service not found" });
     }
 
     return res
       .status(200)
-      .json({ success: true, message: "Package deleted successfully" });
+      .json({ success: true, message: "Service deleted successfully" });
   } catch (error) {
-    console.error("Error deleting package:", error);
+    console.error("Error deleting service:", error);
     return res
       .status(500)
       .json({ success: false, message: "Internal Server Error" });
