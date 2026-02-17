@@ -11,7 +11,12 @@ const roleSchema = new mongoose.Schema(
       maxlength: 50,
     },
 
-    roleCode: { type: String, required: true, unique: true, uppercase: true },
+    roleCode: {
+      type: String,
+      required: true,
+      unique: true,
+      uppercase: true
+    },
 
     level: {
       type: Number,
@@ -25,11 +30,26 @@ const roleSchema = new mongoose.Schema(
       min: [0, "OnBoard charge cannot be negative"],
     },
 
-    isPaymentRequired: { type: Boolean, default: false },
+    isPaymentRequired: {
+      type: Boolean,
+      default: false
+    },
 
-    isActive: { type: Boolean, default: true },
-    isDeleted: { type: Boolean, default: false },
-    deletedAt: { type: Date, default: null },
+    isActive: {
+      type: Boolean,
+      default: true
+    },
+
+    isDeleted: {
+      type: Boolean,
+      default: false
+    },
+
+    deletedAt: {
+      type: Date,
+      default: null
+    },
+
   },
   { timestamps: true, versionKey: false },
 );

@@ -1,6 +1,8 @@
 const Kyc = require("../../models/kycModel");
 const User = require("../../models/userModel");
 const mongoose = require("mongoose");
+const { kycStatusTemplate } = require("../../templates/emailTemplates/kycEmail");
+const { sendEmail } = require("../../utils/email");
 
 exports.updateKycStatus = async (req, res) => {
   const session = await mongoose.startSession();
@@ -61,14 +63,6 @@ exports.updateKycStatus = async (req, res) => {
       return res.status(404).json({ success: false, message: "Kyc Not Found" });
     }
 
-    if (kyc?.status === "approved") {
-      await session.abortTransaction();
-      session.endSession();
-      return res
-        .status(400)
-        .json({ success: false, message: "Kyc is already Approved" });
-    }
-
     const user = await User.findOneAndUpdate(
       { _id: kyc?.userId, isDeleted: false },
       {
@@ -86,6 +80,21 @@ exports.updateKycStatus = async (req, res) => {
         .status(404)
         .json({ success: false, message: "User Not Found" });
     }
+
+    const html = kycStatusTemplate({
+      name: user.firstName,
+      status: status?.toLowerCase(),
+      rejectionReason: rejectionReason,
+      company: "B2B"
+    })
+
+    await sendEmail({
+      to: user.email,
+      cc: [],
+      bcc: [],
+      subject: `KYC Verification ${status?.toLowerCase() === "approved" ? "Approved" : "Rejected"}`,
+      html,
+    });
 
     await session.commitTransaction();
     session.endSession();

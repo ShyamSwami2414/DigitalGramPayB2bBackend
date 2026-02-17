@@ -1,4 +1,6 @@
 const Role = require("../models/roleModel");
+const User = require("../models/userModel");
+const Admin = require("../models/adminModel");
 const { verifyToken } = require("../utils/jwt");
 
 const authenticateUser = async (req, res, next) => {
@@ -16,6 +18,19 @@ const authenticateUser = async (req, res, next) => {
     if (!verifiedToken) {
       console.log("Invalid Token");
       return res.status(401).json({ success: false, message: "Invalid Token" });
+    }
+
+    const [user, admin] = await Promise.all([
+      User.findById(verifiedToken.id),
+      Admin.findById(verifiedToken.id),
+    ])
+
+    if (!user && !admin) {
+      console.log("User not found");
+      return res.status(404).json({
+        success: false,
+        message: "User not found , Provide Valid Token"
+      });
     }
 
     req.user = verifiedToken;

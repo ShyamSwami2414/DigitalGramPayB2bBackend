@@ -35,6 +35,18 @@ const userSchema = new mongoose.Schema(
       match: [/^\S+@\S+\.\S+$/, "Invalid email format"],
     },
 
+    level: {
+      type: Number,
+      required: true,
+      default: 1,
+    },
+
+    parentUserId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      default: null,
+    },
+
     password: { type: String, required: true },
 
     phone: {
@@ -60,6 +72,16 @@ const userSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: "Package",
       default: null,
+    },
+
+    isPaymentRequired: {
+      type: Boolean,
+      default: false
+    },
+
+    isPaymentDone: {
+      type: Boolean,
+      default: false
     },
 
     pin: { type: Number, required: true },

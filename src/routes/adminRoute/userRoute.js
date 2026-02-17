@@ -25,6 +25,11 @@ router.post(
   createUser,
 );
 
-router.patch("/update-user-status/:id", updateUserStatus);
+router.patch(
+  "/update-user-status/:id",
+  authenticateUser,
+  authorizeRoles("admin"),
+  updateUserStatus
+);
 
 module.exports = router;

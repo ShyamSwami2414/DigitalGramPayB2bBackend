@@ -5,9 +5,12 @@ const { generateUserPassword } = require("../../utils/generateUserPassword");
 const { hashPassword } = require("../../utils/bcrypt");
 const { generateUsername } = require("../../utils/generateUsername");
 const { generateUniquePin } = require("../../utils/uniquePinGenerator");
+const { generateWelcomeEmail } = require("../../templates/emailTemplates/welcomeEmail");
+const { sendEmail } = require("../../utils/email");
 
 exports.getAllUsers = async (req, res) => {
   try {
+    console.log(req.user, "user");
     let { page = 1, limit = 10 } = req.query;
     page = parseInt(page);
     limit = parseInt(limit);
@@ -20,7 +23,7 @@ exports.getAllUsers = async (req, res) => {
         .json({ success: false, message: "Invalid page or limit" });
     }
 
-    const filter = { isDeleted: false };
+    const filter = { isDeleted: false, parentUserId: req.user.id };
 
     const users = await User.find(filter)
       .skip(skip)
@@ -50,6 +53,7 @@ exports.getAllUsers = async (req, res) => {
 
 exports.createUser = async (req, res) => {
   try {
+    console.log(req.user, "user");
     const { firstName, lastName, email, phone, role } = req.body;
 
     if (!firstName || !lastName || !email || !phone || !role) {
@@ -76,11 +80,20 @@ exports.createUser = async (req, res) => {
         .json({ success: false, message: "Role not found" });
     }
 
+    console.log(isRoleValid, "Role");
+
     const existingUser = await User.findOne({ email });
     if (existingUser) {
       return res
         .status(400)
         .json({ success: false, message: "User already exists" });
+    }
+
+    if (isRoleValid.level <= req.user.level) {
+      return res.status(400).json({
+        success: false,
+        message: `You are not authorized to create user with ${isRoleValid.name} role`
+      });
     }
 
     const password = generateUserPassword();
@@ -98,6 +111,8 @@ exports.createUser = async (req, res) => {
       userName: userName,
       roleId: role,
       pin: pin,
+      parentUserId: req.user.id,
+      level: req.user.level + 1,
     });
 
     const html = generateWelcomeEmail({
@@ -125,3 +140,56 @@ exports.createUser = async (req, res) => {
       .json({ success: false, message: "Internal Server Error" });
   }
 };
+
+
+exports.updateUserStatus = async (req, res) => {
+  try {
+    console.log(req.user, "user");
+    const { id } = req.params;
+
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Invalid User Id Provided" });
+    }
+
+    const existingUser = await User.findOne({
+      _id: id,
+      isDeleted: false,
+    });
+
+    if (!existingUser) {
+      return res
+        .status(404)
+        .json({ success: false, message: "User not found" });
+    }
+
+    console.log(existingUser, "existingUser");
+
+    if (existingUser.level <= req.user.level) {
+      return res.status(400).json({
+        success: false,
+        message: `You are not authorized to update this users status`
+      });
+    }
+
+    existingUser.isActive = !existingUser.isActive;
+    await existingUser.save();
+
+    return res.status(200).json({
+      success: true,
+      message: "User status updated successfully",
+      data: existingUser,
+    });
+  } catch (error) {
+    console.error("Error updating user status:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Internal Server Error",
+    });
+  }
+};
+
+
+
+

@@ -9,6 +9,7 @@ const packageSchema = new mongoose.Schema(
       unique: true,
       trim: true,
     },
+
     packageCode: {
       type: String,
       required: true,
@@ -16,9 +17,11 @@ const packageSchema = new mongoose.Schema(
       uppercase: true,
       trim: true,
     },
+
     isActive: { type: Boolean, default: true },
     isDeleted: { type: Boolean, default: false },
     deletedAt: { type: Date, default: null },
+    
   },
   { timestamps: true, versionKey: false },
 );
