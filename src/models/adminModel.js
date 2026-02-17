@@ -3,6 +3,7 @@ const mongoose = require("mongoose");
 const adminSchema = new mongoose.Schema(
   {
     name: { type: String, required: true, minlength: 3, maxlength: 50 },
+
     userName: {
       type: String,
       required: true,
@@ -10,6 +11,7 @@ const adminSchema = new mongoose.Schema(
       uppercase: true,
       trim: true,
     },
+    
     phone: {
       type: String,
       required: true,
@@ -30,6 +32,12 @@ const adminSchema = new mongoose.Schema(
     type: {
       type: String,
       default: "admin",
+    },
+
+    level: {
+      type: Number,
+      required: true,
+      default: 0,
     },
 
     isActive: { type: Boolean, default: true },

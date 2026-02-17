@@ -9,12 +9,13 @@ const serviceSchema = new mongoose.Schema(
       trim: true,
       unique: true,
     },
+
     serviceCode: {
       type: String,
       required: true,
       unique: true,
       uppercase: true,
-      trim : true
+      trim: true
     },
 
     isActive: { type: Boolean, default: true },

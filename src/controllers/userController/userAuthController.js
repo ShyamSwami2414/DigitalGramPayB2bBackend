@@ -41,6 +41,7 @@ exports.userRegister = async (req, res) => {
       isActive: true,
       isDeleted: false,
     });
+
     if (!isRoleValid) {
       return res
         .status(404)
@@ -62,6 +63,7 @@ exports.userRegister = async (req, res) => {
       email,
       pin: pin,
       password: hashedPassword,
+      level: isRoleValid.level
     });
 
     const html = generateWelcomeEmail({
@@ -135,7 +137,12 @@ exports.userLogin = async (req, res) => {
         .json({ success: false, message: "Invalid Credentials" });
     }
 
-    const token = generateToken({ id: user._id });
+    const token = generateToken({
+      id: user._id,
+      level: user.level,
+      parentUserId: user.parentUserId || null,
+      roleId: user.roleId,
+    });
 
     log.isLoginSuccess = true;
     await log.save();

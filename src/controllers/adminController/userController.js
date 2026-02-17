@@ -1,5 +1,6 @@
 const User = require("../../models/userModel");
 const Role = require("../../models/roleModel");
+const Package = require("../../models/packageModel");
 const mongoose = require("mongoose");
 const { generateUserPassword } = require("../../utils/generateUserPassword");
 const { generateUsername } = require("../../utils/generateUsername");
@@ -125,15 +126,39 @@ exports.getAllUsers = async (req, res) => {
         },
       },
 
-      // 4️⃣ Add new field "role"
+      {
+        $lookup: {
+          from: "users",
+          localField: "parentUserId",
+          foreignField: "_id",
+          as: "parentUserData",
+        },
+      },
+
+      {
+        $unwind: {
+          path: "$parentUserData",
+          preserveNullAndEmptyArrays: true,
+        },
+      },
+
+      // Add new field "role"
       {
         $addFields: {
-          role: "$roleData.name",
+          parentUser: {
+            $concat: [
+              "$parentUserData.firstName",
+              " ",
+              "$parentUserData.lastName"
+            ]
+          }
         },
       },
 
       {
         $project: {
+          parentUserData: 0,
+          parentUserId: 0,
           roleId: 0,
           roleData: 0,
         },
@@ -168,9 +193,9 @@ exports.getAllUsers = async (req, res) => {
 
 exports.createUser = async (req, res) => {
   try {
-    const { firstName, lastName, email, phone, role } = req.body;
+    const { firstName, lastName, email, phone, role, package } = req.body;
 
-    if (!firstName || !lastName || !email || !phone || !role) {
+    if (!firstName || !lastName || !email || !phone || !role || !package) {
       return res
         .status(400)
         .json({ success: false, message: "All fields are required" });
@@ -180,6 +205,12 @@ exports.createUser = async (req, res) => {
       return res
         .status(400)
         .json({ success: false, message: "Invalid role ID" });
+    }
+
+    if (!mongoose.Types.ObjectId.isValid(package)) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Invalid package ID" });
     }
 
     const isRoleValid = await Role.findOne({
@@ -192,6 +223,18 @@ exports.createUser = async (req, res) => {
       return res
         .status(404)
         .json({ success: false, message: "Role not found" });
+    }
+
+    const isPackageValid = await Package.findOne({
+      _id: package,
+      isActive: true,
+      isDeleted: false,
+    });
+
+    if (!isPackageValid) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Package not found" });
     }
 
     const existingUser = await User.findOne({ email });
@@ -215,7 +258,10 @@ exports.createUser = async (req, res) => {
       password: hashedPassword,
       userName: userName,
       roleId: role,
+      packageId: package,
       pin: pin,
+      parentUserId: req.user.id,
+      level: isRoleValid.level
     });
 
     const html = generateWelcomeEmail({

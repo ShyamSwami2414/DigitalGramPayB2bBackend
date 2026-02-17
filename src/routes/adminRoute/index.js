@@ -9,4 +9,5 @@ module.exports = (app) => {
   app.use(`${apiPrefix}/service`, require("./serviceRoute"));
   app.use(`${apiPrefix}/user`, require("./userRoute"));
   app.use(`${apiPrefix}/charge`, require("./chargeRoute"));
+  app.use(`${apiPrefix}/userRequest`, require("./userRequestRoute"));
 };
