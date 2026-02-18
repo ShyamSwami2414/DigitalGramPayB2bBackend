@@ -1,5 +1,4 @@
 const mongoose = require("mongoose");
-const MimeNode = require("nodemailer/lib/mime-node");
 
 const kycSchema = new mongoose.Schema(
   {
@@ -65,21 +64,26 @@ const kycSchema = new mongoose.Schema(
       required: true,
     },
 
-    aadharNumber: {
-      type: String,
-      required: true,
-      match: [/^\d{12}$/, "Invalid Aadhaar number"],
+    personalAddress: {
+      address: { type: String, required: true, minLength: 5, maxLength: 100 },
+      city: { type: String, required: true },
+      state: { type: String, required: true },
+      pincode: {
+        type: String,
+        required: true,
+        match: [/^\d{6}$/, "Invalid pincode"],
+      },
     },
 
-    aadharFileUrl: { type: String, required: true },
-
-    panNumber: {
+    personalDetailStatus: {
       type: String,
-      required: true,
-      match: [/^[A-Z]{5}[0-9]{4}[A-Z]{1}$/, "Invalid PAN number"],
+      enum: ["pending", "approved", "rejected"],
+      default: "pending",
     },
 
-    panFileUrl: { type: String, required: true },
+
+    // ---------------------------------------------------
+
 
     shopName: { type: String, required: true },
     shopImageUrl: { type: String, required: true },
@@ -98,25 +102,103 @@ const kycSchema = new mongoose.Schema(
     businessPanNumber: {
       type: String,
       match: [/^[A-Z]{5}[0-9]{4}[A-Z]{1}$/, "Invalid Business PAN"],
+      default: null
     },
 
     gstNumber: {
       type: String,
-      required: true,
       match: [
         /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/,
         "Invalid GST number",
       ],
+      default: null
     },
 
-    accountHolderName: { type: String, required: true },
-    bankName: { type: String, required: true },
-    accountNumber: { type: String, required: true },
-    ifscCode: { type: String, required: true },
+    businessDetailStatus: {
+      type: String,
+      enum: ["pending", "approved", "rejected"],
+      default: "pending",
+    },
+
+    accountHolderName: {
+      type: String,
+      required: true,
+      trim: true,
+      minlength: 2,
+      maxlength: 60,
+      match: [/^[A-Za-z\s.]+$/, "Account holder name can contain only letters"]
+    },
+
+    bankName: {
+      type: String,
+      required: true,
+      trim: true,
+      minlength: 2,
+      maxlength: 80,
+      match: [/^[A-Za-z\s.&]+$/, "Invalid bank name"]
+    },
+
+    branchName: {
+      type: String,
+      required: true,
+      trim: true,
+      minlength: 2,
+      maxlength: 80,
+      match: [/^[A-Za-z0-9\s().-]+$/, "Invalid branch name"]
+    },
+
+    accountNumber: {
+      type: String,
+      required: true,
+      trim: true,
+      match: [/^[0-9]{9,20}$/, "Account number must be 9–20 digits"]
+    },
+
+
+    ifscCode: {
+      type: String,
+      required: true,
+      uppercase: true,
+      trim: true,
+      validate: {
+        validator: function (v) {
+          return /^[A-Z]{4}0[A-Z0-9]{6}$/.test(v);
+        },
+        message: props => `${props.value} is not a valid IFSC code`
+      }
+    },
+
+    bankDetailStatus: {
+      type: String,
+      enum: ["pending", "approved", "rejected"],
+      default: "pending",
+    },
+
+    aadharNumber: {
+      type: String,
+      required: true,
+      match: [/^\d{12}$/, "Invalid Aadhaar number"],
+    },
+
+    aadharFileUrl: { type: String, required: true },
+
+    panNumber: {
+      type: String,
+      required: true,
+      match: [/^[A-Z]{5}[0-9]{4}[A-Z]{1}$/, "Invalid PAN number"],
+    },
+
+    panFileUrl: { type: String, required: true },
+
+    identityDetailStatus: {
+      type: String,
+      enum: ["pending", "approved", "rejected"],
+      default: "pending",
+    },
 
     status: {
       type: String,
-      enum: ["pending", "submitted", "approved", "rejected"],
+      enum: ["pending", "approved", "rejected"],
       default: "pending",
     },
 

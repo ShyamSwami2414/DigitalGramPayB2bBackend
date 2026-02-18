@@ -1,6 +1,7 @@
 const User = require("../../models/userModel");
 const Role = require("../../models/roleModel");
 const Package = require("../../models/packageModel");
+const Service = require("../../models/serviceModel");
 const mongoose = require("mongoose");
 const { generateUserPassword } = require("../../utils/generateUserPassword");
 const { generateUsername } = require("../../utils/generateUsername");
@@ -127,6 +128,34 @@ exports.getAllUsers = async (req, res) => {
       },
 
       {
+        $addFields: {
+          role: "$roleData.name"
+        }
+      },
+
+      {
+        $lookup: {
+          from: "packages",
+          localField: "packageId",
+          foreignField: "_id",
+          as: "packageData",
+        },
+      },
+
+      {
+        $unwind: {
+          path: "$packageData",
+          preserveNullAndEmptyArrays: true
+        }
+      },
+
+      {
+        $addFields: {
+          package: "$packageData.name"
+        }
+      },
+
+      {
         $lookup: {
           from: "users",
           localField: "parentUserId",
@@ -161,6 +190,8 @@ exports.getAllUsers = async (req, res) => {
           parentUserId: 0,
           roleId: 0,
           roleData: 0,
+          packageData: 0,
+          packageId: 0,
         },
       },
 
@@ -327,3 +358,216 @@ exports.updateUserStatus = async (req, res) => {
     });
   }
 };
+
+exports.assignPackageToUser = async (req, res) => {
+  try {
+    const { packageId } = req.body;
+    const { userId } = req.params;
+
+    const missingFields = [];
+
+    if (!packageId) missingFields.push("packageId");
+    if (!userId) missingFields.push("userId");
+
+    if (missingFields.length > 0) {
+      return res.status(400).json({
+        success: false,
+        message: `${missingFields.join(", ")} is missing`,
+        missingFields,
+      });
+    }
+
+    if (!mongoose.Types.ObjectId.isValid(userId) || !mongoose.Types.ObjectId.isValid(packageId)) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Invalid User Id or Package Id Provided" });
+    }
+
+    const existingPackage = await Package.findOne({
+      _id: packageId,
+      isActive: true,
+      isDeleted: false,
+    });
+
+    if (!existingPackage) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Package not found" });
+    }
+
+    const existingUser = await User.findOneAndUpdate({
+      _id: userId,
+      isDeleted: false,
+    }, {
+      $set: {
+        packageId: packageId
+      }
+    }, { new: true });
+
+    if (!existingUser) {
+      return res
+        .status(404)
+        .json({ success: false, message: "User not found" });
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: "Package assigned successfully",
+      data: existingUser,
+    });
+
+  } catch (error) {
+    console.error("Error assigning package to user:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Internal Server Error",
+    });
+  }
+}
+
+exports.assignServiceToUser = async (req, res) => {
+  try {
+    const { services } = req.body;
+    const { userId } = req.params;
+
+    const missingFields = [];
+
+    if (!services || !Array.isArray(services))
+      missingFields.push("services");
+
+    if (!userId) missingFields.push("userId");
+
+    if (missingFields.length > 0) {
+      return res.status(400).json({
+        success: false,
+        message: `${missingFields.join(", ")} is missing`,
+        missingFields,
+      });
+    }
+
+    if (!mongoose.Types.ObjectId.isValid(userId)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid userId",
+      });
+    }
+
+    const invalidIds = services.filter(
+      id => !mongoose.Types.ObjectId.isValid(id)
+    );
+
+    if (invalidIds.length > 0) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid service IDs",
+        invalidIds,
+      });
+    }
+
+    const validServices = await Service.find({
+      _id: { $in: services },
+      isActive: true,
+      isDeleted: false,
+    }).select("_id");
+
+    const serviceIds = validServices.map(s => s._id);
+
+    const existingUser = await User.findOneAndUpdate(
+      { _id: userId, isDeleted: false },
+      {
+        assignedServices: serviceIds,
+      },
+      { new: true }
+    );
+
+    if (!existingUser) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: "User services updated successfully",
+      data: existingUser,
+    });
+
+  } catch (error) {
+    console.error("Error updating services:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Internal Server Error",
+    });
+  }
+};
+
+exports.getAssignedServices = async (req, res) => {
+  try {
+    const { userId } = req.params;
+
+    if (!userId) {
+      return res.status(400).json({
+        success: false,
+        message: "User Id is missing",
+      });
+    }
+
+    if (!mongoose.Types.ObjectId.isValid(userId)) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Invalid User Id Provided" });
+    }
+
+    const [user] = await User.aggregate([
+      {
+        $match: {
+          _id: new mongoose.Types.ObjectId(userId),
+          isDeleted: false,
+        },
+      },
+      {
+        $lookup: {
+          from: "services",
+          localField: "assignedServices",
+          foreignField: "_id",
+          as: "services",
+        },
+      },
+      {
+        $project: {
+          _id: 1,
+          services: {
+            $map: {
+              input: "$services",
+              as: "service",
+              in: {
+                id: "$$service._id",
+                name: "$$service.name",
+              },
+            },
+          },
+        },
+      },
+    ]);
+
+    if (!user) {
+      return res
+        .status(404)
+        .json({ success: false, message: "User not found" });
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: "Assigned services fetched successfully",
+      data: user,
+    });
+
+  } catch (error) {
+    console.error("Error fetching assigned services:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Internal Server Error",
+    });
+  }
+}

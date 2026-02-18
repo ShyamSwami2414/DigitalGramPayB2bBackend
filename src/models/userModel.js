@@ -63,9 +63,8 @@ const userSchema = new mongoose.Schema(
 
     kycStatus: {
       type: String,
-      enum: ["pending", "approved", "rejected"],
+      enum: ["pending", "submitted", "approved", "rejected"],
       default: "pending",
-      required: true,
     },
 
     packageId: {
@@ -73,6 +72,11 @@ const userSchema = new mongoose.Schema(
       ref: "Package",
       default: null,
     },
+
+    assignedServices: [{
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Service",
+    }],
 
     isPaymentRequired: {
       type: Boolean,

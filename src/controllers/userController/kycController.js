@@ -1,4 +1,5 @@
 const Kyc = require("../../models/kycModel");
+const User = require("../../models/userModel");
 
 exports.kycSubmission = async (req, res) => {
   try {
@@ -21,17 +22,25 @@ exports.kycSubmission = async (req, res) => {
       email,
       phone,
       dob,
-      address,
-      city,
-      state,
-      pincode,
+      personalAddress,
+      personalCity,
+      personalState,
+      personalPincode,
+
       shopName,
+      businessAddress,
+      businessCity,
+      businessState,
+      businessPincode,
       businessPanNumber,
       gstNumber,
+
       aadharNumber,
       panNumber,
+
       accountHolderName,
       bankName,
+      branchName,
       accountNumber,
       ifscCode,
     } = req.body;
@@ -44,13 +53,17 @@ exports.kycSubmission = async (req, res) => {
       email,
       phone,
       dob,
-      address,
-      city,
-      state,
-      pincode,
+      personalAddress,
+      personalCity,
+      personalState,
+      personalPincode,
+
       shopName,
-      businessPanNumber,
-      gstNumber,
+      businessAddress,
+      businessCity,
+      businessState,
+      businessPincode,
+
       aadharNumber,
       panNumber,
     };
@@ -73,6 +86,7 @@ exports.kycSubmission = async (req, res) => {
     if (!bankName) missingFields.push("bankName");
     if (!accountNumber) missingFields.push("accountNumber");
     if (!ifscCode) missingFields.push("ifscCode");
+    if (!branchName) missingFields.push("branchName");
 
     if (missingFields.length > 0) {
       return res.status(400).json({
@@ -91,15 +105,22 @@ exports.kycSubmission = async (req, res) => {
       email,
       phone,
       dob,
+      personalAddress: {
+        address: personalAddress,
+        city: personalCity,
+        state: personalState,
+        pincode: personalPincode,
+      },
+
       aadharNumber,
       panNumber,
 
       shopName,
       businessAddress: {
-        address,
-        city,
-        state,
-        pincode,
+        address: businessAddress,
+        city: businessCity,
+        state: businessState,
+        pincode: businessPincode,
       },
 
       businessPanNumber,
@@ -107,10 +128,9 @@ exports.kycSubmission = async (req, res) => {
 
       accountHolderName,
       bankName,
+      branchName,
       accountNumber,
       ifscCode,
-
-      status: "submitted",
 
       aadharFileUrl: aadharFile ? `/uploads/kyc/${aadharFile?.filename}` : null,
       panFileUrl: panFile ? `/uploads/kyc/${panFile?.filename}` : null,
@@ -118,6 +138,10 @@ exports.kycSubmission = async (req, res) => {
     });
 
     await kycData.save();
+
+    await User.findByIdAndUpdate(req.user.id, {
+      kycStatus: "submitted",
+    });
 
     return res.status(200).json({
       success: true,
