@@ -91,7 +91,7 @@ exports.userRegister = async (req, res) => {
 
 exports.userLogin = async (req, res) => {
   try {
-    const { email, password, systemDetails } = req.body;
+    const { email, password, userName, systemDetails } = req.body;
 
     const parser = new UAParser(req.headers["user-agent"]);
     const ua = parser.getResult();
@@ -100,13 +100,14 @@ exports.userLogin = async (req, res) => {
     console.log(systemDetails?.location?.latitude, "latitude");
     console.log(systemDetails?.ip, "Ip");
 
-    if (!email || !password) {
+    if (!email || !password || !userName) {
       return res
         .status(400)
-        .json({ success: false, message: "Email and password are required" });
+        .json({ success: false, message: "All Details are required" });
     }
 
-    const user = await User.findOne({ email });
+    const user = await User.findOne({ email, userName });
+
     const log = new loginLogs({
       userId: user?._id || null,
       email: email,
@@ -131,6 +132,7 @@ exports.userLogin = async (req, res) => {
       password,
       user.password,
     );
+
     if (!isPasswordValid) {
       return res
         .status(400)
@@ -153,6 +155,65 @@ exports.userLogin = async (req, res) => {
       user,
       token,
     });
+  } catch (error) {
+    console.log(error);
+    return res
+      .status(500)
+      .json({ success: false, message: "Internal Server Error" });
+  }
+};
+
+exports.verifyUserOtp = async (req, res) => {
+  try {
+    const { email, otp } = req.body;
+    if (!email || !otp) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Email and OTP are required" });
+    }
+
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res
+        .status(404)
+        .json({ success: false, message: "User not found" });
+    }
+
+    const savedOtp = await Otp.findOne({
+      userId: user._id,
+      isUsed: false,
+    }).sort({
+      createdAt: -1,
+    });
+
+    if (!savedOtp) {
+      return res.status(404).json({ success: false, message: "OTP not found" });
+    }
+
+    if (savedOtp.otp !== otp) {
+      return res.status(400).json({ success: false, message: "Invalid OTP" });
+    }
+
+    if (savedOtp.expiresAt < new Date()) {
+      return res
+        .status(400)
+        .json({ success: false, message: "OTP has expired" });
+    }
+
+    const token = generateToken({ id: user._id, role: user.roleId });
+
+    savedOtp.isUsed = true;
+    await savedOtp.save();
+
+    await Otp.deleteMany({ userId: user._id });
+
+    res.status(200).json({
+      success: true,
+      message: "User logged in successfully",
+      user,
+      token,
+    });
+
   } catch (error) {
     console.log(error);
     return res

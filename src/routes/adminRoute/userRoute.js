@@ -4,6 +4,9 @@ const {
   getAllUsers,
   createUser,
   updateUserStatus,
+  assignPackageToUser,
+  assignServiceToUser,
+  getAssignedServices
 } = require("../../controllers/adminController/userController");
 const { authenticateUser } = require("../../middleware/authMiddleware");
 const { authorizeRoles } = require("../../middleware/roleMiddleware");
@@ -30,6 +33,27 @@ router.patch(
   authenticateUser,
   authorizeRoles("admin"),
   updateUserStatus
+);
+
+router.patch(
+  "/assign-package/:userId",
+  authenticateUser,
+  authorizeRoles("admin"),
+  assignPackageToUser
+);
+
+router.patch(
+  "/assign-service/:userId",
+  authenticateUser,
+  authorizeRoles("admin"),
+  assignServiceToUser
+);
+
+router.get(
+  "/assigned-services/:userId",
+  authenticateUser,
+  authorizeRoles("admin"),
+  getAssignedServices
 );
 
 module.exports = router;
