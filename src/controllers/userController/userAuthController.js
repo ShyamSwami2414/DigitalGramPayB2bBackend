@@ -12,6 +12,8 @@ const {
 const mongoose = require("mongoose");
 const { sendEmail } = require("../../utils/email");
 const loginLogs = require("../../models/loginLogs");
+const Setting = require("../../models/settingModel");
+const UserRequest = require("../../models/userRequestModel");
 
 exports.userRegister = async (req, res) => {
   try {
@@ -46,6 +48,29 @@ exports.userRegister = async (req, res) => {
       return res
         .status(404)
         .json({ success: false, message: "Role not found" });
+    }
+
+    const setting = await Setting.findOne()
+
+    if (!setting) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Setting not found" });
+    }
+
+    if (setting.requireAdminApprovalForCredentials) {
+      const userRequest = new UserRequest({
+        firstName,
+        lastName,
+        email,
+        phone,
+        roleId: role,
+      })
+
+      await userRequest.save();
+      return res
+        .status(201)
+        .json({ success: true, message: "User request sent successfully" });
     }
 
     const pin = generateUniquePin();

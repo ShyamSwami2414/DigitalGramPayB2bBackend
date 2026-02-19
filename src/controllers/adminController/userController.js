@@ -14,55 +14,71 @@ const { sendEmail } = require("../../utils/email");
 
 exports.getUserStats = async (req, res) => {
   try {
-    const result = await User.aggregate([
-      {
-        $match: {
-          isDeleted: false,
-        },
-      },
+    const result = await Role.aggregate([
+
       {
         $lookup: {
-          from: "roles",
-          localField: "roleId",
-          foreignField: "_id",
-          as: "role",
-        },
+          from: "users",
+          let: { roleId: "$_id" },
+          pipeline: [
+            {
+              $match: {
+                $expr: {
+                  $and: [
+                    { $eq: ["$roleId", "$$roleId"] },
+                    { $eq: ["$isDeleted", false] }
+                  ]
+                }
+              }
+            }
+          ],
+          as: "users"
+        }
       },
+
       {
-        $unwind: "$role",
+        $addFields: {
+          count: { $size: "$users" }
+        }
       },
-      {
-        $group: {
-          _id: "$role.name",
-          count: { $sum: 1 },
-        },
-      },
+
       {
         $group: {
           _id: null,
           totalUsers: { $sum: "$count" },
-          roles: { $push: "$$ROOT" },
-        },
+          roles: { $push: "$$ROOT" }
+        }
       },
 
       { $unwind: "$roles" },
 
+
       {
         $project: {
           _id: 0,
-          role: "$roles._id",
+          role: "$roles.name",
           count: "$roles.count",
           percentage: {
-            $round: [
+            $cond: [
+              { $eq: ["$totalUsers", 0] },
+              0,
               {
-                $round: [{ $divide: ["$roles.count", "$totalUsers"] }, 2],
-              },
-              2,
-            ],
-          },
-        },
-      },
+                $round: [
+                  {
+                    $multiply: [
+                      { $divide: ["$roles.count", "$totalUsers"] },
+                      100
+                    ]
+                  },
+                  2
+                ]
+              }
+            ]
+          }
+        }
+      }
     ]);
+
 
     console.log(result, "user stats result");
 

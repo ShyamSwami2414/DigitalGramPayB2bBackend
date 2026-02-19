@@ -5,5 +5,6 @@ module.exports = (app) => {
     app.use(`${apiPrefix}/kyc`, require("./kycRoute"));
     app.use(`${apiPrefix}/user`, require("./userRoute"));
     app.use(`${apiPrefix}/package`, require("./packageRoute"));
+    app.use(`${apiPrefix}/offlineTopup`, require("./offlineTopupRequestRoute"));
 
 };

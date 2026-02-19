@@ -3,8 +3,10 @@ const {
   kycSubmission,
 } = require("../../controllers/userController/kycController");
 const { authenticateUser } = require("../../middleware/authMiddleware");
-const kycUpload = require("../../middleware/kycUploadMiddleware");
+const createUploader = require("../../middleware/uploadMiddleware");
 const router = express.Router();
+
+const kycUpload = createUploader("kyc", /jpeg|jpg|png|pdf/, 15);
 
 router.post(
   "/kyc-submission",
