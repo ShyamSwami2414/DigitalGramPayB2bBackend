@@ -56,6 +56,9 @@ exports.createUser = async (req, res) => {
     console.log(req.user, "user");
     const { firstName, lastName, email, phone, role } = req.body;
 
+    const requiredFields = ["firstName", "lastName", "email", "phone", "role"];
+    const missingField = []
+
     if (!firstName || !lastName || !email || !phone || !role) {
       return res
         .status(400)

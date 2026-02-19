@@ -13,6 +13,32 @@ const fundRequestSchema = new mongoose.Schema({
         required: true,
     },
 
+    mode: {
+        type: String,
+        enum: ["upi", "bank", "neft", "imps"],
+        required: true,
+    },
+
+    receiverBank: {
+        type: String,
+        required: true,
+    },
+
+    utrNumber: {
+        type: String,
+        required: true,
+    },
+
+    paymentDate: {
+        type: Date,
+        required: true,
+    },
+
+    paymentProof: {
+        type: String,
+        required: true,
+    },
+
     status: {
         type: String,
         enum: ["pending", "approved", "rejected"],

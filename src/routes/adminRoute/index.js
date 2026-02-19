@@ -11,4 +11,7 @@ module.exports = (app) => {
   app.use(`${apiPrefix}/charge`, require("./chargeRoute"));
   app.use(`${apiPrefix}/userRequest`, require("./userRequestRoute"));
   app.use(`${apiPrefix}/fundRequest`, require("./fundRequestRoute"));
+  app.use(`${apiPrefix}/setting`, require("./settingRoute"));
+  app.use(`${apiPrefix}/logs`, require("./loginLogsRoute"));
+  app.use(`${apiPrefix}/topupBank`, require("./walletTopupBankRoute"));
 };
