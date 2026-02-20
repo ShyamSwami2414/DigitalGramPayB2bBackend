@@ -1,7 +1,7 @@
 const Kyc = require("../../models/kycModel");
 const User = require("../../models/userModel");
 
-exports.kycSubmission = async (req, res) => {
+exports.kycSubmission = async (req, res, next) => {
   try {
     console.log(
       req.user,
@@ -96,6 +96,12 @@ exports.kycSubmission = async (req, res) => {
       });
     }
 
+    const today = new Date();
+
+    if (new Date(dob) > today) {
+      return res.status(400).json({ message: "DOB cannot be future" });
+    }
+
     const kycData = new Kyc({
       userId: req.user.id,
       firstName,
@@ -148,7 +154,6 @@ exports.kycSubmission = async (req, res) => {
       message: "KYC submitted successfully and is pending for review",
     });
   } catch (error) {
-    console.log(error);
-    return res.status(500).json({ success: false, message: error.message });
+    next(error);
   }
 };

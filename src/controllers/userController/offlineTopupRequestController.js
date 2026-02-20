@@ -1,6 +1,8 @@
+const mongoose = require("mongoose");
 const FundRequest = require("../../models/fundRequestModel");
+const WalletTopupBank = require("../../models/walletTopupBankModel");
 
-exports.getAllOfflineTopupRequests = async (req, res) => {
+exports.getAllOfflineTopupRequests = async (req, res, next) => {
     try {
         const offlineTopupRequests = await FundRequest.find({
             userId: req.user.id,
@@ -12,18 +14,20 @@ exports.getAllOfflineTopupRequests = async (req, res) => {
             data: offlineTopupRequests,
         });
     } catch (error) {
-        console.error("Error fetching offline topup requests:", error);
-        return res.status(500).json({
-            success: false,
-            message: "Internal Server Error",
-        });
+        next(error);
     }
 }
 
-exports.addOfflineTopupRequest = async (req, res) => {
+exports.addOfflineTopupRequest = async (req, res, next) => {
     try {
-        const { amount, mode, receiverBank, utrNumber, paymentDate } = req.body;
-        const paymentProof = req.file?.path;
+        console.log(req.body, "body");
+        let { amount, mode, receiverBank, utrNumber, paymentDate } = req.body;
+        amount = Number(amount);
+
+        mode = mode?.trim()?.toLowerCase();
+        utrNumber = utrNumber?.trim();
+
+        const paymentProof = req.file?.filename;
         const requiredFields = ["amount", "mode", "receiverBank", "utrNumber", "paymentDate"]
 
         const missingFields = [];
@@ -45,14 +49,49 @@ exports.addOfflineTopupRequest = async (req, res) => {
             });
         }
 
+        if (!Number.isFinite(amount)) {
+            return res.status(400).json({ message: "Invalid amount" });
+        }
+
+        if (amount <= 0) {
+            return res.status(400).json({ message: "Amount must be greater than 0" });
+        }
+
+        if (new Date(paymentDate) > new Date()) {
+            return res.status(400).json({
+                message: "Payment date cannot be in the future"
+            });
+        }
+
+        if (!mongoose.Types.ObjectId.isValid(receiverBank)) {
+            return res.status(400).json({
+                success: false,
+                message: "Invalid receiver bank ID",
+            });
+        }
+
+        const receiverBankExist = await WalletTopupBank.findOne(
+            {
+                _id: receiverBank,
+                isDeleted: false,
+                isActive: true
+            });
+
+        if (!receiverBankExist) {
+            return res.status(400).json({
+                success: false,
+                message: "Receiver bank not found or disabled",
+            });
+        }
+
         const offlineTopupRequest = new FundRequest({
             userId: req.user.id,
             amount,
             mode,
-            receiverBank,
+            walletTopupBankId: receiverBank,
             utrNumber,
             paymentDate,
-            paymentProof: `uploads/paymentProof/${paymentProof}`,
+            paymentProof: `/uploads/paymentProof/${paymentProof}`,
         });
 
         await offlineTopupRequest.save();
@@ -63,28 +102,6 @@ exports.addOfflineTopupRequest = async (req, res) => {
             data: offlineTopupRequest,
         });
     } catch (error) {
-        console.error("Error adding offline topup request:", error);
-        if (error.name === "ValidationError") {
-            const errors = Object.values(error.errors).map(err => err.message);
-
-            return res.status(400).json({
-                success: false,
-                message: "Validation Error",
-                errors
-            });
-        }
-
-        if (error.code === 11000) {
-            return res.status(400).json({
-                success: false,
-                message: "Duplicate entry detected",
-                field: Object.keys(error.keyValue)[0],
-            });
-        }
-
-        return res.status(500).json({
-            success: false,
-            message: error.message,
-        });
+        next(error);
     }
 }

@@ -4,6 +4,7 @@ const dotenv = require("dotenv").config();
 const cors = require("cors");
 const path = require("path");
 const dbConnection = require("../src/config/dbConfig");
+const errorHandler = require("./middleware/errorHandler");
 
 dbConnection();
 
@@ -32,6 +33,8 @@ app.use(
 // Register API routes before fallback
 require("../src/routes/adminRoute/index")(app);
 require("../src/routes/userRoute/index")(app);
+
+app.use(errorHandler);
 
 const PORT = process.env.PORT || 8000;
 app.listen(PORT, "0.0.0.0", () => {

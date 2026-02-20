@@ -6,5 +6,6 @@ module.exports = (app) => {
     app.use(`${apiPrefix}/user`, require("./userRoute"));
     app.use(`${apiPrefix}/package`, require("./packageRoute"));
     app.use(`${apiPrefix}/offlineTopup`, require("./offlineTopupRequestRoute"));
+    app.use(`${apiPrefix}/topupBank`, require("./topupBankRoute"));
 
 };

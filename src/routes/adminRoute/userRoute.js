@@ -6,7 +6,8 @@ const {
   updateUserStatus,
   assignPackageToUser,
   assignServiceToUser,
-  getAssignedServices
+  getAssignedServices,
+  getAllUserList
 } = require("../../controllers/adminController/userController");
 const { authenticateUser } = require("../../middleware/authMiddleware");
 const { authorizeRoles } = require("../../middleware/roleMiddleware");
@@ -14,6 +15,15 @@ const router = express.Router();
 
 router.get("/stats", authenticateUser, authorizeRoles("admin"), getUserStats);
 
+//gt all users list without pagination
+router.get(
+  "/get-all-user-list",
+  authenticateUser,
+  authorizeRoles("admin"),
+  getAllUserList
+);
+
+// with pagination max 50 users per page
 router.get(
   "/get-users",
   authenticateUser,

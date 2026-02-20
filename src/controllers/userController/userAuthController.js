@@ -15,7 +15,7 @@ const loginLogs = require("../../models/loginLogs");
 const Setting = require("../../models/settingModel");
 const UserRequest = require("../../models/userRequestModel");
 
-exports.userRegister = async (req, res) => {
+exports.userRegister = async (req, res, next) => {
   try {
     const { firstName, lastName, phone, role, email } = req.body;
 
@@ -107,14 +107,11 @@ exports.userRegister = async (req, res) => {
       .status(201)
       .json({ success: true, message: "User registered successfully" });
   } catch (error) {
-    console.log(error);
-    return res
-      .status(500)
-      .json({ success: false, message: "Internal Server Error" });
+    next(error);
   }
 };
 
-exports.userLogin = async (req, res) => {
+exports.userLogin = async (req, res, next) => {
   try {
     const { email, password, userName, systemDetails } = req.body;
 
@@ -181,14 +178,11 @@ exports.userLogin = async (req, res) => {
       token,
     });
   } catch (error) {
-    console.log(error);
-    return res
-      .status(500)
-      .json({ success: false, message: "Internal Server Error" });
+    next(error);
   }
 };
 
-exports.verifyUserOtp = async (req, res) => {
+exports.verifyUserOtp = async (req, res, next) => {
   try {
     const { email, otp } = req.body;
     if (!email || !otp) {
@@ -240,9 +234,6 @@ exports.verifyUserOtp = async (req, res) => {
     });
 
   } catch (error) {
-    console.log(error);
-    return res
-      .status(500)
-      .json({ success: false, message: "Internal Server Error" });
+    next(error);
   }
 };

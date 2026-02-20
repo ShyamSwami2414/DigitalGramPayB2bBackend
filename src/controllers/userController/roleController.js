@@ -1,6 +1,6 @@
 const Role = require("../../models/roleModel");
 
-exports.getRoleListForSignUp = async (req, res) => {
+exports.getRoleListForSignUp = async (req, res, next) => {
     try {
         const roles = await Role.find({
             isActive: true,
@@ -13,15 +13,11 @@ exports.getRoleListForSignUp = async (req, res) => {
             data: roles
         });
     } catch (error) {
-        console.log(error);
-        return res.status(500).json({
-            success: false,
-            message: "Internal Server Error"
-        });
+        next(error);
     }
 }
 
-exports.getUserRoles = async (req, res) => {
+exports.getUserRoles = async (req, res, next) => {
     try {
         console.log(req.user, "user");
         const roles = await Role.find({
@@ -36,10 +32,6 @@ exports.getUserRoles = async (req, res) => {
             data: roles
         });
     } catch (error) {
-        console.log(error);
-        return res.status(500).json({
-            success: false,
-            message: "Internal Server Error"
-        });
+        next(error);
     }
 }

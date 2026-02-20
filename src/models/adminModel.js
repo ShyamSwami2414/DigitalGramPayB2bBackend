@@ -1,4 +1,5 @@
 const mongoose = require("mongoose");
+const AdminWallet = require("./adminWallet");
 
 const adminSchema = new mongoose.Schema(
   {
@@ -11,7 +12,7 @@ const adminSchema = new mongoose.Schema(
       uppercase: true,
       trim: true,
     },
-    
+
     phone: {
       type: String,
       required: true,
@@ -44,5 +45,17 @@ const adminSchema = new mongoose.Schema(
   },
   { timestamps: true, versionKey: false },
 );
+
+adminSchema.post("save", async function (doc, next) {
+  try {
+    const exists = await AdminWallet.exists({ adminId: doc._id });
+    if (!exists) {
+      await AdminWallet.create({ adminId: doc._id });
+    }
+    next();
+  } catch (error) {
+    next(error);
+  }
+});
 
 module.exports = mongoose.model("Admin", adminSchema);

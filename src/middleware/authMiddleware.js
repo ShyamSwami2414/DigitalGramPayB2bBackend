@@ -27,7 +27,7 @@ const authenticateUser = async (req, res, next) => {
 
     if (!user && !admin) {
       console.log("User not found");
-      return res.status(404).json({
+      return res.status(401).json({
         success: false,
         message: "User not found , Provide Valid Token"
       });

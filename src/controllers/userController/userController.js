@@ -8,7 +8,7 @@ const { generateUniquePin } = require("../../utils/uniquePinGenerator");
 const { generateWelcomeEmail } = require("../../templates/emailTemplates/welcomeEmail");
 const { sendEmail } = require("../../utils/email");
 
-exports.getAllUsers = async (req, res) => {
+exports.getAllUsers = async (req, res, next) => {
   try {
     console.log(req.user, "user");
     let { page = 1, limit = 10 } = req.query;
@@ -44,14 +44,11 @@ exports.getAllUsers = async (req, res) => {
       },
     });
   } catch (error) {
-    console.error("Error fetching users:", error);
-    return res
-      .status(500)
-      .json({ success: false, message: "Internal Server Error" });
+    next(error);
   }
 };
 
-exports.createUser = async (req, res) => {
+exports.createUser = async (req, res, next) => {
   try {
     console.log(req.user, "user");
     const { firstName, lastName, email, phone, role } = req.body;
@@ -137,15 +134,12 @@ exports.createUser = async (req, res) => {
       data: newUser,
     });
   } catch (error) {
-    console.error("Error creating user:", error);
-    return res
-      .status(500)
-      .json({ success: false, message: "Internal Server Error" });
+    next(error);
   }
 };
 
 
-exports.updateUserStatus = async (req, res) => {
+exports.updateUserStatus = async (req, res, next) => {
   try {
     console.log(req.user, "user");
     const { id } = req.params;
@@ -185,11 +179,7 @@ exports.updateUserStatus = async (req, res) => {
       data: existingUser,
     });
   } catch (error) {
-    console.error("Error updating user status:", error);
-    return res.status(500).json({
-      success: false,
-      message: "Internal Server Error",
-    });
+    next(error);
   }
 };
 

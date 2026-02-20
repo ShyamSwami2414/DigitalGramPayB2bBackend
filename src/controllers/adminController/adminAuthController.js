@@ -5,7 +5,7 @@ const { generateOTP } = require("../../utils/generateOTP");
 const { generateToken } = require("../../utils/jwt");
 const { sendEmail } = require("../../utils/email");
 
-exports.adminRegister = async (req, res) => {
+exports.adminRegister = async (req, res, next) => {
   try {
     const { name, userName, phone, email, password } = req.body;
 
@@ -34,16 +34,17 @@ exports.adminRegister = async (req, res) => {
     await newAdmin.save();
     return res
       .status(201)
-      .json({ success: true, message: "Admin registered successfully" });
+      .json({
+        success: true,
+        message: "Admin registered successfully"
+      });
+
   } catch (error) {
-    console.log(error);
-    return res
-      .status(500)
-      .json({ success: false, message: "Internal Server Error" });
+    next(error);
   }
 };
 
-exports.superAdminLogin = async (req, res) => {
+exports.superAdminLogin = async (req, res, next) => {
   try {
     const { email, password } = req.body;
 
@@ -93,14 +94,11 @@ exports.superAdminLogin = async (req, res) => {
       message: "OTP sent to your email successfully",
     });
   } catch (error) {
-    console.log(error);
-    return res
-      .status(500)
-      .json({ success: false, message: "Internal Server Error" });
+    next(error);
   }
 };
 
-exports.verifySuperAdminOtp = async (req, res) => {
+exports.verifySuperAdminOtp = async (req, res, next) => {
   try {
     const { email, otp } = req.body;
     if (!email || !otp) {
@@ -150,11 +148,8 @@ exports.verifySuperAdminOtp = async (req, res) => {
       admin,
       token,
     });
-    
+
   } catch (error) {
-    console.log(error);
-    return res
-      .status(500)
-      .json({ success: false, message: "Internal Server Error" });
+    next(error);
   }
 };

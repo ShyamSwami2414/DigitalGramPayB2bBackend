@@ -2,7 +2,7 @@ const Setting = require("../../models/settingModel");
 const path = require("path");
 const fs = require("fs");
 
-exports.getSetting = async (req, res) => {
+exports.getSetting = async (req, res, next) => {
     try {
         const setting = await Setting.findOne();
         if (!setting) {
@@ -18,15 +18,11 @@ exports.getSetting = async (req, res) => {
         });
 
     } catch (error) {
-        console.log(error);
-        return res.status(500).json({
-            success: false,
-            message: "Internal Server Error"
-        });
+        next(error);
     }
 }
 
-exports.createSetting = async (req, res) => {
+exports.createSetting = async (req, res, next) => {
     try {
         console.log("Creating setting with:", req.body, req.files);
 
@@ -103,16 +99,12 @@ exports.createSetting = async (req, res) => {
         });
 
     } catch (error) {
-        console.error("Create Setting Error:", error);
-        return res.status(500).json({
-            success: false,
-            message: error.message,
-        });
+        next(error);
     }
 };
 
 
-exports.updateSetting = async (req, res) => {
+exports.updateSetting = async (req, res, next) => {
     try {
         console.log("Updating setting with:", req.body, req.files);
 
@@ -203,10 +195,6 @@ exports.updateSetting = async (req, res) => {
         });
 
     } catch (error) {
-        console.error("Update Setting Error:", error);
-        return res.status(500).json({
-            success: false,
-            message: error.message,
-        });
+        next(error);
     }
 };

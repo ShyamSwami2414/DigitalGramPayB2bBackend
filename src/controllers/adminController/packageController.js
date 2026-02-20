@@ -2,7 +2,7 @@ const Package = require("../../models/packageModel");
 const { generatePackageCode } = require("../../utils/generatePackageCode");
 const mongoose = require("mongoose");
 
-exports.createPackage = async (req, res) => {
+exports.createPackage = async (req, res, next) => {
   try {
     let { name, role } = req.body;
     name = name?.trim();
@@ -41,15 +41,11 @@ exports.createPackage = async (req, res) => {
       data: newPackage,
     });
   } catch (error) {
-    console.error("Error creating package:", error);
-    return res.status(500).json({
-      success: false,
-      message: "Internal Server Error",
-    });
+    next(error);
   }
 };
 
-exports.getAllPackages = async (req, res) => {
+exports.getAllPackages = async (req, res, next) => {
   try {
     const packages = await Package.find({ isActive: true, isDeleted: false });
     return res.status(200).json({
@@ -58,15 +54,11 @@ exports.getAllPackages = async (req, res) => {
       data: packages,
     });
   } catch (error) {
-    console.log(error);
-    return res.status(500).json({
-      success: false,
-      message: "Internal Server Error",
-    });
+    next(error);
   }
 };
 
-exports.updatePackage = async (req, res) => {
+exports.updatePackage = async (req, res, next) => {
   try {
     const { id } = req.params;
     let { name } = req.body;
@@ -116,15 +108,11 @@ exports.updatePackage = async (req, res) => {
       data: updatedPackage,
     });
   } catch (error) {
-    console.error("Error updating package:", error);
-    return res.status(500).json({
-      success: false,
-      message: "Internal Server Error",
-    });
+    next(error);
   }
 };
 
-exports.updatePackageStatus = async (req, res) => {
+exports.updatePackageStatus = async (req, res, next) => {
   try {
     const { id } = req.params;
 
@@ -154,15 +142,11 @@ exports.updatePackageStatus = async (req, res) => {
       data: existingPackage,
     });
   } catch (error) {
-    console.error("Error updating package status:", error);
-    return res.status(500).json({
-      success: false,
-      message: "Internal Server Error",
-    });
+    next(error);
   }
 };
 
-exports.deletePackage = async (req, res) => {
+exports.deletePackage = async (req, res, next) => {
   try {
     const { id } = req.params;
 
@@ -191,9 +175,6 @@ exports.deletePackage = async (req, res) => {
       .status(200)
       .json({ success: true, message: "Package deleted successfully" });
   } catch (error) {
-    console.error("Error deleting package:", error);
-    return res
-      .status(500)
-      .json({ success: false, message: "Internal Server Error" });
+    next(error);
   }
 };
