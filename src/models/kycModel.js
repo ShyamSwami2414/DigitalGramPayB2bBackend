@@ -7,6 +7,7 @@ const kycSchema = new mongoose.Schema(
       ref: "User",
       required: true,
       unique: true,
+      index: true,
     },
 
     firstName: {
@@ -41,6 +42,8 @@ const kycSchema = new mongoose.Schema(
       required: true,
       lowercase: true,
       trim: true,
+      unique: true,
+      index: true,
       match: [/^\S+@\S+\.\S+$/, "Invalid email format"],
     },
 
@@ -54,6 +57,24 @@ const kycSchema = new mongoose.Schema(
     dob: {
       type: Date,
       required: true,
+      validate: {
+        validator: function (value) {
+          const today = new Date();
+
+          if (value > today) return false;
+
+          const ageDiff = today.getFullYear() - value.getFullYear();
+          const m = today.getMonth() - value.getMonth();
+
+          const age =
+            m < 0 || (m === 0 && today.getDate() < value.getDate())
+              ? ageDiff - 1
+              : ageDiff;
+
+          return age >= 18;
+        },
+        message: "User must be at least 18 years old and DOB cannot be in the future",
+      },
     },
 
     gender: {

@@ -3,7 +3,7 @@ const { handleError } = require("../../utils/errorHandler");
 const { generateServiceCode } = require("../../utils/generateServiceCode");
 const mongoose = require("mongoose");
 
-exports.createService = async (req, res) => {
+exports.createService = async (req, res, next) => {
   try {
     let { name } = req.body;
     name = name?.trim();
@@ -42,15 +42,11 @@ exports.createService = async (req, res) => {
       data: newService,
     });
   } catch (error) {
-    console.error("Error creating service:", error);
-    return res.status(500).json({
-      success: false,
-      message: handleError(error),
-    });
+    next(error);
   }
 };
 
-exports.getAllServices = async (req, res) => {
+exports.getAllServices = async (req, res, next) => {
   try {
     const services = await Service.find({ isActive: true, isDeleted: false })
       .sort({ createdAt: -1 })
@@ -62,15 +58,11 @@ exports.getAllServices = async (req, res) => {
       data: services,
     });
   } catch (error) {
-    console.log(error);
-    return res.status(500).json({
-      success: false,
-      message: "Internal Server Error",
-    });
+    next(error);
   }
 };
 
-exports.updateService = async (req, res) => {
+exports.updateService = async (req, res, next) => {
   try {
     const { id } = req.params;
     let { name } = req.body;
@@ -120,15 +112,11 @@ exports.updateService = async (req, res) => {
       data: updatedService,
     });
   } catch (error) {
-    console.error("Error updating service:", error);
-    return res.status(500).json({
-      success: false,
-      message: "Internal Server Error",
-    });
+    next(error);
   }
 };
 
-exports.updateServiceStatus = async (req, res) => {
+exports.updateServiceStatus = async (req, res, next) => {
   try {
     const { id } = req.params;
 
@@ -158,15 +146,11 @@ exports.updateServiceStatus = async (req, res) => {
       data: existingService,
     });
   } catch (error) {
-    console.error("Error updating service status:", error);
-    return res.status(500).json({
-      success: false,
-      message: "Internal Server Error",
-    });
+    next(error);
   }
 };
 
-exports.deleteService = async (req, res) => {
+exports.deleteService = async (req, res, next) => {
   try {
     const { id } = req.params;
 
@@ -195,9 +179,7 @@ exports.deleteService = async (req, res) => {
       .status(200)
       .json({ success: true, message: "Service deleted successfully" });
   } catch (error) {
-    console.error("Error deleting service:", error);
-    return res
-      .status(500)
-      .json({ success: false, message: "Internal Server Error" });
+    next(error);
+
   }
-};
+}

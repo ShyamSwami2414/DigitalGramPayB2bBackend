@@ -1,4 +1,5 @@
 const mongoose = require("mongoose");
+const UserWallet = require("./userWallet");
 
 const userSchema = new mongoose.Schema(
   {
@@ -96,5 +97,17 @@ const userSchema = new mongoose.Schema(
   },
   { timestamps: true, versionKey: false },
 );
+
+userSchema.post("save", async function (doc, next) {
+  try {
+    const exists = await UserWallet.exists({ userId: doc._id });
+    if (!exists) {
+      await UserWallet.create({ userId: doc._id });
+    }
+    next();
+  } catch (error) {
+    next(error);
+  }
+});
 
 module.exports = mongoose.model("User", userSchema);

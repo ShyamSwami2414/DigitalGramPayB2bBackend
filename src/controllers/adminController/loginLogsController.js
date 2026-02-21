@@ -1,6 +1,6 @@
 const LoginLog = require("../../models/loginLogs");
 
-exports.getLoginLogs = async (req, res) => {
+exports.getLoginLogs = async (req, res, next) => {
     try {
         let { page = 1, limit = 10 } = req.query;
         page = parseInt(page);
@@ -65,10 +65,6 @@ exports.getLoginLogs = async (req, res) => {
             }
         });
     } catch (error) {
-        console.log(error);
-        return res.status(500).json({
-            success: false,
-            message: "Internal Server Error"
-        });
+        next(error);
     }
 }

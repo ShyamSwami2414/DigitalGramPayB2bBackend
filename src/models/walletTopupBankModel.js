@@ -6,7 +6,12 @@ const walletTopupBankSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: "Admin",
       required: [true, "Admin ID is required"],
-      index: true,
+    },
+
+    qrCode: {
+      type: String,
+      required: [true, "QR code is required"],
+      trim: true,
     },
 
     bankName: {
@@ -23,12 +28,14 @@ const walletTopupBankSchema = new mongoose.Schema(
       trim: true,
       minlength: [2, "Account holder name too short"],
       maxlength: [100, "Account holder name too long"],
+      match: [/^[A-Za-z\s]+$/, "Name can contain only letters and spaces"],
     },
 
     accountNumber: {
       type: String,
       required: [true, "Account number is required"],
       trim: true,
+      unique: [true, "Account number already exists"],
       minlength: [6, "Account number too short"],
       maxlength: [20, "Account number too long"],
       match: [/^[0-9]+$/, "Account number must contain only digits"],

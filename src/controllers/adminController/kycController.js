@@ -4,7 +4,7 @@ const mongoose = require("mongoose");
 const { kycStatusTemplate } = require("../../templates/emailTemplates/kycEmail");
 const { sendEmail } = require("../../utils/email");
 
-exports.getKycData = async (req, res) => {
+exports.getKycData = async (req, res, next) => {
   try {
     let { page = 1, limit = 10, status = "", search = "" } = req.query;
 
@@ -51,14 +51,11 @@ exports.getKycData = async (req, res) => {
       },
     });
   } catch (error) {
-    console.error("Error fetching KYC data:", error);
-    return res
-      .status(500)
-      .json({ success: false, message: "Internal Server Error" });
+    next(error);
   }
 };
 
-exports.getKycById = async (req, res) => {
+exports.getKycById = async (req, res, next) => {
   try {
     const { id } = req.params;
 
@@ -92,14 +89,11 @@ exports.getKycById = async (req, res) => {
     });
 
   } catch (error) {
-    console.error("Error fetching KYC By id:", error);
-    return res
-      .status(500)
-      .json({ success: false, message: "Internal Server Error" });
+    next(error);
   }
 };
 
-exports.getKycByUserId = async (req, res) => {
+exports.getKycByUserId = async (req, res, next) => {
   try {
     const { userId } = req.params;
 
@@ -144,14 +138,11 @@ exports.getKycByUserId = async (req, res) => {
     });
 
   } catch (error) {
-    console.error("Error fetching KYC By id:", error);
-    return res
-      .status(500)
-      .json({ success: false, message: "Internal Server Error" });
+    next(error);
   }
 };
 
-exports.updateSectionStatus = async (req, res) => {
+exports.updateSectionStatus = async (req, res, next) => {
   try {
     const { id } = req.params;
     let { section, status } = req.body;
@@ -209,15 +200,12 @@ exports.updateSectionStatus = async (req, res) => {
     });
 
   } catch (error) {
-    console.error("Error updating section status:", error);
-    return res
-      .status(500)
-      .json({ success: false, message: "Internal Server Error" });
+    next(error);
   }
 
 }
 
-exports.updateOverAllKycStatus = async (req, res) => {
+exports.updateOverAllKycStatus = async (req, res, next) => {
   const session = await mongoose.startSession();
 
   try {
@@ -324,11 +312,8 @@ exports.updateOverAllKycStatus = async (req, res) => {
       .status(200)
       .json({ success: true, message: "Kyc Updated", data: kyc });
   } catch (error) {
-    console.error("Error updating kyc status:", error);
     await session.abortTransaction();
     session.endSession();
-    return res
-      .status(500)
-      .json({ success: false, message: "Internal Server Error" });
+    next(error);
   }
-};
+}

@@ -12,7 +12,60 @@ const {
 } = require("../../templates/emailTemplates/welcomeEmail");
 const { sendEmail } = require("../../utils/email");
 
-exports.getUserStats = async (req, res) => {
+exports.getAllUserList = async (req, res, next) => {
+  try {
+    const users = await User.aggregate([
+      {
+        $match: {
+          isDeleted: false
+        }
+      },
+      {
+        $lookup: {
+          from: "userwallets",
+          localField: "_id",
+          foreignField: "userId",
+          as: "userWallet",
+        },
+      },
+      {
+        $unwind: {
+          path: "$userWallet",
+          preserveNullAndEmptyArrays: true,
+        },
+      },
+      {
+        $addFields: {
+          aepsWallet: "$userWallet.aepsWallet",
+          mainWallet: "$userWallet.mainWallet",
+          aepsHold: "$userWallet.aepsHoldAmount",
+          mainHold: "$userWallet.mainHoldAmount",
+        }
+      },
+      {
+        $project: {
+          _id: 1,
+          fullName: { $concat: ["$firstName", " ", "$lastName"] },
+          email: 1,
+          aepsWallet: 1,
+          mainWallet: 1,
+          aepsHold: 1,
+          mainHold: 1,
+        }
+      }])
+
+    return res.status(200).json({
+      success: true,
+      message: "Users fetched successfully",
+      data: users,
+    });
+
+  } catch (error) {
+    next(error);
+  }
+}
+
+exports.getUserStats = async (req, res, next) => {
   try {
     const result = await Role.aggregate([
 
@@ -86,14 +139,11 @@ exports.getUserStats = async (req, res) => {
       .status(200)
       .json({ success: true, message: "User Stats Done", data: result });
   } catch (error) {
-    console.error("Error fetching users:", error);
-    return res
-      .status(500)
-      .json({ success: false, message: "Internal Server Error" });
+    next(error);
   }
 };
 
-exports.getAllUsers = async (req, res) => {
+exports.getAllUsers = async (req, res, next) => {
   try {
     let { page = 1, limit = 10, status = "", search = "" } = req.query;
     page = parseInt(page);
@@ -231,14 +281,11 @@ exports.getAllUsers = async (req, res) => {
       },
     });
   } catch (error) {
-    console.error("Error fetching users:", error);
-    return res
-      .status(500)
-      .json({ success: false, message: "Internal Server Error" });
+    next(error);
   }
 };
 
-exports.createUser = async (req, res) => {
+exports.createUser = async (req, res, next) => {
   try {
     const { firstName, lastName, email, phone, role, package } = req.body;
 
@@ -330,14 +377,11 @@ exports.createUser = async (req, res) => {
       data: newUser,
     });
   } catch (error) {
-    console.error("Error creating user:", error);
-    return res
-      .status(500)
-      .json({ success: false, message: "Internal Server Error" });
+    next(error);
   }
 };
 
-exports.updateUserStatus = async (req, res) => {
+exports.updateUserStatus = async (req, res, next) => {
   try {
     const { id } = req.params;
 
@@ -367,15 +411,11 @@ exports.updateUserStatus = async (req, res) => {
       data: existingUser,
     });
   } catch (error) {
-    console.error("Error updating user status:", error);
-    return res.status(500).json({
-      success: false,
-      message: "Internal Server Error",
-    });
+    next(error);
   }
 };
 
-exports.assignPackageToUser = async (req, res) => {
+exports.assignPackageToUser = async (req, res, next) => {
   try {
     const { packageId } = req.body;
     const { userId } = req.params;
@@ -433,15 +473,11 @@ exports.assignPackageToUser = async (req, res) => {
     });
 
   } catch (error) {
-    console.error("Error assigning package to user:", error);
-    return res.status(500).json({
-      success: false,
-      message: "Internal Server Error",
-    });
+    next(error);
   }
 }
 
-exports.assignServiceToUser = async (req, res) => {
+exports.assignServiceToUser = async (req, res, next) => {
   try {
     const { services } = req.body;
     const { userId } = req.params;
@@ -510,15 +546,11 @@ exports.assignServiceToUser = async (req, res) => {
     });
 
   } catch (error) {
-    console.error("Error updating services:", error);
-    return res.status(500).json({
-      success: false,
-      message: "Internal Server Error",
-    });
+    next(error);
   }
 };
 
-exports.getAssignedServices = async (req, res) => {
+exports.getAssignedServices = async (req, res, next) => {
   try {
     const { userId } = req.params;
 
@@ -580,10 +612,6 @@ exports.getAssignedServices = async (req, res) => {
     });
 
   } catch (error) {
-    console.error("Error fetching assigned services:", error);
-    return res.status(500).json({
-      success: false,
-      message: "Internal Server Error",
-    });
+    next(error);
   }
 }

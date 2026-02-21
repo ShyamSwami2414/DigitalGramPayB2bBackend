@@ -1,7 +1,7 @@
 const mongoose = require("mongoose");
 const Role = require("../../models/roleModel");
 
-exports.getOnBoardCharges = async (req, res) => {
+exports.getOnBoardCharges = async (req, res, next) => {
   try {
     const charges = await Role.find({
       isActive: true,
@@ -14,15 +14,11 @@ exports.getOnBoardCharges = async (req, res) => {
       data: charges,
     });
   } catch (error) {
-    console.log(error);
-    return res.status(500).json({
-      success: false,
-      message: "Internal Server Error",
-    });
+    next(error);
   }
 };
 
-exports.setOnBoardCharges = async (req, res) => {
+exports.setOnBoardCharges = async (req, res, next) => {
   try {
     console.log(req.body, "body");
     const { role, amount, isPaymentRequired } = req.body;
@@ -62,14 +58,11 @@ exports.setOnBoardCharges = async (req, res) => {
       data: newRole,
     });
   } catch (error) {
-    console.log(error, "error setting charges");
-    return res
-      .status(500)
-      .json({ success: false, message: "Internal Server Error" });
+    next(error);
   }
 };
 
-exports.updateCharge = async (req, res) => {
+exports.updateCharge = async (req, res, next) => {
   try {
     const { id } = req.params;
     const { amount, isPaymentRequired } = req.body;
@@ -111,9 +104,6 @@ exports.updateCharge = async (req, res) => {
       .status(200)
       .json({ success: true, message: "Charges Updated", data: charge });
   } catch (error) {
-    console.log(error, "error updating charges");
-    return res
-      .status(500)
-      .json({ success: false, message: "Internal Server Error" });
+    next(error);
   }
 };

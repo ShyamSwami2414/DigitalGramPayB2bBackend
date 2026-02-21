@@ -11,7 +11,7 @@ const { sendEmail } = require("../../utils/email");
 const { generateRejectionEmail } = require("../../templates/emailTemplates/userRequestRejectionEmail");
 
 
-exports.getAllUserRequests = async (req, res) => {
+exports.getAllUserRequests = async (req, res, next) => {
     try {
         let { page = 1, limit = 10 } = req.query;
         page = parseInt(page);
@@ -109,14 +109,11 @@ exports.getAllUserRequests = async (req, res) => {
             },
         });
     } catch (error) {
-        console.error("Error fetching users:", error);
-        return res
-            .status(500)
-            .json({ success: false, message: "Internal Server Error" });
+        next(error);
     }
 };
 
-exports.updateUserRequestStatus = async (req, res) => {
+exports.updateUserRequestStatus = async (req, res, next) => {
     const session = await mongoose.startSession()
     try {
         session.startTransaction();
@@ -249,11 +246,6 @@ exports.updateUserRequestStatus = async (req, res) => {
     } catch (error) {
         await session.abortTransaction();
         session.endSession();
-
-        console.error("Error updating user request status:", error);
-        return res.status(500).json({
-            success: false,
-            message: "Internal Server Error",
-        });
+        next(error);
     }
 };

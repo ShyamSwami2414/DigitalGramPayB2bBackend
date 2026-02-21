@@ -5,7 +5,12 @@ const fundRequestSchema = new mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: "User",
         required: true,
-        unique: true,
+    },
+
+    walletTopupBankId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "WalletTopupBank",
+        required: true,
     },
 
     amount: {
@@ -19,19 +24,22 @@ const fundRequestSchema = new mongoose.Schema({
         required: true,
     },
 
-    receiverBank: {
-        type: String,
-        required: true,
-    },
-
     utrNumber: {
         type: String,
         required: true,
+        unique: [true, "UTR number already exists"],
+        index: true,
     },
 
     paymentDate: {
         type: Date,
         required: true,
+        validate: {
+            validator: function (value) {
+                return value <= new Date(); // must not be future
+            },
+            message: "Payment date cannot be in the future",
+        },
     },
 
     paymentProof: {
@@ -43,6 +51,21 @@ const fundRequestSchema = new mongoose.Schema({
         type: String,
         enum: ["pending", "approved", "rejected"],
         default: "pending",
+    },
+
+    approvedAt: {
+        type: Date,
+        default: null
+    },
+
+    rejectionReason: {
+        type: String,
+        default: ""
+    },
+
+    rejectedAt: {
+        type: Date,
+        default: null
     },
 
 }, { timestamps: true, versionKey: false })
