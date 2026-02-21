@@ -5,6 +5,7 @@ const userWalletSchema = new mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: "User",
         unique: [true, "User wallet already exists"],
+        index: true,
         required: [true, "User ID is required"]
     },
 
@@ -63,7 +64,5 @@ const userWalletSchema = new mongoose.Schema({
     },
 
 }, { timestamps: true, versionKey: false })
-
-userWalletSchema.index({ userId: 1 });
 
 module.exports = mongoose.model("UserWallet", userWalletSchema);

@@ -1,5 +1,39 @@
 const mongoose = require("mongoose");
 const UserWallet = require("../../models/userWallet");
+const User = require("../../models/userModel");
+const WalletLedger = require("../../models/walletLedgerModel");
+
+exports.getWalletBalances = async (req, res, next) => {
+    try {
+        const [walletBalances] = await UserWallet.aggregate([
+            {
+                $match: {
+                    isDeleted: false,
+                }
+            },
+            {
+                $group: {
+                    _id: null,
+                    mainWallet: { $sum: "$mainWallet" },
+                    aepsWallet: { $sum: "$aepsWallet" },
+                    mainHoldAmount: { $sum: "$mainHoldAmount" },
+                    aepsHoldAmount: { $sum: "$aepsHoldAmount" },
+                }
+            }
+        ])
+
+        console.log(walletBalances);
+
+        return res.status(200).json({
+            success: true,
+            message: "Wallet balances fetched successfully",
+            data: walletBalances,
+        });
+
+    } catch (error) {
+        next(error);
+    }
+}
 
 exports.getAllUserWallet = async (req, res, next) => {
     try {
@@ -112,8 +146,21 @@ exports.holdReleaseAmount = async (req, res, next) => {
             return res.status(400).json({ message: "Invalid wallet type" });
         }
 
+        const userExist = await User.findOne({
+            _id: new mongoose.Types.ObjectId(userId),
+            isActive: true,
+            isDeleted: false,
+        })
+
+        if (!userExist) {
+            return res.status(400).json({
+                success: false,
+                message: "User not found or not active"
+            });
+        }
+
         const field = walletType === "aeps" ? "aepsHoldAmount" : "mainHoldAmount";
-        const updatedValue = type === "hold" ? amount : -amount;
+        const transactionAmount = type === "hold" ? amount : -amount;
 
         const query =
             type === "release"
@@ -130,7 +177,7 @@ exports.holdReleaseAmount = async (req, res, next) => {
                 };
 
 
-        let updateData = { $inc: { [field]: updatedValue } };
+        let updateData = { $inc: { [field]: transactionAmount } };
 
         // save reason only when HOLD
         if (type === "hold" && reason) {
@@ -162,6 +209,159 @@ exports.holdReleaseAmount = async (req, res, next) => {
             data: updatedUserWallet
         });
     } catch (error) {
+        next(error);
+    }
+}
+
+exports.creditDebitAmount = async (req, res, next) => {
+    const session = await mongoose.startSession();
+    try {
+        session.startTransaction();
+        let { userId, amount, walletType, type, reason } = req.body;
+        amount = Number(amount);
+
+        type = type?.trim().toLowerCase();
+        walletType = walletType?.trim().toLowerCase();
+        reason = reason?.trim();
+
+        const requiredFields = ["userId", "amount", "type", "walletType"]
+        const missingField = [];
+        let openingBalance = 0;
+        let closingBalance = 0;
+
+        requiredFields.forEach(field => {
+            if (!req.body[field]) {
+                missingField.push(field);
+            }
+        })
+
+        if (missingField.length > 0) {
+            const error = new Error(`Missing fields: ${missingField.join(", ")}`);
+            error.statusCode = 400;
+            throw error;
+        }
+
+        if (!mongoose.Types.ObjectId.isValid(userId)) {
+            const error = new Error("Invalid user ID");
+            error.statusCode = 400;
+            throw error;
+        }
+
+
+        if (!Number.isFinite(amount)) {
+            const error = new Error("Invalid amount");
+            error.statusCode = 400;
+            throw error;
+        }
+
+        if (amount <= 0) {
+            const error = new Error("Amount must be greater than 0");
+            error.statusCode = 400;
+            throw error;
+        }
+
+        if (!["credit", "debit"].includes(type)) {
+            const error = new Error("Invalid type");
+            error.statusCode = 400;
+            throw error;
+        }
+
+        if (!["aeps", "main"].includes(walletType)) {
+            const error = new Error("Invalid wallet type");
+            error.statusCode = 400;
+            throw error;
+        }
+
+        if (walletType === "aeps" && type === "credit") {
+            const error = new Error("Can not credit amount to aeps wallet");
+            error.statusCode = 400;
+            throw error;
+        }
+
+        const userExist = await User.findOne({
+            _id: new mongoose.Types.ObjectId(userId),
+            isActive: true,
+            isDeleted: false,
+        })
+
+        if (!userExist) {
+            const error = new Error("User not found or not active");
+            error.statusCode = 400;
+            throw error;
+        }
+
+        const field = walletType === "aeps" ? "aepsWallet" : "mainWallet";
+        const transactionAmount = type === "credit" ? amount : -amount;
+
+        let query;
+
+        if (type === "credit") {
+            query = {
+                userId: new mongoose.Types.ObjectId(userId),
+                isActive: true,
+                isDeleted: false,
+            };
+        } else {
+            // debit prevent negative balance
+            query = {
+                userId: new mongoose.Types.ObjectId(userId),
+                isActive: true,
+                isDeleted: false,
+                [field]: { $gte: amount },
+            };
+        }
+
+        let updateData = { $inc: { [field]: transactionAmount } };
+
+        const updatedUserWallet = await UserWallet.findOneAndUpdate(
+            query,
+            updateData,
+            { new: true, session }
+        );
+
+        if (!updatedUserWallet) {
+            const error = new Error(
+                type === "debit"
+                    ? "Insufficient wallet balance"
+                    : "Wallet not found"
+            );
+            error.statusCode = 400;
+            throw error;
+        }
+
+        console.log("updatedUserWallet", updatedUserWallet);
+
+        closingBalance = updatedUserWallet[field];
+        openingBalance = closingBalance - transactionAmount;
+
+        await WalletLedger.create(
+            [
+                {
+                    userId: new mongoose.Types.ObjectId(userId),
+                    wallet: walletType,
+                    type: type,
+                    amount: amount,
+                    openingBalance: openingBalance,
+                    closingBalance: closingBalance,
+                    referenceId: updatedUserWallet._id,
+                    description: reason
+                }
+            ],
+            { session }
+        );
+
+        await session.commitTransaction();
+        session.endSession();
+
+        return res.status(200).json({
+            success: true,
+            message: `Amount ${type}ed successfully`,
+            data: updatedUserWallet
+        });
+
+    } catch (error) {
+        await session.abortTransaction();
+        session.endSession();
         next(error);
     }
 }
