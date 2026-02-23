@@ -107,6 +107,14 @@ exports.createSetting = async (req, res, next) => {
 exports.updateSetting = async (req, res, next) => {
     try {
         console.log("Updating setting with:", req.body, req.files);
+        const {
+            requireAdminApprovalForCredentials,
+            isKycOnline,
+            title,
+            email,
+            phone,
+            address,
+        } = req.body;
 
         const setting = await Setting.findOne();
         if (!setting) {
@@ -120,28 +128,20 @@ exports.updateSetting = async (req, res, next) => {
         const faviconFile = req.files?.favicon?.[0];
         const qrCodeFile = req.files?.qrCode?.[0];
 
-        const {
-            requireAdminApprovalForCredentials,
-            title,
-            email,
-            phone,
-            address,
-        } = req.body;
-
-
         const updateData = {};
 
-        if (requireAdminApprovalForCredentials !== undefined)
-            updateData.requireAdminApprovalForCredentials =
-                requireAdminApprovalForCredentials;
+        if (requireAdminApprovalForCredentials !== undefined) {
+            updateData.requireAdminApprovalForCredentials = requireAdminApprovalForCredentials;
+        }
+
+        if (isKycOnline !== undefined) {
+            updateData.isKycOnline = isKycOnline;
+        }
 
         if (title) updateData.title = title.trim();
         if (email) updateData.email = email.trim();
         if (phone) updateData.phone = phone.trim();
         if (address) updateData.address = address.trim();
-
-        const fs = require("fs");
-        const path = require("path");
 
         const deleteOldFile = (filePath) => {
             if (!filePath) return;

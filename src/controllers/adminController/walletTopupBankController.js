@@ -72,6 +72,7 @@ exports.addWalletTopupBank = async (req, res, next) => {
             success: true,
             message: "Wallet topup bank added successfully",
             data: walletTopupBank,
+            
         });
     } catch (error) {
         next(error);

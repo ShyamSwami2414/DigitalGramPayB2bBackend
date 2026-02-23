@@ -9,5 +9,6 @@ module.exports = (app) => {
     app.use(`${apiPrefix}/topupBank`, require("./topupBankRoute"));
     app.use(`${apiPrefix}/wallet`, require("./walletRoute"));
     app.use(`${apiPrefix}/aepsPayoutBank`, require("./aepsPayoutBankRoute"));
-
+    app.use(`${apiPrefix}/enquiry`, require("./enquiryRoute"));
+    app.use(`${apiPrefix}/support`, require("./supportRoute"));
 };

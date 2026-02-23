@@ -15,6 +15,12 @@ const supportSchema = new mongoose.Schema({
         index: true,
     },
 
+    transactionId: {
+        type: String,
+        index: true,
+        default: null,
+    },
+
     serviceId: {
         type: mongoose.Schema.Types.ObjectId,
         ref: "Service",

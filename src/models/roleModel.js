@@ -30,6 +30,8 @@ const roleSchema = new mongoose.Schema(
       min: [0, "OnBoard charge cannot be negative"],
     },
 
+    
+
     isActive: {
       type: Boolean,
       default: true

@@ -125,7 +125,7 @@ exports.getKycByUserId = async (req, res, next) => {
     console.log(kyc, "Kyc By User ID")
 
     if (!kyc) {
-      return res.status(404).json({
+      return res.status(400).json({
         success: false,
         message: "Kyc Not Found"
       });
