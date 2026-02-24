@@ -260,6 +260,7 @@ exports.getWalletBalance = async (req, res, next) => {
     }
 }
 
+// this api only for wallet aeps to main wallet transfer history
 exports.getWalletTransferHistory = async (req, res, next) => {
     try {
         let { page = 1, limit = 10, search = '' } = req.query;
@@ -269,13 +270,44 @@ exports.getWalletTransferHistory = async (req, res, next) => {
         const skip = (page - 1) * limit;
         const userId = req.user.id;
 
-        console.log(userId);
+        const filter = {
+            userId: new mongoose.Types.ObjectId(userId),
+        }
+
+        if (search) {
+            filter.$or = [
+                {
+                    openingBalance: {
+                        $regex: search,
+                        $options: "i",
+                    }
+                },
+
+                {
+                    closingBalance: {
+                        $regex: search,
+                        $options: "i",
+                    }
+                },
+                {
+                    referenceId: {
+                        $regex: search,
+                        $options: "i",
+                    }
+                }
+            ]
+        }
+
+        if (!mongoose.Types.ObjectId.isValid(userId)) {
+            return res.status(400).json({
+                success: false,
+                message: "Invalid user ID",
+            });
+        }
 
         const walletTransferHistory = await WalletLedger.aggregate([
             {
-                $match: {
-                    userId: new mongoose.Types.ObjectId(userId),
-                }
+                $match: filter
             },
             {
                 $project: {
@@ -313,3 +345,124 @@ exports.getWalletTransferHistory = async (req, res, next) => {
         next(error);
     }
 }
+
+exports.getWalletReport = async (req, res, next) => {
+    try {
+        let {
+            page = 1,
+            limit = 10,
+            search = '',
+            fromDate = '',
+            toDate = '',
+            wallet = '',
+            type = ''
+        } = req.query;
+
+        page = parseInt(page);
+        limit = parseInt(limit);
+        wallet = wallet.trim().toLowerCase();
+        type = type.trim().toLowerCase();
+        search = search.trim();
+        fromDate = fromDate.trim();
+        toDate = toDate.trim();
+        const skip = (page - 1) * limit;
+        const userId = req.user.id;
+
+        const filter = {
+            userId: new mongoose.Types.ObjectId(userId),
+        }
+
+        if (!["main", "aeps"].includes(wallet)) {
+            return res.status(400).json({
+                success: false,
+                message: "Invalid wallet type",
+            });
+        }
+
+        if (!["credit", "debit"].includes(type)) {
+            return res.status(400).json({
+                success: false,
+                message: "Invalid transaction type",
+            });
+        }
+
+        if (wallet) {
+            filter.wallet = wallet;
+        }
+
+        if (type) {
+            filter.type = type;
+        }
+
+        if (search) {
+            filter.$or = [
+                {
+                    openingBalance: {
+                        $regex: search,
+                        $options: "i",
+                    }
+                },
+
+                {
+                    closingBalance: {
+                        $regex: search,
+                        $options: "i",
+                    }
+                },
+                {
+                    referenceId: {
+                        $regex: search,
+                        $options: "i",
+                    }
+                }
+            ]
+        }
+
+        if (!mongoose.Types.ObjectId.isValid(userId)) {
+            return res.status(400).json({
+                success: false,
+                message: "Invalid user ID",
+            });
+        }
+
+        const walletReport = await WalletLedger.aggregate([
+            {
+                $match: filter
+            },
+            {
+                $project: {
+                    userId: 1,
+                    wallet: 1,
+                    type: 1,
+                    amount: 1,
+                    openingBalance: 1,
+                    closingBalance: 1,
+                    description: 1,
+                    referenceId: 1,
+                    createdAt: 1,
+                    updatedAt: 1,
+                }
+            },
+            {
+                $sort: {
+                    createdAt: -1,
+                }
+            },
+            {
+                $skip: skip,
+            },
+            {
+                $limit: limit,
+            }
+        ])
+
+        return res.status(200).json({
+            success: true,
+            message: "Wallet report fetched successfully",
+            data: walletReport,
+        });
+    } catch (error) {
+        next(error);
+    }
+}
+

@@ -11,4 +11,7 @@ module.exports = (app) => {
     app.use(`${apiPrefix}/aepsPayoutBank`, require("./aepsPayoutBankRoute"));
     app.use(`${apiPrefix}/enquiry`, require("./enquiryRoute"));
     app.use(`${apiPrefix}/support`, require("./supportRoute"));
+    app.use(`${apiPrefix}/service`, require("./serviceRoute"));
+    app.use(`${apiPrefix}/accountWhitelist`, require("./accountWhitelistRoute"));
+    app.use(`${apiPrefix}/order`, require("./orderRoute"));
 };

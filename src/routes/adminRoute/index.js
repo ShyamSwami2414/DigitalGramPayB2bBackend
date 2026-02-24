@@ -18,4 +18,9 @@ module.exports = (app) => {
   app.use(`${apiPrefix}/payoutBankRequest`, require("./payoutBankRequestRoute"));
   app.use(`${apiPrefix}/support`, require("./supportRoute"));
   app.use(`${apiPrefix}/enquiry`, require("./enquiryRoute"));
+  app.use(`${apiPrefix}/accountWhitelistRequest`, require("./accountWhitelistRequestRoute"));
+  app.use(`${apiPrefix}/ecommerce`, require("./ecommerceRoute"));
+  app.use(`${apiPrefix}/order`, require("./orderRoute"));
+  app.use(`${apiPrefix}/permission`, require("./permissionRoute"));
+  app.use(`${apiPrefix}/employee`, require("./employeeRoute"));
 };
