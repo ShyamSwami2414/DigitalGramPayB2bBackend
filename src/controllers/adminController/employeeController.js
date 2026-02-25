@@ -8,6 +8,43 @@ const { generateWelcomeEmail } = require("../../templates/emailTemplates/welcome
 const { generateUniquePin } = require("../../utils/uniquePinGenerator");
 const { sendEmail } = require("../../utils/email");
 
+exports.getEmployeeStats = async (req, res, next) => {
+    try {
+        const result = await Admin.aggregate([
+            {
+                $match: {
+                    type: "employee",
+                    isDeleted: false,
+                }
+            },
+            {
+                $group: {
+                    _id: "$status",
+                    total: { $sum: 1 },
+                    active: { $sum: { $cond: [{ $eq: ["$isActive", true] }, 1, 0] } },
+                    inactive: { $sum: { $cond: [{ $eq: ["$isActive", false] }, 1, 0] } },
+                }
+            },
+            {
+                $project: {
+                    _id: 0,
+                    total: 1,
+                    active: 1,
+                    inactive: 1,
+                }
+            }
+        ])
+
+        res.status(200).json({
+            success: true,
+            message: "Employee stats fetched successfully",
+            data: result,
+        });
+    } catch (error) {
+        next(error);
+    }
+}
+
 exports.getEmployeeById = async (req, res, next) => {
     try {
         const { id } = req.params;

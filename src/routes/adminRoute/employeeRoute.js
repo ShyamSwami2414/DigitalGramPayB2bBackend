@@ -3,7 +3,14 @@ const router = express.Router();
 
 const { authenticateUser } = require("../../middleware/authMiddleware");
 const { authorizeRoles } = require("../../middleware/roleMiddleware");
-const { addEmployee, getEmployeeList, updateEmployee, deleteEmployee, getEmployeeById } = require("../../controllers/adminController/employeeController");
+const { addEmployee, getEmployeeList, updateEmployee, deleteEmployee, getEmployeeById, getEmployeeStats } = require("../../controllers/adminController/employeeController");
+
+router.get(
+    "/employee-stats",
+    authenticateUser,
+    authorizeRoles("admin"),
+    getEmployeeStats
+);
 
 router.get(
     "/employee-list",

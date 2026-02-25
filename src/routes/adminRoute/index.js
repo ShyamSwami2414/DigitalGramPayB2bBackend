@@ -23,4 +23,5 @@ module.exports = (app) => {
   app.use(`${apiPrefix}/order`, require("./orderRoute"));
   app.use(`${apiPrefix}/permission`, require("./permissionRoute"));
   app.use(`${apiPrefix}/employee`, require("./employeeRoute"));
+  app.use(`${apiPrefix}/walletLedger`, require("./walletLedgerRoute"));
 };

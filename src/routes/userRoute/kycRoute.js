@@ -2,6 +2,8 @@ const express = require("express");
 const {
   offlineKycSubmission,
   onlineKycSubmission,
+  sendAadharOtpForOnlineKyc,
+  verifyAadharOtpForOnlineKyc,
 } = require("../../controllers/userController/kycController");
 const { authenticateUser } = require("../../middleware/authMiddleware");
 const createUploader = require("../../middleware/uploadMiddleware");
@@ -19,6 +21,10 @@ router.post(
   ]),
   offlineKycSubmission,
 );
+
+router.post("/send-aadhar-otp", authenticateUser, sendAadharOtpForOnlineKyc);
+
+router.post("/verify-aadhar-otp", authenticateUser, verifyAadharOtpForOnlineKyc);
 
 router.post(
   "/online-kyc-submission",

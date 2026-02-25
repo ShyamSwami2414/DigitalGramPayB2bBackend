@@ -1,6 +1,7 @@
 const Kyc = require("../../models/kycModel");
 const User = require("../../models/userModel");
 const Setting = require("../../models/settingModel");
+const { validateAadhar } = require("../../helpers/validateAadhar");
 
 exports.offlineKycSubmission = async (req, res, next) => {
   try {
@@ -175,6 +176,116 @@ exports.offlineKycSubmission = async (req, res, next) => {
   }
 };
 
+exports.sendAadharOtpForOnlineKyc = async (req, res, next) => {
+  try {
+    const setting = await Setting.findOne();
+    if (!setting) {
+      return res.status(404).json({
+        success: false,
+        message: "Setting not found",
+      });
+    }
+
+    if (!setting.isKycOnline) {
+      return res.status(400).json({
+        success: false,
+        message: "Online KYC is not enabled",
+      });
+    }
+
+    console.log(
+      req.user,
+      "is sending Aadhar OTP for Online KYC with data:",
+      req.body,
+    );
+
+    const { aadharNumber } = req.body;
+
+    if (!aadharNumber) {
+      return res.status(400).json({
+        success: false,
+        message: "Aadhar number is required",
+      });
+    }
+
+    if (!validateAadhar(aadharNumber)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid Aadhar number",
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: "Aadhar OTP sent successfully",
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+exports.verifyAadharOtpForOnlineKyc = async (req, res, next) => {
+  try {
+    const setting = await Setting.findOne();
+    if (!setting) {
+      return res.status(404).json({
+        success: false,
+        message: "Setting not found",
+      });
+    }
+
+    if (!setting.isKycOnline) {
+      return res.status(400).json({
+        success: false,
+        message: "Online KYC is not enabled",
+      });
+    }
+
+    console.log(
+      req.user,
+      "is verifying Aadhar OTP for Online KYC with data:",
+      req.body,
+    );
+
+    const { aadharOtp } = req.body;
+
+    if (!aadharOtp) {
+      return res.status(400).json({
+        success: false,
+        message: "Aadhar OTP is required",
+      });
+    }
+
+    const kycData = await Kyc.findOne({
+      userId: req.user.id,
+    });
+
+    if (!kycData) {
+      return res.status(404).json({
+        success: false,
+        message: "KYC data not found",
+      });
+    }
+
+    if (kycData.aadharOtp !== aadharOtp) {
+      return res.status(400).json({
+        success: false,
+        message: "Aadhar OTP does not match",
+      });
+    }
+
+    kycData.isAadharOtpVerified = true;
+    await kycData.save();
+
+    return res.status(200).json({
+      success: true,
+      message: "Aadhar OTP verified successfully",
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 exports.onlineKycSubmission = async (req, res, next) => {
   try {
     const setting = await Setting.findOne();
@@ -199,7 +310,7 @@ exports.onlineKycSubmission = async (req, res, next) => {
       "and files:",
       req.files,
     );
-    
+
     const aadharFile = req.files?.aadharFile?.[0];
     const panFile = req.files?.panFile?.[0];
     const shopImage = req.files?.shopImage?.[0];
