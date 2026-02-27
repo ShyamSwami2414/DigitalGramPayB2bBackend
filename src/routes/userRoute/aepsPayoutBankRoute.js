@@ -3,6 +3,7 @@ const { authenticateUser } = require("../../middleware/authMiddleware");
 const { addAepsPayoutBank, getAepsPayoutBanks, getApprovedAepsBankList, deleteAepsPayoutBank } = require("../../controllers/userController/aepsPayoutBankController");
 const router = express.Router();
 
+
 // get all list whether approved or not
 router.get(
     "/aeps-payout-banks",

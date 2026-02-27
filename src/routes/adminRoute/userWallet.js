@@ -2,7 +2,7 @@ const mongoose = require("mongoose");
 const express = require("express");
 const { authenticateUser } = require("../../middleware/authMiddleware");
 const { authorizeRoles } = require("../../middleware/roleMiddleware");
-const { getAllUserWallet, holdReleaseAmount, creditDebitAmount, getWalletBalances } = require("../../controllers/adminController/userWalletController");
+const { getAllUserWallet, holdReleaseAmount, creditDebitAmount, getWalletBalances, aepsToEwalletHistory } = require("../../controllers/adminController/userWalletController");
 const router = express.Router();
 
 router.get(

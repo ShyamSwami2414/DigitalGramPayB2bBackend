@@ -7,7 +7,6 @@ const adminSchema = new mongoose.Schema(
 
     userName: {
       type: String,
-      required: true,
       unique: true,
       uppercase: true,
       trim: true,
@@ -32,7 +31,9 @@ const adminSchema = new mongoose.Schema(
 
     type: {
       type: String,
+      enum: ["admin", "employee"],
       default: "admin",
+      required: true,
     },
 
     level: {
@@ -41,7 +42,21 @@ const adminSchema = new mongoose.Schema(
       default: 0,
     },
 
+    permissionIds: {
+      type: [
+        {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: "Permission",
+        }
+      ],
+      default: [],
+    },
+
     isActive: { type: Boolean, default: true },
+
+    isDeleted: { type: Boolean, default: false },
+
+    deletedAt: { type: Date, default: null },
   },
   { timestamps: true, versionKey: false },
 );

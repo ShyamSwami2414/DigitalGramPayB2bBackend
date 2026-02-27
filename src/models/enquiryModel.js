@@ -34,11 +34,18 @@ const enquirySchema = new mongoose.Schema(
       index: true,
     },
 
+    project: {
+      type: String,
+      trim: true,
+      minlength: [3, "Project must be at least 3 characters"],
+      maxlength: [1000, "Project cannot exceed 1000 characters"],
+    },
+
     message: {
       type: String,
       required: [true, "Message is required"],
       trim: true,
-      minlength: [8, "Message must be at least 8 characters"],
+      minlength: [3, "Message must be at least 3 characters"],
       maxlength: [1000, "Message cannot exceed 1000 characters"],
     },
 

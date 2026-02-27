@@ -14,6 +14,8 @@ const { sendEmail } = require("../../utils/email");
 const loginLogs = require("../../models/loginLogs");
 const Setting = require("../../models/settingModel");
 const UserRequest = require("../../models/userRequestModel");
+const { generateOTP } = require("../../utils/generateOTP");
+const Otp = require("../../models/otpModel");
 
 exports.userRegister = async (req, res, next) => {
   try {
@@ -139,7 +141,6 @@ exports.userLogin = async (req, res, next) => {
       device: ua?.device,
       browser: ua?.browser,
       os: ua?.os,
-      loginTime: Date.now(),
     });
 
     await log.save();
@@ -161,21 +162,29 @@ exports.userLogin = async (req, res, next) => {
         .json({ success: false, message: "Invalid Credentials" });
     }
 
-    const token = generateToken({
-      id: user._id,
-      level: user.level,
-      parentUserId: user.parentUserId || null,
-      roleId: user.roleId,
+    await log.save();
+
+    const newOtp = await generateOTP();
+
+    const otp = new Otp({
+      userId: user._id,
+      otp: newOtp,
+      expiresAt: new Date(Date.now() + 2 * 60 * 1000),
     });
 
-    log.isLoginSuccess = true;
-    await log.save();
+    await otp.save();
+
+    await sendEmail(
+      user.email,
+      [],
+      [],
+      "Your OTP for User Login",
+      `Your OTP is: ${newOtp}. It is valid for 2 minutes.`,
+    );
 
     res.status(200).json({
       success: true,
-      message: "User logged in successfully",
-      user,
-      token,
+      message: "OTP sent successfully",
     });
   } catch (error) {
     next(error);
@@ -183,19 +192,21 @@ exports.userLogin = async (req, res, next) => {
 };
 
 exports.verifyUserOtp = async (req, res, next) => {
+  const session = await mongoose.startSession();
   try {
+    session.startTransaction();
     const { email, otp } = req.body;
     if (!email || !otp) {
-      return res
-        .status(400)
-        .json({ success: false, message: "Email and OTP are required" });
+      const err = new Error("Email and OTP are required");
+      err.statusCode = 400;
+      throw err;
     }
 
     const user = await User.findOne({ email });
     if (!user) {
-      return res
-        .status(404)
-        .json({ success: false, message: "User not found" });
+      const err = new Error("User not found");
+      err.statusCode = 404;
+      throw err;
     }
 
     const savedOtp = await Otp.findOne({
@@ -206,34 +217,79 @@ exports.verifyUserOtp = async (req, res, next) => {
     });
 
     if (!savedOtp) {
-      return res.status(404).json({ success: false, message: "OTP not found" });
+      const err = new Error("OTP not found");
+      err.statusCode = 404;
+      throw err;
     }
 
     if (savedOtp.otp !== otp) {
-      return res.status(400).json({ success: false, message: "Invalid OTP" });
+      const err = new Error("Invalid OTP");
+      err.statusCode = 400;
+      throw err;
     }
 
     if (savedOtp.expiresAt < new Date()) {
-      return res
-        .status(400)
-        .json({ success: false, message: "OTP has expired" });
+      const err = new Error("OTP has expired");
+      err.statusCode = 400;
+      throw err;
     }
+
+    const log = await loginLogs.findOneAndUpdate(
+      {
+        userId: new mongoose.Types.ObjectId(user._id),
+        email: email,
+      },
+      {
+        $set: {
+          isLoginSuccess: true,
+          loginTime: Date.now()
+        }
+      },
+      {
+        sort: { createdAt: -1 },
+        new: true
+      }
+    );
+    if (!log) {
+      const err = new Error("Login log not found");
+      err.statusCode = 404;
+      throw err;
+    }
+
+    let setting;
+
+    if (user.kycStatus === "pending") {
+      setting = await Setting.findOne().session(session);
+      if (!setting) {
+        const err = new Error("Setting not found");
+        err.statusCode = 404;
+        throw err;
+      }
+    }
+
+    console.log(setting, "setting")
 
     const token = generateToken({ id: user._id, role: user.roleId });
 
     savedOtp.isUsed = true;
-    await savedOtp.save();
+    await savedOtp.save({ session });
 
-    await Otp.deleteMany({ userId: user._id });
+    await Otp.deleteMany({ userId: user._id }).session(session);
+
+    await session.commitTransaction();
+    session.endSession();
 
     res.status(200).json({
       success: true,
       message: "User logged in successfully",
       user,
       token,
+      isKycOnline: setting?.isKycOnline
     });
 
   } catch (error) {
+    await session.abortTransaction();
+    session.endSession();
     next(error);
   }
 };

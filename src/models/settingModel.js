@@ -7,6 +7,11 @@ const settingSchema = new mongoose.Schema({
         default: false
     },
 
+    isKycOnline: {
+        type: Boolean,
+        default: false
+    },
+
     title: {
         type: String,
         default: ""
