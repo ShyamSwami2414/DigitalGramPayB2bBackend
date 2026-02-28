@@ -55,11 +55,47 @@ exports.getMySupportRequests = async (req, res, next) => {
             isDeleted: false
         };
 
-        const supportRequests = await Support.
-            find(filter).
-            skip(skip).
-            limit(limit).
-            lean();
+        const supportRequests = await Support.aggregate([
+            {
+                $match: filter,
+
+            },
+            {
+                $lookup: {
+                    from: "services",
+                    localField: "serviceId",
+                    foreignField: "_id",
+                    as: "service"
+                }
+            },
+            {
+                $unwind: {
+                    path: "$service",
+                    preserveNullAndEmptyArrays: true
+                }
+            },
+            {
+                $addFields: {
+                    serviceName: "$service.name"
+                }
+            },
+            {
+                $project: {
+                    service: 0
+                }
+            },
+            {
+                $sort: {
+                    createdAt: -1
+                }
+            },
+            {
+                $skip: skip
+            },
+            {
+                $limit: limit
+            }
+        ])
 
         const total = await Support.countDocuments(filter);
 
@@ -77,6 +113,74 @@ exports.getMySupportRequests = async (req, res, next) => {
     } catch (error) {
         next(error);
     }
+}
+
+exports.getSupportRequestById = async (req, res, next) => {
+    try {
+
+        const { id } = req.params;
+        const filter = {
+            userId: new mongoose.Types.ObjectId(req.user.id),
+            isDeleted: false
+        };
+
+        if (!id) {
+            return res.status(400).json({
+                success: false,
+                message: "Support ID is required"
+            })
+        }
+
+        if (!mongoose.Types.ObjectId.isValid(id)) {
+            return res.status(400).json({
+                success: false,
+                message: "Invalid Support ID"
+            })
+        }
+
+        const [supportRequest] = await Support.aggregate([
+            {
+                $match: filter
+            },
+            {
+                $lookup: {
+                    from: "services",
+                    localField: "serviceId",
+                    foreignField: "_id",
+                    as: "service"
+                }
+            },
+            {
+                $unwind: {
+                    path: "$service",
+                    preserveNullAndEmptyArrays: true
+                }
+            },
+            {
+                $addFields: {
+                    serviceName: "$service.name"
+                }
+            },
+            {
+                $project: {
+                    service: 0
+                }
+            },
+
+        ])
+
+
+        return res.status(200).json({
+            success: true,
+            message: "Support Request Fetched",
+            data: supportRequest
+        })
+
+    } catch (error) {
+        next(error);
+
+    }
+
 }
 
 exports.createSupportRequest = async (req, res, next) => {

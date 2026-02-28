@@ -3,6 +3,8 @@ const {
     createSupportRequest,
     getMySupportRequests,
     getTicketStats,
+    getSupportRequestById
+
 } = require("../../controllers/userController/supportController");
 
 const { authenticateUser } = require("../../middleware/authMiddleware");
@@ -12,6 +14,12 @@ router.get(
     "/get-ticket-stats",
     authenticateUser,
     getTicketStats
+);
+
+router.get(
+    "/my-support-request/:id",
+    authenticateUser,
+    getSupportRequestById
 );
 
 router.get(

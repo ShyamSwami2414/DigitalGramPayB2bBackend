@@ -15,4 +15,5 @@ module.exports = (app) => {
     app.use(`${apiPrefix}/accountWhitelist`, require("./accountWhitelistRoute"));
     app.use(`${apiPrefix}/order`, require("./orderRoute"));
     app.use(`${apiPrefix}/shopping`, require("./ecommerceRoute"));
+    app.use(`${apiPrefix}/offlineService`, require("./offlineServiceRoute"));
 };

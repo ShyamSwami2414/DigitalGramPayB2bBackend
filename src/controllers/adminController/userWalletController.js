@@ -68,10 +68,12 @@ exports.getAllUserWallet = async (req, res, next) => {
             },
             {
                 $project: {
-                    user: 0,
-                    createdAt: 0,
-                    updatedAt: 0,
-                    deletedAt: 0
+                    userName: 1,
+                    phone: 1,
+                    aepsWallet: 1,
+                    mainWallet: 1,
+                    aepsHoldAmount: 1,
+                    mainHoldAmount: { $round: ["$mainHoldAmount", 2] },
                 }
             },
             { $skip: skip },

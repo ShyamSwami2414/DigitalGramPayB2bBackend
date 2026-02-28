@@ -107,6 +107,7 @@ exports.updatePackage = async (req, res, next) => {
       message: "Package updated successfully",
       data: updatedPackage,
     });
+
   } catch (error) {
     next(error);
   }
