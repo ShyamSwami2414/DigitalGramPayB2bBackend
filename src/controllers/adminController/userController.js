@@ -132,7 +132,6 @@ exports.getUserStats = async (req, res, next) => {
       }
     ]);
 
-
     console.log(result, "user stats result");
 
     return res

@@ -86,10 +86,18 @@ exports.aepsToEwalletHistory = async (req, res, next) => {
             }
         ])
 
+        const total = await WalletLedger.countDocuments(filter);
+
         return res.status(200).json({
             success: true,
             message: "Wallet transfer history fetched successfully",
             data: walletTransferHistory,
+            pagination: {
+                page,
+                limit,
+                total,
+                totalPages: Math.ceil(total / limit),
+            },
         });
     } catch (error) {
         next(error);

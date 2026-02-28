@@ -9,24 +9,17 @@ const OrderSchema = new mongoose.Schema(
             index: true,
         },
 
-        products: [
-            {
-                productId: {
-                    type: mongoose.Schema.Types.ObjectId,
-                    ref: "Product",
-                    required: true,
-                },
+        product: {
+            productId: {
+                type: mongoose.Schema.Types.ObjectId,
+                ref: "Product",
+                required: true,
+            },
 
-                quantity: {
-                    type: Number,
-                    required: true,
-                },
-            }
-        ],
-
-        totalAmount: {
-            type: Number,
-            required: true,
+            quantity: {
+                type: Number,
+                required: true,
+            },
         },
 
         shippingAddress: {
@@ -50,16 +43,32 @@ const OrderSchema = new mongoose.Schema(
                 type: String,
                 required: true,
             },
-            country: {
-                type: String,
-                required: true,
-            }
+        },
+
+        subTotal: {
+            type: Number,
+            required: true,
+        },
+
+        shippingCharge: {         //100 rupees
+            type: Number,
+            required: true,
+        },
+
+        gst: {                          //18 %
+            type: Number,
+            required: true,
+        },
+
+        grandTotal: {
+            type: Number,
+            required: true,
         },
 
         paymentStatus: {
             type: String,
             enum: ["pending", "completed", "failed"],
-            default: "pending",
+            default: "completed",
 
         },
 
@@ -72,8 +81,8 @@ const OrderSchema = new mongoose.Schema(
 
         paymentMethod: {
             type: String,
-            enum: ["cash", "online", "wallet"],
-            default: "cash",
+            enum: ["online", "wallet"],
+            default: "wallet",
         },
 
         paymentId: {

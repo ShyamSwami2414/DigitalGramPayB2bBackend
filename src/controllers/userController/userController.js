@@ -23,12 +23,41 @@ exports.getAllUsers = async (req, res, next) => {
         .json({ success: false, message: "Invalid page or limit" });
     }
 
-    const filter = { isDeleted: false, parentUserId: req.user.id };
+    const filter = { isDeleted: false, parentUserId: new mongoose.Types.ObjectId(req.user.id) };
 
-    const users = await User.find(filter)
-      .skip(skip)
-      .limit(limit)
-      .sort({ createdAt: -1 });
+    const users = await User.aggregate([
+      { $match: filter },
+      {
+        $lookup: {
+          from: "roles",
+          localField: "roleId",
+          foreignField: "_id",
+          as: "role"
+        },
+      },
+      {
+        $unwind: {
+          path: "$role",
+          preserveNullAndEmptyArrays: true
+        }
+      },
+      {
+        $addFields: {
+          roleName: "$role.name"
+        }
+      },
+      {
+        $project: {
+          role: 0
+        }
+
+      },
+      { $sort: { createdAt: -1 } },
+      { $skip: skip },
+      { $limit: limit }
+    ])
+
+    console.log(users, "users")
 
     const total = await User.countDocuments(filter);
 
@@ -153,6 +182,7 @@ exports.updateUserStatus = async (req, res, next) => {
     const existingUser = await User.findOne({
       _id: id,
       isDeleted: false,
+      parentUserId: req.user.id
     });
 
     if (!existingUser) {

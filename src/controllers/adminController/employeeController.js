@@ -10,7 +10,7 @@ const { sendEmail } = require("../../utils/email");
 
 exports.getEmployeeStats = async (req, res, next) => {
     try {
-        const result = await Admin.aggregate([
+        const [result] = await Admin.aggregate([
             {
                 $match: {
                     type: "employee",
@@ -19,7 +19,7 @@ exports.getEmployeeStats = async (req, res, next) => {
             },
             {
                 $group: {
-                    _id: "$status",
+                    _id: null,
                     total: { $sum: 1 },
                     active: { $sum: { $cond: [{ $eq: ["$isActive", true] }, 1, 0] } },
                     inactive: { $sum: { $cond: [{ $eq: ["$isActive", false] }, 1, 0] } },
