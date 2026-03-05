@@ -16,4 +16,5 @@ module.exports = (app) => {
     app.use(`${apiPrefix}/order`, require("./orderRoute"));
     app.use(`${apiPrefix}/shopping`, require("./ecommerceRoute"));
     app.use(`${apiPrefix}/offlineService`, require("./offlineServiceRoute"));
+    app.use(`${apiPrefix}/offlineServiceRequest`, require("./offlineServiceRequestRoute"));
 };

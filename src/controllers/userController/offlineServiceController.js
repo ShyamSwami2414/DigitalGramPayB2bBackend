@@ -7,7 +7,7 @@ const OfflineService = require("../../models/offlineServiceModel");
 exports.listAllOfflineServices = async (req, res, next) => {
     try {
 
-        const offlineServices = await OfflineService.find();
+        const offlineServices = await OfflineService.find({ isDeleted: false });
 
         return res.status(200).json({
             success: true,
@@ -40,20 +40,14 @@ exports.getFormByServiceId = async (req, res, next) => {
             });
         }
 
-        const offlineService = await OfflineService.aggregate([
-            { $match: {} },
+        const [offlineService] = await OfflineService.aggregate([
+            { $match: { _id: new mongoose.Types.ObjectId(id), isDeleted: false } },
             {
                 $lookup: {
                     from: "fields",
                     localField: "requiredFields",
                     foreignField: "_id",
-                    as: "fields"
-                }
-            },
-            {
-                $unwind: {
-                    path: "$fields",
-                    preserveNullAndEmptyArrays: true
+                    as: "requiredFields"
                 }
             },
             {
@@ -61,19 +55,14 @@ exports.getFormByServiceId = async (req, res, next) => {
                     from: "documents",
                     localField: "requiredDocuments",
                     foreignField: "_id",
-                    as: "documents"
-                }
-            },
-            {
-                $unwind: {
-                    path: "$documents",
-                    preserveNullAndEmptyArrays: true
+                    as: "requiredDocuments"
                 }
             },
             {
                 $project: {
-                    requiredFields: 0,
-                    requiredDocuments: 0
+                    serviceName: 1,
+                    requiredFields: 1,
+                    requiredDocuments: 1
                 }
             }
         ])
