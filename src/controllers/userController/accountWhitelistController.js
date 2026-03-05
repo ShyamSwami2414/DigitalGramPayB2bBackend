@@ -2,8 +2,18 @@ const UserWhitelistAccount = require("../../models/userWhitelistAccountModel");
 
 exports.getAccountWhitelist = async (req, res, next) => {
     try {
+        let { page = 1, limit = 10 } = req.query
+        page = Number(page);
+        limit = Number(limit);
+
+        const skip = (page - 1) * limit;
+
         const userId = req.user.id;
-        const accountWhitelists = await UserWhitelistAccount.find({ userId });
+        const accountWhitelists = await UserWhitelistAccount.
+            find({ userId }).
+            skip(skip).
+            limit(limit).
+            sort({ createdAt: -1 });
 
         if (accountWhitelists.length === 0) {
             return res.status(200).json({
@@ -13,10 +23,18 @@ exports.getAccountWhitelist = async (req, res, next) => {
             });
         }
 
+        const total = await UserWhitelistAccount.countDocuments({ userId })
+
         res.status(200).json({
             success: true,
             message: "Whitelist Account Found Successfully",
             data: accountWhitelists,
+            pagination: {
+                page,
+                limit,
+                total,
+                totalPages: Math.ceil(total / limit)
+            }
         });
 
     } catch (error) {

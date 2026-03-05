@@ -10,12 +10,12 @@ const { authenticateUser } = require("../../middleware/authMiddleware");
 const { authorizeRoles } = require("../../middleware/roleMiddleware");
 const router = express.Router();
 
-router.post(
-  "/create-service",
-  authenticateUser,
-  authorizeRoles("admin"),
-  createService,
-);
+// router.post(
+//   "/create-service",
+//   authenticateUser,
+//   authorizeRoles("admin"),
+//   createService,
+// );
 
 router.get(
   "/get-services",
@@ -24,26 +24,26 @@ router.get(
   getAllServices,
 );
 
-router.put(
-  "/update-service/:id",
-  authenticateUser,
-  authorizeRoles("admin"),
-  updateService,
-);
+// router.put(
+//   "/update-service/:id",
+//   authenticateUser,
+//   authorizeRoles("admin"),
+//   updateService,
+// );
 
-router.patch(
-  "/update-service-status/:id",
-  authenticateUser,
-  authorizeRoles("admin"),
-  updateServiceStatus,
-);
+// router.patch(
+//   "/update-service-status/:id",
+//   authenticateUser,
+//   authorizeRoles("admin"),
+//   updateServiceStatus,
+// );
 
-router.delete(
-  "/delete-service/:id",
-  authenticateUser,
-  authorizeRoles("admin"),
-  deleteService,
-);
+// router.delete(
+//   "/delete-service/:id",
+//   authenticateUser,
+//   authorizeRoles("admin"),
+//   deleteService,
+// );
 
 
 module.exports = router;

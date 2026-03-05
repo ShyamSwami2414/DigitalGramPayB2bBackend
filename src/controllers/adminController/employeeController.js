@@ -88,7 +88,7 @@ exports.getEmployeeList = async (req, res, next) => {
         const skip = (page - 1) * limit;
 
         const employees = await Admin.find({ type: "employee" }).
-            select("name email phone type level").
+            select("name email phone type level userName").
             sort({ createdAt: -1 });
 
         const total = await Admin.countDocuments({ type: "employee" });
