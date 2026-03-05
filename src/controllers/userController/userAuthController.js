@@ -52,7 +52,7 @@ exports.userRegister = async (req, res, next) => {
         .json({ success: false, message: "Role not found" });
     }
 
-    const setting = await Setting.findOne()
+    const setting = await Setting.findOne();
 
     if (!setting) {
       return res
@@ -67,7 +67,7 @@ exports.userRegister = async (req, res, next) => {
         email,
         phone,
         roleId: role,
-      })
+      });
 
       await userRequest.save();
       return res
@@ -90,7 +90,7 @@ exports.userRegister = async (req, res, next) => {
       email,
       pin: pin,
       password: hashedPassword,
-      level: isRoleValid.level
+      level: isRoleValid.level,
     });
 
     const html = generateWelcomeEmail({
@@ -242,13 +242,13 @@ exports.verifyUserOtp = async (req, res, next) => {
       {
         $set: {
           isLoginSuccess: true,
-          loginTime: Date.now()
-        }
+          loginTime: Date.now(),
+        },
       },
       {
         sort: { createdAt: -1 },
-        new: true
-      }
+        new: true,
+      },
     );
     if (!log) {
       const err = new Error("Login log not found");
@@ -267,7 +267,7 @@ exports.verifyUserOtp = async (req, res, next) => {
       }
     }
 
-    console.log(setting, "setting")
+    console.log(setting, "setting");
 
     const token = generateToken({ id: user._id, role: user.roleId });
 
@@ -284,12 +284,88 @@ exports.verifyUserOtp = async (req, res, next) => {
       message: "User logged in successfully",
       user,
       token,
-      isKycOnline: setting?.isKycOnline
+      isKycOnline: setting?.isKycOnline,
     });
-
   } catch (error) {
     await session.abortTransaction();
     session.endSession();
+    next(error);
+  }
+};
+
+exports.changePassword = async (req, res, next) => {
+  try {
+    const userId = req.user.id;
+
+    const user = await User.findOne({
+      _id: new mongoose.Types.ObjectId(userId),
+      isDeleted: false,
+    });
+    if (!user) {
+      return res
+        .status(404)
+        .json({ success: false, message: "User not found" });
+    }
+    const { currentPassword, newPassword } = req.body;
+
+    if (!currentPassword || !newPassword) {
+      return res
+        .status(400)
+        .json({ success: false, message: "All fields are required" });
+    }
+
+    if (currentPassword === newPassword) {
+      return res.status(400).json({
+        success: false,
+        message: "New password must be different from old password",
+      });
+    }
+    const isOldPasswordValid = await bcrypt.comparePassword(
+      currentPassword,
+      user.password,
+    );
+    if (!isOldPasswordValid) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Invalid Old Password" });
+    }
+
+    const hashedPassword = await bcrypt.hashPassword(newPassword);
+    user.password = hashedPassword;
+
+    await user.save();
+    return res.status(201).json({
+      success: true,
+      message: "Password changed successfully",
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+exports.fetchProfile = async (req, res, next) => {
+  try {
+    const userId = req.user.id;
+
+    const user = await User.findOne({
+      _id: new mongoose.Types.ObjectId(userId),
+      isDeleted: false,
+    })
+      .populate("roleId", "name")
+      .lean();
+    if (!user) {
+      return res
+        .status(404)
+        .json({ success: false, message: "User not found" });
+    }
+
+    user.roleName = user.roleId.name;
+
+    return res.status(201).json({
+      success: true,
+      message: "user fetched successfully",
+      data: user,
+    });
+  } catch (error) {
     next(error);
   }
 };
