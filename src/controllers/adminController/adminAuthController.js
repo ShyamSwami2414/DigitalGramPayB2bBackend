@@ -1,6 +1,7 @@
 const Admin = require("../../models/adminModel");
 const bcrypt = require("../../utils/bcrypt");
 const Otp = require("../../models/otpModel");
+const mongoose = require("mongoose");
 const { generateOTP } = require("../../utils/generateOTP");
 const { generateToken } = require("../../utils/jwt");
 const { sendEmail } = require("../../utils/email");
@@ -32,13 +33,10 @@ exports.adminRegister = async (req, res, next) => {
     });
 
     await newAdmin.save();
-    return res
-      .status(201)
-      .json({
-        success: true,
-        message: "Admin registered successfully"
-      });
-
+    return res.status(201).json({
+      success: true,
+      message: "Admin registered successfully",
+    });
   } catch (error) {
     next(error);
   }
@@ -148,7 +146,117 @@ exports.verifySuperAdminOtp = async (req, res, next) => {
       admin,
       token,
     });
+  } catch (error) {
+    next(error);
+  }
+};
 
+exports.changePassword = async (req, res, next) => {
+  try {
+    const adminId = req.user.id;
+
+    const admin = await Admin.findOne({
+      _id: new mongoose.Types.ObjectId(adminId),
+      isDeleted: false,
+    });
+    if (!admin) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Admin not found" });
+    }
+    const { currentPassword, newPassword } = req.body;
+
+    if (!currentPassword || !newPassword) {
+      return res
+        .status(400)
+        .json({ success: false, message: "All fields are required" });
+    }
+
+    if (currentPassword === newPassword) {
+      return res.status(400).json({
+        success: false,
+        message: "New password must be different from old password",
+      });
+    }
+    const isOldPasswordValid = await bcrypt.comparePassword(
+      currentPassword,
+      admin.password,
+    );
+    if (!isOldPasswordValid) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Invalid Old Password" });
+    }
+
+    const hashedPassword = await bcrypt.hashPassword(newPassword);
+    admin.password = hashedPassword;
+
+    await admin.save();
+    return res.status(201).json({
+      success: true,
+      message: "Password changed successfully",
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+exports.updateProfile = async (req, res, next) => {
+  try {
+    const adminId = req.user.id;
+
+    const admin = await Admin.findOne({
+      _id: new mongoose.Types.ObjectId(adminId),
+      isDeleted: false,
+    });
+    if (!admin) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Admin not found" });
+    }
+    
+    const {name,phone,email,bio}=req.body
+    if(!name||!phone||!email){
+        return res.status(400).json({
+            success:false,
+            message:"All fields are required"
+        })
+    }
+    admin.name=name
+    admin.email=email
+    admin.phone=phone
+    admin.bio=bio||""
+    
+
+    await admin.save();
+    return res.status(201).json({
+      success: true,
+      message: "Profile Updated successfully",
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+exports.fetchProfile = async (req, res, next) => {
+  try {
+    const adminId = req.user.id;
+
+    const admin = await Admin.findOne({
+      _id: new mongoose.Types.ObjectId(adminId),
+      isDeleted: false,
+    });
+    if (!admin) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Admin not found" });
+    }
+
+    return res.status(201).json({
+      success: true,
+      message: "Password changed successfully",
+      data: admin,
+    });
   } catch (error) {
     next(error);
   }
