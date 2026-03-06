@@ -2,6 +2,7 @@ const express = require("express");
 const {
   createPackage,
   getAllPackages,
+  getActivePackageList,
   updatePackage,
   updatePackageStatus,
   deletePackage,
@@ -22,6 +23,13 @@ router.get(
   authenticateUser,
   authorizeRoles("admin"),
   getAllPackages,
+);
+
+router.get(
+  "/get-active-packages",
+  authenticateUser,
+  authorizeRoles("admin"),
+  getActivePackageList,
 );
 
 router.put(

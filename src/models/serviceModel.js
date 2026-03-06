@@ -15,7 +15,12 @@ const serviceSchema = new mongoose.Schema(
       required: true,
       unique: true,
       uppercase: true,
-      trim: true
+      trim: true,
+    },
+
+    hasCategory: {
+      type: Boolean,
+      default: false,
     },
 
     isActive: { type: Boolean, default: true },

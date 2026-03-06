@@ -1,7 +1,7 @@
 const express = require("express");
 const {
   createService,
-  getAllServices,
+  getActiveServiceList,
   updateService,
   updateServiceStatus,
   deleteService,
@@ -21,7 +21,7 @@ router.get(
   "/get-services",
   authenticateUser,
   authorizeRoles("admin"),
-  getAllServices,
+  getActiveServiceList,
 );
 
 // router.put(
@@ -44,6 +44,5 @@ router.get(
 //   authorizeRoles("admin"),
 //   deleteService,
 // );
-
 
 module.exports = router;

@@ -46,9 +46,10 @@ exports.createService = async (req, res, next) => {
   }
 };
 
-exports.getAllServices = async (req, res, next) => {
+exports.getActiveServiceList = async (req, res, next) => {
   try {
     const services = await Service.find({ isActive: true, isDeleted: false })
+      .select("name serviceCode hasCategory")
       .sort({ createdAt: -1 })
       .lean();
 
@@ -180,6 +181,5 @@ exports.deleteService = async (req, res, next) => {
       .json({ success: true, message: "Service deleted successfully" });
   } catch (error) {
     next(error);
-
   }
-}
+};

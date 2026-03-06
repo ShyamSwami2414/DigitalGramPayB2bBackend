@@ -15,10 +15,16 @@ module.exports = (app) => {
   app.use(`${apiPrefix}/logs`, require("./loginLogsRoute"));
   app.use(`${apiPrefix}/topupBank`, require("./walletTopupBankRoute"));
   app.use(`${apiPrefix}/userWallet`, require("./userWallet"));
-  app.use(`${apiPrefix}/payoutBankRequest`, require("./payoutBankRequestRoute"));
+  app.use(
+    `${apiPrefix}/payoutBankRequest`,
+    require("./payoutBankRequestRoute"),
+  );
   app.use(`${apiPrefix}/support`, require("./supportRoute"));
   app.use(`${apiPrefix}/enquiry`, require("./enquiryRoute"));
-  app.use(`${apiPrefix}/accountWhitelistRequest`, require("./accountWhitelistRequestRoute"));
+  app.use(
+    `${apiPrefix}/accountWhitelistRequest`,
+    require("./accountWhitelistRequestRoute"),
+  );
   app.use(`${apiPrefix}/ecommerce`, require("./ecommerceRoute"));
   app.use(`${apiPrefix}/order`, require("./orderRoute"));
   app.use(`${apiPrefix}/permission`, require("./permissionRoute"));
@@ -27,5 +33,10 @@ module.exports = (app) => {
   app.use(`${apiPrefix}/document`, require("./documentRoute"));
   app.use(`${apiPrefix}/field`, require("./fieldRoute"));
   app.use(`${apiPrefix}/offlineService`, require("./offlineServiceRoute"));
-  app.use(`${apiPrefix}/offlineServiceRequest`, require("./offlineServiceRequestRoute"));
+  app.use(
+    `${apiPrefix}/offlineServiceRequest`,
+    require("./offlineServiceRequestRoute"),
+  );
+  app.use(`${apiPrefix}/bbpsCategory`, require("./bbpsCategoryRoute"));
+  app.use(`${apiPrefix}/operator`, require("./operatorRoute"));
 };
