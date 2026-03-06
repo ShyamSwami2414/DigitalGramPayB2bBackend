@@ -80,7 +80,7 @@ exports.createOfflineServiceRequest = async (req, res, next) => {
 
         const documentData = req.files.map(file => ({
             documentId: file.fieldname,
-            fileUrl: `/uploads/offlineServiceRequests/${file.filename}`,
+            fileUrl: `/uploads/offlineServiceRequest/${file.filename}`,
         }));
 
         const newRequest = await OfflineServiceRequest.create({
