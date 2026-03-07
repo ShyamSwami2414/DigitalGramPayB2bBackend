@@ -20,43 +20,48 @@ const commissionSchema = new mongoose.Schema(
       default: null,
     },
 
+    //bbps category like elctricity, gas etc
     categoryId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Category",
       default: null,
     },
 
-    from: {
-      type: Number,
-      required: true,
-    },
+    plan: [
+      {
+        from: {
+          type: Number,
+          required: true,
+        },
 
-    to: {
-      type: Number,
-      required: true,
-    },
+        to: {
+          type: Number,
+          required: true,
+        },
 
-    commission: {
-      type: Number,
-      required: true,
-    },
+        commission: {
+          type: Number,
+          required: true,
+        },
 
-    type: {
-      type: String,
-      enum: ["flat", "percent"],
-      required: true,
-      default: "flat",
-    },
+        type: {
+          type: String,
+          enum: ["flat", "percent"],
+          required: true,
+          default: "flat",
+        },
 
-    isDeleted: {
-      type: Boolean,
-      default: false,
-    },
+        isDeleted: {
+          type: Boolean,
+          default: false,
+        },
 
-    deletedAt: {
-      type: Date,
-      default: null,
-    },
+        deletedAt: {
+          type: Date,
+          default: null,
+        },
+      },
+    ],
   },
   {
     timestamps: true,

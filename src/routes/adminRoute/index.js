@@ -39,4 +39,6 @@ module.exports = (app) => {
   );
   app.use(`${apiPrefix}/bbpsCategory`, require("./bbpsCategoryRoute"));
   app.use(`${apiPrefix}/operator`, require("./operatorRoute"));
+  app.use(`${apiPrefix}/commission`, require("./commissionRoute"));
+  app.use(`${apiPrefix}/coupon`, require("./couponRoute"));
 };

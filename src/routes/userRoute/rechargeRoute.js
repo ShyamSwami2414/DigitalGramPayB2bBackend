@@ -7,6 +7,7 @@ const {
   fetchPlan,
   doMobilePrepaidRecharge,
 } = require("../../controllers/userController/rechargeController");
+const idempotencyMiddleware = require("../../middleware/idempotencyMiddleware");
 const router = express.Router();
 
 router.get("/operator-list", authenticateUser, getAllOperatorCodeList);
@@ -18,6 +19,7 @@ router.get("/fetch-plan", authenticateUser, fetchPlan);
 router.post(
   "/mobile-prepaid-recharge",
   authenticateUser,
+  idempotencyMiddleware,
   doMobilePrepaidRecharge,
 );
 

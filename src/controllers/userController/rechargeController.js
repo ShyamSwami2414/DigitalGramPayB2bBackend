@@ -192,22 +192,19 @@ exports.doMobilePrepaidRecharge = async (req, res, next) => {
       throw err;
     }
 
-    const wallet = await UserWallet.findOneAndUpdate(
-      {
+    const response = await doRecharge(amount, operatorCode, number, billerMode);
+
+    const wallet = await UserWallet.findOneAndUpdate({
       userId: userId,
       isActive: true,
       isDeleted: false,
-    },
-    
-  );
+    });
 
     if (!wallet) {
       const err = new Error("User Wallet Not Found");
       err.statusCode = 400;
       throw err;
     }
-
-    const response = await doRecharge(amount, operatorCode, number, billerMode);
 
     await session.commitTransaction();
     session.endSession();
