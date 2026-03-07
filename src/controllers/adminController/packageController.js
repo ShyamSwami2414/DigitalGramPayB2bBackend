@@ -45,9 +45,28 @@ exports.createPackage = async (req, res, next) => {
   }
 };
 
+exports.getActivePackageList = async (req, res, next) => {
+  try {
+    const packages = await Package.find({
+      isActive: true,
+      isDeleted: false,
+    })
+      .select("name packageCode")
+      .lean();
+
+    return res.status(200).json({
+      success: true,
+      message: "Packages fetched successfully",
+      data: packages,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 exports.getAllPackages = async (req, res, next) => {
   try {
-    const packages = await Package.find({ isActive: true, isDeleted: false });
+    const packages = await Package.find({ isDeleted: false });
     return res.status(200).json({
       success: true,
       message: "Packages fetched successfully",
@@ -107,7 +126,6 @@ exports.updatePackage = async (req, res, next) => {
       message: "Package updated successfully",
       data: updatedPackage,
     });
-
   } catch (error) {
     next(error);
   }
