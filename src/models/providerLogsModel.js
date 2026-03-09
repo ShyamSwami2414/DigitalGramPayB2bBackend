@@ -2,11 +2,21 @@ const mongoose = require("mongoose");
 
 const providerLogsSchema = new mongoose.Schema(
   {
-    txnId: {
+    providerTxnId: {
       type: String,
-      required: true,
       unique: true,
       index: true,
+    },
+
+    //internal
+    referenceId: {
+      type: String,
+      index: true,
+    },
+
+    providerName: {
+      type: String,
+      required: true,
     },
 
     endPoint: {
@@ -15,11 +25,6 @@ const providerLogsSchema = new mongoose.Schema(
     },
 
     method: {
-      type: String,
-      required: true,
-    },
-
-    providerName: {
       type: String,
       required: true,
     },
@@ -36,7 +41,16 @@ const providerLogsSchema = new mongoose.Schema(
 
     providerStatus: {
       type: String,
-      enum: ["pending", "success", "failed"],
+      enum: ["PENDING", "SUCCESS", "FAILED"],
+      default: "PENDING",
+    },
+
+    errorMessage: {
+      type: String,
+    },
+
+    responseTime: {
+      type: Number, // milliseconds
     },
   },
   {

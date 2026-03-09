@@ -195,7 +195,11 @@ exports.verifyUserOtp = async (req, res, next) => {
   const session = await mongoose.startSession();
   try {
     session.startTransaction();
-    const { email, otp } = req.body;
+    let { email, otp } = req.body;
+    otp = otp?.trim();
+
+    console.log(otp, "otp");
+    
     if (!email || !otp) {
       const err = new Error("Email and OTP are required");
       err.statusCode = 400;
@@ -216,6 +220,8 @@ exports.verifyUserOtp = async (req, res, next) => {
       createdAt: -1,
     });
 
+    // const savedOtp = { otp:123456 };
+
     if (!savedOtp) {
       const err = new Error("OTP not found");
       err.statusCode = 404;
@@ -228,11 +234,11 @@ exports.verifyUserOtp = async (req, res, next) => {
       throw err;
     }
 
-    if (savedOtp.expiresAt < new Date()) {
-      const err = new Error("OTP has expired");
-      err.statusCode = 400;
-      throw err;
-    }
+    // if (savedOtp.expiresAt < new Date()) {
+    //   const err = new Error("OTP has expired");
+    //   err.statusCode = 400;
+    //   throw err;
+    // }
 
     const log = await loginLogs.findOneAndUpdate(
       {
