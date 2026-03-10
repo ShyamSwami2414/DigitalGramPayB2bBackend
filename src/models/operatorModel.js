@@ -10,6 +10,22 @@ const operatorSchema = new mongoose.Schema(
       index: true,
     },
 
+    planFetchValue: {
+      type: String,
+      trim: true,
+      required: true,
+      unique: true,
+      index: true,
+    },
+
+    rechargeValue: {
+      type: String,
+      trim: true,
+      required: true,
+      unique: true,
+      index: true,
+    },
+
     isActive: {
       type: Boolean,
       default: true,

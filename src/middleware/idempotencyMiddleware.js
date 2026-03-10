@@ -30,7 +30,9 @@ module.exports = async (req, res, next) => {
       if (existing.status === "completed") {
         console.log("Returned saved response");
         // If request already completed, return stored response
-        return res.status(existing.responseCode || 200).json(existing.response);
+        return res
+          .status(existing.responseCode || 200)
+          .json({ idempotent: true, ...existing.response });
       } else if (existing.status === "processing") {
         return res.status(409).json({
           success: false,

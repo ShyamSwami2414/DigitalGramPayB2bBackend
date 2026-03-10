@@ -1,11 +1,12 @@
 const mongoose = require("mongoose");
 const States = require("../../models/statesModel");
 const UserWallet = require("../../models/userWallet.js");
-const { doRecharge } = require("../../services/doRechargeService.js");
+const { doRechargeService } = require("../../services/doRechargeService.js");
 const { fetchPlan } = require("../../services/fetchPlanService.js");
 const {
   rechargeMobileVerify,
 } = require("../../services/rechargeMobileVerify.js");
+const Operator = require("../../models/operatorModel.js");
 
 exports.getAllOperatorCodeList = async (req, res, next) => {
   try {
@@ -145,9 +146,8 @@ exports.fetchPlan = async (req, res) => {
 };
 
 exports.doMobilePrepaidRecharge = async (req, res, next) => {
-  const session = await mongoose.startSession();
-  session.startTransaction();
   try {
+    console.log(req.user);
     let { amount, operatorCode, number, billerMode } = req.body;
     amount = Number(amount);
     operatorCode = operatorCode?.trim();
@@ -157,9 +157,16 @@ exports.doMobilePrepaidRecharge = async (req, res, next) => {
     const userId = req.user.id; //user Id
 
     const requiredFields = ["amount", "operatorCode", "number", "billerMode"];
+
     let missingFields = [];
 
-    missingFields = requiredFields.filter((field) => !req.body[field]);
+    requiredFields.forEach((field) => {
+      if (!req.body[field]) {
+        missingFields.push(field);
+      }
+    });
+
+    console.log(missingFields, "missingFields");
 
     if (missingFields.length > 0) {
       const err = new Error("Missing required fields");
@@ -192,22 +199,42 @@ exports.doMobilePrepaidRecharge = async (req, res, next) => {
       throw err;
     }
 
-    const response = await doRecharge(amount, operatorCode, number, billerMode);
-
-    const wallet = await UserWallet.findOneAndUpdate({
-      userId: userId,
+    const operatorId = await Operator.findOne({
+      rechargeValue: operatorCode,
       isActive: true,
       isDeleted: false,
     });
 
-    if (!wallet) {
-      const err = new Error("User Wallet Not Found");
-      err.statusCode = 400;
+    if (!operatorId) {
+      const err = new Error("Operator Selected Not Found");
+      err.statusCode = 404;
       throw err;
     }
 
-    await session.commitTransaction();
-    session.endSession();
+    const response = await doRechargeService(
+      userId,
+      operatorId,
+      amount,
+      operatorCode,
+      number,
+      billerMode,
+    );
+
+    if (response.status === "FAILED") {
+      return res.status(400).json({
+        success: false,
+        message: "Recharge Failed",
+        data: response,
+      });
+    }
+
+    if (response.status === "PENDING") {
+      return res.status(400).json({
+        success: true,
+        message: "Recharge Pending",
+        data: response,
+      });
+    }
 
     return res.status(200).json({
       success: true,
@@ -215,9 +242,6 @@ exports.doMobilePrepaidRecharge = async (req, res, next) => {
       data: response,
     });
   } catch (error) {
-    await session.abortTransaction();
-    session.endSession();
-
     next(error);
   }
 };

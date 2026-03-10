@@ -35,6 +35,7 @@ const idempotencySchema = new mongoose.Schema(
   },
 );
 
+idempotencySchema.index({ key: 1, userId: 1 }, { unique: true });
 idempotencySchema.index({ expiresAt: 1 }, { expireAfterSeconds: 0 });
 
 module.exports = mongoose.model("Idempotency", idempotencySchema);

@@ -101,7 +101,7 @@ exports.createUser = async (req, res, next) => {
       _id: role,
       isActive: true,
       isDeleted: false,
-    });
+    }).lean();
 
     if (!isRoleValid) {
       return res
@@ -118,7 +118,15 @@ exports.createUser = async (req, res, next) => {
         .json({ success: false, message: "User already exists" });
     }
 
-    if (isRoleValid.level <= req.user.level) {
+     const userRole = await Role.findById(req.user.role).select("level").lean();
+        if (!userRole) {
+          return res.status(404).json({
+            success: false,
+            message: "user role not found",
+          });
+        }
+
+    if (isRoleValid.level <= userRole.level) {
       return res.status(400).json({
         success: false,
         message: `You are not authorized to create user with ${isRoleValid.name} role`
@@ -141,7 +149,7 @@ exports.createUser = async (req, res, next) => {
       roleId: role,
       pin: pin,
       parentUserId: req.user.id,
-      level: req.user.level + 1,
+      level: isRoleValid.level,
     });
 
     const html = generateWelcomeEmail({
