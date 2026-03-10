@@ -3,13 +3,19 @@ const { mobileVerify } = require("../client/cspl/apis/mobileVerify");
 const { getOperatorCode } = require("../helpers/getOperatorCode");
 const States = require("../models/statesModel");
 
-exports.rechargeMobileVerify = async (mobileNumber) => {
+exports.rechargeMobileVerify = async (mobileNumber, referenceId) => {
   try {
     //calling verify api
-    const firstResult = await mobileVerify(mobileNumber);
 
-    if (firstResult.status !== "success") {
-      throw new Error("Mobile Verification Failed");
+    const firstResult = await mobileVerify({
+      mobile: mobileNumber,
+      client_referenceId: referenceId,
+    });
+
+    console.log(firstResult, "firstResult");
+
+    if (firstResult.status === "FAILED") {
+      throw firstResult;
     }
 
     const circleCode = firstResult?.data?.circle;
@@ -29,8 +35,8 @@ exports.rechargeMobileVerify = async (mobileNumber) => {
     //calling plan fetch api
     const secondResult = await fetchPlans(operatorCode, state.circleName);
 
-    if (secondResult.status !== "success") {
-      throw new Error("Plan Fetch Failed");
+    if (secondResult.status === "FAILED") {
+      throw secondResult;
     }
 
     return {

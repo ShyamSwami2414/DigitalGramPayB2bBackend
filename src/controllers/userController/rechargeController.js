@@ -7,6 +7,9 @@ const {
   rechargeMobileVerify,
 } = require("../../services/rechargeMobileVerify.js");
 const Operator = require("../../models/operatorModel.js");
+const {
+  generateUniqueRefernceId,
+} = require("../../utils/generateUniqueReferenceId.js");
 
 exports.getAllOperatorCodeList = async (req, res, next) => {
   try {
@@ -77,7 +80,12 @@ exports.mobileVerify = async (req, res, next) => {
       });
     }
 
-    const mobileVerifyResponse = await rechargeMobileVerify(mobile);
+    const referenceId = generateUniqueRefernceId();
+
+    const mobileVerifyResponse = await rechargeMobileVerify(
+      mobile,
+      referenceId,
+    );
 
     console.log(mobileVerifyResponse, "mobileVerifyResponse");
 
@@ -99,7 +107,7 @@ exports.mobileVerify = async (req, res, next) => {
   }
 };
 
-exports.fetchPlan = async (req, res) => {
+exports.fetchPlan = async (req, res, next) => {
   try {
     let { operatorCode, circleName } = req.query;
     // console.log(operatorCode, "operatorCode");

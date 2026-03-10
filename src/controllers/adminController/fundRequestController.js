@@ -51,8 +51,8 @@ exports.fundRequestStats = async (req, res, next) => {
 exports.getAllFundRequests = async (req, res, next) => {
   try {
     let { page = 1, limit = 10, status = "", search = "" } = req.query;
-    page = parseInt(page);
-    limit = parseInt(limit);
+    page = Number(page);
+    limit = Number (limit);
     status = status.trim();
     search = search.trim();
     const skip = (page - 1) * limit;

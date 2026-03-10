@@ -264,8 +264,8 @@ exports.getWalletBalance = async (req, res, next) => {
 exports.getWalletTransferHistory = async (req, res, next) => {
     try {
         let { page = 1, limit = 10, search = '' } = req.query;
-        page = parseInt(page);
-        limit = parseInt(limit);
+        page = Number(page);
+        limit = Number(limit);
         search = search.trim();
         const skip = (page - 1) * limit;
         const userId = req.user.id;
@@ -358,8 +358,8 @@ exports.getWalletReport = async (req, res, next) => {
             type = ''
         } = req.query;
 
-        page = parseInt(page);
-        limit = parseInt(limit);
+        page = Number(page);
+        limit = Number(limit);
         wallet = wallet.trim().toLowerCase();
         type = type.trim().toLowerCase();
         search = search.trim();
