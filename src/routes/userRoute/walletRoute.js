@@ -5,7 +5,7 @@ const { getWalletBalance, aepsToMainTransfer, getWalletTransferHistory, getWalle
 const router = express.Router();
 
 router.get(
-    "/get-wallet-balance/:userId",
+    "/get-wallet-balance",
     authenticateUser,
     getWalletBalance
 );
