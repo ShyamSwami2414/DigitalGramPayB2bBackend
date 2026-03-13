@@ -21,5 +21,6 @@ module.exports = (app) => {
     require("./offlineServiceRequestRoute"),
   );
   app.use(`${apiPrefix}/recharge`, require("./rechargeRoute"));
+  app.use(`${apiPrefix}/bbps`, require("./billPaymentRoute"));
   app.use(`${apiPrefix}/userWalletRefill`, require("./userWalletRefillRoute"));
 };

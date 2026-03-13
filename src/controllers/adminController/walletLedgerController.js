@@ -183,7 +183,7 @@ exports.getAllLedgetEntryList = async (req, res, next) => {
     }
 
     if (userId) {
-      filter.userId = userId;
+      filter.userId = new mongoose.Types.ObjectId(userId);
     }
 
     // Filter by date range
@@ -247,6 +247,7 @@ exports.getAllLedgetEntryList = async (req, res, next) => {
       {
         $project: {
           userId: 1,
+          serviceType: 1,
           fullName: 1,
           userName: 1,
           wallet: 1,

@@ -41,4 +41,5 @@ module.exports = (app) => {
   app.use(`${apiPrefix}/operator`, require("./operatorRoute"));
   app.use(`${apiPrefix}/commission`, require("./commissionRoute"));
   app.use(`${apiPrefix}/coupon`, require("./couponRoute"));
+  app.use(`${apiPrefix}/report`, require("./reportRoute"));
 };
