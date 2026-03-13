@@ -199,7 +199,7 @@ exports.verifyUserOtp = async (req, res, next) => {
     otp = otp?.trim();
 
     console.log(otp, "otp");
-    
+
     if (!email || !otp) {
       const err = new Error("Email and OTP are required");
       err.statusCode = 400;
@@ -275,7 +275,12 @@ exports.verifyUserOtp = async (req, res, next) => {
 
     console.log(setting, "setting");
 
-    const token = generateToken({ id: user._id, role: user.roleId });
+    const token = generateToken({
+      id: user._id,
+      role: user.roleId,
+      kycStatus: user.kycStatus,
+      isPaymentRequired : user.isPaymentRequired,
+    });
 
     savedOtp.isUsed = true;
     await savedOtp.save({ session });

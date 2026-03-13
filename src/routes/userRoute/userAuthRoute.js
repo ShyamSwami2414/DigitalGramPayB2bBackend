@@ -15,5 +15,4 @@ router.post("/verify-user-otp", verifyUserOtp);
 router.patch("/change-user-password", authenticateUser, changePassword);
 router.get("/fetch-user-profile", authenticateUser, fetchProfile);
 
-
 module.exports = router;

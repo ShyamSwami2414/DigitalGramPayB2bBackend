@@ -6,8 +6,8 @@ exports.fetchPlan = async (operatorCode, circleName) => {
     //calling plan fetch api
     const result = await fetchPlans(operatorCode, circleName);
 
-    if (result.status !== "success") {
-      throw new Error("Plan Fetch Failed");
+    if (result.status === "FAILED") {
+      throw result;
     }
 
     return {

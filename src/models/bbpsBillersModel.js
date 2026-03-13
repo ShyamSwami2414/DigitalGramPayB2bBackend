@@ -1,16 +1,29 @@
 const mongoose = require("mongoose");
 
-const bbpsCategorySchema = new mongoose.Schema(
+const bbpsBillersSchema = new mongoose.Schema(
   {
-    name: {
+    billerId: {
       type: String,
       trim: true,
       required: true,
       unique: true,
       index: true,
+      uppercase: true,
     },
 
-    group: {
+    billerName: {
+      type: String,
+      trim: true,
+      required: true,
+    },
+
+    billerCategory: {
+      type: String,
+      trim: true,
+      required: true,
+    },
+
+    blrCoverage: {
       type: String,
       trim: true,
       required: true,
@@ -37,4 +50,4 @@ const bbpsCategorySchema = new mongoose.Schema(
   },
 );
 
-module.exports = mongoose.model("BbpsCategory", bbpsCategorySchema);
+module.exports = mongoose.model("BbpsBillers", bbpsBillersSchema);

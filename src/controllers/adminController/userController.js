@@ -17,8 +17,8 @@ exports.getAllUserList = async (req, res, next) => {
     const users = await User.aggregate([
       {
         $match: {
-          isDeleted: false
-        }
+          isDeleted: false,
+        },
       },
       {
         $lookup: {
@@ -40,35 +40,35 @@ exports.getAllUserList = async (req, res, next) => {
           mainWallet: "$userWallet.mainWallet",
           aepsHold: "$userWallet.aepsHoldAmount",
           mainHold: "$userWallet.mainHoldAmount",
-        }
+        },
       },
       {
         $project: {
           _id: 1,
           fullName: { $concat: ["$firstName", " ", "$lastName"] },
+          userName: "$userName",
           email: 1,
           aepsWallet: 1,
           mainWallet: 1,
           aepsHold: 1,
           mainHold: 1,
-        }
-      }])
+        },
+      },
+    ]);
 
     return res.status(200).json({
       success: true,
       message: "Users fetched successfully",
       data: users,
     });
-
   } catch (error) {
     next(error);
   }
-}
+};
 
 exports.getUserStats = async (req, res, next) => {
   try {
     const result = await Role.aggregate([
-
       {
         $lookup: {
           from: "users",
@@ -79,32 +79,31 @@ exports.getUserStats = async (req, res, next) => {
                 $expr: {
                   $and: [
                     { $eq: ["$roleId", "$$roleId"] },
-                    { $eq: ["$isDeleted", false] }
-                  ]
-                }
-              }
-            }
+                    { $eq: ["$isDeleted", false] },
+                  ],
+                },
+              },
+            },
           ],
-          as: "users"
-        }
+          as: "users",
+        },
       },
 
       {
         $addFields: {
-          count: { $size: "$users" }
-        }
+          count: { $size: "$users" },
+        },
       },
 
       {
         $group: {
           _id: null,
           totalUsers: { $sum: "$count" },
-          roles: { $push: "$$ROOT" }
-        }
+          roles: { $push: "$$ROOT" },
+        },
       },
 
       { $unwind: "$roles" },
-
 
       {
         $project: {
@@ -120,16 +119,16 @@ exports.getUserStats = async (req, res, next) => {
                   {
                     $multiply: [
                       { $divide: ["$roles.count", "$totalUsers"] },
-                      100
-                    ]
+                      100,
+                    ],
                   },
-                  2
-                ]
-              }
-            ]
-          }
-        }
-      }
+                  2,
+                ],
+              },
+            ],
+          },
+        },
+      },
     ]);
 
     console.log(result, "user stats result");
@@ -145,8 +144,8 @@ exports.getUserStats = async (req, res, next) => {
 exports.getAllUsers = async (req, res, next) => {
   try {
     let { page = 1, limit = 10, status = "", search = "" } = req.query;
-    page = parseInt(page);
-    limit = parseInt(limit);
+    page = Number(page);
+    limit = Number(limit);
     status = status.trim();
 
     const skip = (page - 1) * limit;
@@ -194,8 +193,8 @@ exports.getAllUsers = async (req, res, next) => {
 
       {
         $addFields: {
-          role: "$roleData.name"
-        }
+          role: "$roleData.name",
+        },
       },
 
       {
@@ -210,14 +209,14 @@ exports.getAllUsers = async (req, res, next) => {
       {
         $unwind: {
           path: "$packageData",
-          preserveNullAndEmptyArrays: true
-        }
+          preserveNullAndEmptyArrays: true,
+        },
       },
 
       {
         $addFields: {
-          package: "$packageData.name"
-        }
+          package: "$packageData.name",
+        },
       },
 
       {
@@ -243,9 +242,9 @@ exports.getAllUsers = async (req, res, next) => {
             $concat: [
               "$parentUserData.firstName",
               " ",
-              "$parentUserData.lastName"
-            ]
-          }
+              "$parentUserData.lastName",
+            ],
+          },
         },
       },
 
@@ -354,7 +353,7 @@ exports.createUser = async (req, res, next) => {
       packageId: package,
       pin: pin,
       parentUserId: req.user.id,
-      level: isRoleValid.level
+      level: isRoleValid.level,
     });
 
     const html = generateWelcomeEmail({
@@ -432,10 +431,16 @@ exports.assignPackageToUser = async (req, res, next) => {
       });
     }
 
-    if (!mongoose.Types.ObjectId.isValid(userId) || !mongoose.Types.ObjectId.isValid(packageId)) {
+    if (
+      !mongoose.Types.ObjectId.isValid(userId) ||
+      !mongoose.Types.ObjectId.isValid(packageId)
+    ) {
       return res
         .status(400)
-        .json({ success: false, message: "Invalid User Id or Package Id Provided" });
+        .json({
+          success: false,
+          message: "Invalid User Id or Package Id Provided",
+        });
     }
 
     const existingPackage = await Package.findOne({
@@ -450,14 +455,18 @@ exports.assignPackageToUser = async (req, res, next) => {
         .json({ success: false, message: "Package not found" });
     }
 
-    const existingUser = await User.findOneAndUpdate({
-      _id: userId,
-      isDeleted: false,
-    }, {
-      $set: {
-        packageId: packageId
-      }
-    }, { new: true });
+    const existingUser = await User.findOneAndUpdate(
+      {
+        _id: userId,
+        isDeleted: false,
+      },
+      {
+        $set: {
+          packageId: packageId,
+        },
+      },
+      { new: true },
+    );
 
     if (!existingUser) {
       return res
@@ -470,11 +479,10 @@ exports.assignPackageToUser = async (req, res, next) => {
       message: "Package assigned successfully",
       data: existingUser,
     });
-
   } catch (error) {
     next(error);
   }
-}
+};
 
 exports.assignServiceToUser = async (req, res, next) => {
   try {
@@ -483,8 +491,7 @@ exports.assignServiceToUser = async (req, res, next) => {
 
     const missingFields = [];
 
-    if (!services || !Array.isArray(services))
-      missingFields.push("services");
+    if (!services || !Array.isArray(services)) missingFields.push("services");
 
     if (!userId) missingFields.push("userId");
 
@@ -504,7 +511,7 @@ exports.assignServiceToUser = async (req, res, next) => {
     }
 
     const invalidIds = services.filter(
-      id => !mongoose.Types.ObjectId.isValid(id)
+      (id) => !mongoose.Types.ObjectId.isValid(id),
     );
 
     if (invalidIds.length > 0) {
@@ -521,14 +528,14 @@ exports.assignServiceToUser = async (req, res, next) => {
       isDeleted: false,
     }).select("_id");
 
-    const serviceIds = validServices.map(s => s._id);
+    const serviceIds = validServices.map((s) => s._id);
 
     const existingUser = await User.findOneAndUpdate(
       { _id: userId, isDeleted: false },
       {
         assignedServices: serviceIds,
       },
-      { new: true }
+      { new: true },
     );
 
     if (!existingUser) {
@@ -543,7 +550,6 @@ exports.assignServiceToUser = async (req, res, next) => {
       message: "User services updated successfully",
       data: existingUser,
     });
-
   } catch (error) {
     next(error);
   }
@@ -609,8 +615,7 @@ exports.getAssignedServices = async (req, res, next) => {
       message: "Assigned services fetched successfully",
       data: user,
     });
-
   } catch (error) {
     next(error);
   }
-}
+};

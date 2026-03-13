@@ -14,8 +14,8 @@ const { generateRejectionEmail } = require("../../templates/emailTemplates/userR
 exports.getAllUserRequests = async (req, res, next) => {
     try {
         let { page = 1, limit = 10 } = req.query;
-        page = parseInt(page);
-        limit = parseInt(limit);
+        page = Number(page);
+        limit = Number(limit);
 
         const skip = (page - 1) * limit;
         const filter = { isDeleted: false };

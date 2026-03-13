@@ -12,8 +12,8 @@ exports.getAllUsers = async (req, res, next) => {
   try {
     console.log(req.user, "user");
     let { page = 1, limit = 10 } = req.query;
-    page = parseInt(page);
-    limit = parseInt(limit);
+    page = Number(page);
+    limit = Number(limit);
 
     const skip = (page - 1) * limit;
 

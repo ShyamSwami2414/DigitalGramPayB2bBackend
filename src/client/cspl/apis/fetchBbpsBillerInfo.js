@@ -1,14 +1,13 @@
 const { generateRequestId } = require("../../../utils/requestIdGenerator");
 const csplClient = require("../cspl.client");
 
-exports.fetchPlans = async (operator_code, circle_id) => {
+exports.fetchBbpsBillerInfo = async ({ billerId }) => {
   const requestId = generateRequestId();
   const timestamp = new Date().toISOString();
-
   try {
     const response = await csplClient.post(
-      "mobile-plan-fetch",
-      { operator_code, circle_id },
+      "bbps/billerinfo",
+      { billerId },
       {
         headers: {
           "X-TIMESTAMP": timestamp,
@@ -22,10 +21,11 @@ exports.fetchPlans = async (operator_code, circle_id) => {
       },
     );
 
-    console.log(response?.data, "reponse");
+    console.log(response?.data, "response");
 
     return response?.data;
   } catch (error) {
     console.log("API Error Response:", error.response?.data || error.message);
+    throw error;
   }
 };
