@@ -279,7 +279,7 @@ exports.verifyUserOtp = async (req, res, next) => {
       id: user._id,
       role: user.roleId,
       kycStatus: user.kycStatus,
-      isPaymentRequired : user.isPaymentRequired,
+      isPaymentRequired: user.isPaymentRequired,
     });
 
     savedOtp.isUsed = true;
@@ -357,24 +357,82 @@ exports.fetchProfile = async (req, res, next) => {
   try {
     const userId = req.user.id;
 
-    const user = await User.findOne({
-      _id: new mongoose.Types.ObjectId(userId),
-      isDeleted: false,
-    })
-      .populate("roleId", "name")
-      .lean();
-    if (!user) {
-      return res
-        .status(404)
-        .json({ success: false, message: "User not found" });
-    }
+    const user = await User.aggregate([
+      {
+        $match: {
+          _id: new mongoose.Types.ObjectId(userId),
+          isDeleted: false,
+        },
+      },
 
-    user.roleName = user.roleId.name;
+      // role populate
+      {
+        $lookup: {
+          from: "roles",
+          localField: "roleId",
+          foreignField: "_id",
+          pipeline: [
+            {
+              $project: { name: 1 },
+            },
+          ],
+          as: "roleId",
+        },
+      },
+      {
+        $unwind: {
+          path: "$roleId",
+          preserveNullAndEmptyArrays: true,
+        },
+      },
+
+      // package populate
+      {
+        $lookup: {
+          from: "packages",
+          localField: "packageId",
+          foreignField: "_id",
+          pipeline: [
+            {
+              $project: { name: 1 },
+            },
+          ],
+          as: "packageId",
+        },
+      },
+      {
+        $unwind: {
+          path: "$packageId",
+          preserveNullAndEmptyArrays: true,
+        },
+      },
+
+      // assignedServices populate (array)
+      {
+        $lookup: {
+          from: "services",
+          localField: "assignedServices",
+          foreignField: "_id",
+          pipeline: [
+            {
+              $project: { name: 1 },
+            },
+          ],
+          as: "assignedServices",
+        },
+      },
+    ]);
+    if (!user.length) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
 
     return res.status(201).json({
       success: true,
       message: "user fetched successfully",
-      data: user,
+      data: user[0],
     });
   } catch (error) {
     next(error);

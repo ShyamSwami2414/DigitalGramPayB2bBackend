@@ -5,6 +5,10 @@ const {
   fetchBbpsBillerInfoService,
 } = require("../../services/fetchBbpsBillerInfoService");
 const { fetchBbpsBillService } = require("../../services/fetchBbpsBillService");
+const {
+  validateBbpsBillService,
+} = require("../../services/validateBbpsBillService");
+const { payBbpsBillService } = require("../../services/payBbpsBillService");
 
 exports.fetchBbpsCategories = async (req, res, next) => {
   try {
@@ -116,10 +120,136 @@ exports.fetchBbpsBill = async (req, res, next) => {
 
     const response = await fetchBbpsBillService(userId, billerId, inputParams);
 
+    console.log(response, "controller response");
+
     return res.status(200).json({
       success: true,
       message: "Bill Fetched",
-      data: response?.billerResponse,
+      data: { ...response?.data?.billerResponse, refid: response?.refid },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+exports.validateBbpsBill = async (req, res, next) => {
+  try {
+    const userId = req.user.id;
+    let { billerId, paramName, paramValue } = req.body;
+    billerId = billerId?.trim();
+    paramName = paramName?.trim();
+    paramValue = paramValue?.trim();
+
+    console.log(userId, "userId");
+    console.log(req.body, "body");
+
+    const requiredFields = ["billerId", "paramName", "paramValue"];
+    const missingFields = requiredFields.filter(
+      (field) => !req.body[field]?.trim?.(),
+    );
+
+    if (missingFields.length) {
+      return res.status(400).json({
+        success: false,
+        message: `${missingFields.join(", ")} are required`,
+      });
+    }
+
+    const response = await validateBbpsBillService(
+      billerId,
+      paramName,
+      paramValue,
+    );
+
+    console.log(response, "controller response");
+
+    return res.status(200).json({
+      success: true,
+      message: "Bill Validated",
+      data: { ...response?.data, refid: response?.refid },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+exports.payBbpsBill = async (req, res, next) => {
+  try {
+    const userId = req.user.id;
+    let {
+      refId,
+      billerId,
+      customerName,
+      customerMobile,
+      dueDate,
+      billamount,
+      billDate,
+      billPeriod,
+      billNumber,
+      placeholderValue,
+      paramValue,
+    } = req.body;
+
+    refId = refId?.trim();
+    billerId = billerId?.trim();
+    customerName = customerName?.trim();
+    customerMobile = customerMobile?.trim();
+    dueDate = dueDate?.trim();
+    billamount = billamount?.trim();
+    billDate = billDate?.trim();
+    billPeriod = billPeriod?.trim();
+    billNumber = billNumber?.trim();
+    placeholderValue = placeholderValue?.trim();
+    paramValue = paramValue?.trim();
+
+    console.log(userId, "userId");
+    console.log(req.body, "body");
+
+    const requiredFields = [
+      "refId",
+      "billerId",
+      "customerName",
+      "customerMobile",
+      "dueDate",
+      "billamount",
+      "billDate",
+      "billPeriod",
+      "billNumber",
+      "placeholderValue",
+      "paramValue",
+    ];
+
+    const missingFields = requiredFields.filter(
+      (field) => !req.body[field]?.trim?.(),
+    );
+
+    if (missingFields.length) {
+      return res.status(400).json({
+        success: false,
+        message: `${missingFields.join(", ")} are required`,
+      });
+    }
+
+    const response = await payBbpsBillService(
+      refId,
+      billerId,
+      customerName,
+      customerMobile,
+      dueDate,
+      billamount,
+      billDate,
+      billPeriod,
+      billNumber,
+      placeholderValue,
+      paramValue,
+    );
+
+    console.log(response, "controller response");
+
+    return res.status(200).json({
+      success: true,
+      message: "Bill Validated",
+      data: { ...response?.data, refid: response?.refid },
     });
   } catch (error) {
     next(error);
