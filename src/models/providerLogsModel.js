@@ -6,6 +6,7 @@ const providerLogsSchema = new mongoose.Schema(
       type: String,
       unique: true,
       index: true,
+      sparse: true,
     },
 
     //internal

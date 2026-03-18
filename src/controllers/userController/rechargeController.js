@@ -244,9 +244,11 @@ exports.doMobilePrepaidRecharge = async (req, res, next) => {
       });
     }
 
+    console.log("controller final response", response);
+
     return res.status(200).json({
       success: true,
-      message: "Recharge Successfull",
+      message: "Recharge Successful",
       data: response,
     });
   } catch (error) {

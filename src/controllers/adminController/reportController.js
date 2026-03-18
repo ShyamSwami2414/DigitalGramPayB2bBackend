@@ -1,5 +1,6 @@
 const mongoose = require("mongoose");
 const Service = require("../../models/serviceModel");
+const User = require("../../models/userModel");
 const RechargeReport = require("../../models/rechargeReportModel");
 const DmtReport = require("../../models/dmtReportModel");
 const BBpsReport = require("../../models/bbpsReportModel");
@@ -19,11 +20,15 @@ exports.getServiceWiseReport = async (req, res, next) => {
       from = "",
       to = "",
       serviceId = "",
+      userId = "",
     } = req.query;
     page = Number(page);
     limit = Number(limit);
     search = search?.trim();
+    userId = userId?.trim();
     const skip = (page - 1) * limit;
+
+    console.log(req.query, "query");
 
     const filter = {};
 
@@ -62,10 +67,17 @@ exports.getServiceWiseReport = async (req, res, next) => {
       });
     }
 
-    if (serviceId && !mongoose.Types.ObjectId.isValid(serviceId)) {
+    if (!userId) {
       return res.status(400).json({
         success: false,
-        message: "Invalid service id",
+        message: "User ID Is required",
+      });
+    }
+
+    if (userId && !mongoose.Types.ObjectId.isValid(userId)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid user id",
       });
     }
 
@@ -81,7 +93,30 @@ exports.getServiceWiseReport = async (req, res, next) => {
       }
     }
 
+    console.log(isServiceExist, "isServiceExist");
+
+    const isUserExist = await User.findOne({
+      _id: userId,
+      isActive: true,
+      isDeleted: false,
+    });
+
+    if (!isUserExist) {
+      return res.status(404).json({
+        success: false,
+        message: "User Not Found",
+      });
+    }
+
+    if (userId) {
+      filter.userId = isUserExist._id;
+    }
+
+    console.log(isUserExist, "isUserExist");
+
     const ReportModel = serviceModelMap[isServiceExist?.name?.toLowerCase()];
+
+    console.log(ReportModel, "ReportModel");
 
     if (!ReportModel) {
       return res.status(400).json({

@@ -1,0 +1,82 @@
+const User = require("../../models/userModel");
+const Package = require("../../models/packageModel");
+const Service = require("../../models/serviceModel");
+const Commission = require("../../models/commissionModel");
+
+const validateUserPackageAndService = async ({
+  userId,
+  serviceName,
+  operatorId = null,
+  categoryId = null,
+  amount,
+}) => {
+  const user = await User.findOne({
+    _id: userId,
+    isActive: true,
+    isDeleted: false,
+  }).select("packageId assignedServices");
+
+  if (!user?.packageId) {
+    throw new Error("No Package Assigned");
+  }
+
+  if (!user?.assignedServices?.length) {
+    throw new Error("No Service Assigned to user");
+  }
+
+  console.log("assignedPackage", user?.packageId);
+  console.log("assignedServices", user?.assignedServices);
+
+  const isPackageExist = await Package.findOne({
+    _id: user.packageId,
+    isActive: true,
+    isDeleted: false,
+  });
+
+  if (!isPackageExist) {
+    throw new Error("Package Not Exist");
+  }
+
+  const service = await Service.findOne({
+    name: serviceName,
+    isActive: true,
+    isDeleted: false,
+  });
+
+  if (!service) {
+    throw new Error(`${serviceName} service not exist`);
+  }
+
+  const isAssigned = user.assignedServices.some(
+    (id) => id.toString() === service._id.toString(),
+  );
+
+  if (!isAssigned) {
+    throw new Error(`${serviceName} Service Not Assigned`);
+  }
+
+  const commissionPlan = await Commission.findOne({
+    packageId: user.packageId,
+    serviceId: service._id,
+    operatorId: operatorId,
+    categoryId: categoryId,
+  }).lean();
+
+  if (!commissionPlan) {
+    throw new Error(`Commission Plan not found`);
+  }
+
+  const validPlan = commissionPlan.plan.find(
+    (p) => !p.isDeleted && amount >= p.from && amount <= p.to,
+  );
+
+  if (!validPlan) {
+    throw new Error(`No commission slab found for this amount`);
+  }
+
+  return { packageId: user.packageId, serviceId: service._id };
+};
+
+module.exports = {
+  validateUserPackageAndService,
+};

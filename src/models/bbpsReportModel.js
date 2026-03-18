@@ -8,6 +8,27 @@ const bbpsReportSchema = new mongoose.Schema(
       required: true,
       index: true,
     },
+
+    amount: {
+      type: Number,
+      required: true,
+    },
+
+    commission: {
+      type: Number,
+      default: 0,
+    },
+
+    tds: {
+      type: Number,
+      default: 0,
+    },
+
+    netCommission: {
+      type: Number,
+      default: 0,
+    },
+
     //internal reference id
     referenceId: {
       type: String,

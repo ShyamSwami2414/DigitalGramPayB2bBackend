@@ -5,7 +5,6 @@ const { validateAadhar } = require("../../helpers/validateAadhar");
 
 exports.offlineKycSubmission = async (req, res, next) => {
   try {
-
     const setting = await Setting.findOne();
     if (!setting) {
       return res.status(404).json({
@@ -89,10 +88,21 @@ exports.offlineKycSubmission = async (req, res, next) => {
     const missingFields = [];
 
     for (const [key, value] of Object.entries(requiredFields)) {
-      if (!value || value.toString().trim() === "") {
+      if (
+        value === undefined ||
+        value === null ||
+        (typeof value === "string" && value.trim() === "") ||
+        (Array.isArray(value) && value.length === 0)
+      ) {
         missingFields.push(key);
       }
     }
+
+    // for (const [key, value] of Object.entries(requiredFields)) {
+    //   if (!value || value.toString().trim() === "") {
+    //     missingFields.push(key);
+    //   }
+    // }
 
     // check files separately
     if (!aadharFile) missingFields.push("aadharFile");
@@ -122,43 +132,47 @@ exports.offlineKycSubmission = async (req, res, next) => {
 
     const kycData = new Kyc({
       userId: req.user.id,
-      firstName,
-      lastName,
-      fatherName,
-      gender,
-      email,
-      phone,
+
+      firstName: firstName.trim(),
+      lastName: lastName.trim(),
+      fatherName: fatherName.trim(),
+      gender: gender.trim().toLowerCase(),
+
+      email: email.trim(),
+      phone: phone.trim(),
       dob,
+
       personalAddress: {
-        address: personalAddress,
-        city: personalCity,
-        state: personalState,
-        pincode: personalPincode,
+        address: personalAddress.address.trim(),
+        city: personalAddress.city.trim(),
+        state: personalAddress.state.trim(),
+        pincode: personalAddress.pincode.trim(),
       },
 
-      aadharNumber,
-      panNumber,
+      shopName: shopName.trim(),
 
-      shopName,
       businessAddress: {
-        address: businessAddress,
-        city: businessCity,
-        state: businessState,
-        pincode: businessPincode,
+        address: businessAddress.address.trim(),
+        city: businessAddress.city.trim(),
+        state: businessAddress.state.trim(),
+        pincode: businessAddress.pincode.trim(),
       },
 
       businessPanNumber,
       gstNumber,
 
-      accountHolderName,
-      bankName,
-      branchName,
-      accountNumber,
-      ifscCode,
+      aadharNumber,
+      panNumber,
 
-      aadharFileUrl: aadharFile ? `/uploads/kyc/${aadharFile?.filename}` : null,
-      panFileUrl: panFile ? `/uploads/kyc/${panFile?.filename}` : null,
-      shopImageUrl: shopImage ? `/uploads/kyc/${shopImage?.filename}` : null,
+      accountHolderName: accountHolderName.trim(),
+      bankName: bankName.trim(),
+      branchName: branchName.trim(),
+      accountNumber: accountNumber.trim(),
+      ifscCode: ifscCode.trim(),
+
+      aadharFileUrl: `/uploads/kyc/${aadharFile.filename}`,
+      panFileUrl: `/uploads/kyc/${panFile.filename}`,
+      shopImageUrl: `/uploads/kyc/${shopImage.filename}`,
     });
 
     await kycData.save();
