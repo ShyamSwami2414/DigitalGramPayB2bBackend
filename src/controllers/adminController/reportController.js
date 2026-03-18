@@ -28,6 +28,8 @@ exports.getServiceWiseReport = async (req, res, next) => {
     userId = userId?.trim();
     const skip = (page - 1) * limit;
 
+    console.log(req.query, "query");
+
     const filter = {};
 
     if (isNaN(page) || page < 1) {
@@ -91,6 +93,8 @@ exports.getServiceWiseReport = async (req, res, next) => {
       }
     }
 
+    console.log(isServiceExist, "isServiceExist");
+
     const isUserExist = await User.findOne({
       _id: userId,
       isActive: true,
@@ -108,7 +112,11 @@ exports.getServiceWiseReport = async (req, res, next) => {
       filter.userId = isUserExist._id;
     }
 
+    console.log(isUserExist, "isUserExist");
+
     const ReportModel = serviceModelMap[isServiceExist?.name?.toLowerCase()];
+
+    console.log(ReportModel, "ReportModel");
 
     if (!ReportModel) {
       return res.status(400).json({

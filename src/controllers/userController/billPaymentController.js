@@ -9,6 +9,7 @@ const {
   validateBbpsBillService,
 } = require("../../services/validateBbpsBillService");
 const { payBbpsBillService } = require("../../services/payBbpsBillService");
+const { paiseToRupee } = require("../../utils/money");
 
 exports.fetchBbpsCategories = async (req, res, next) => {
   try {
@@ -177,12 +178,12 @@ exports.payBbpsBill = async (req, res, next) => {
   try {
     const userId = req.user.id;
     let {
-      refId,
+      refid,
       billerId,
       customerName,
       customerMobile,
       dueDate,
-      billamount,
+      billAmount,
       billDate,
       billPeriod,
       billNumber,
@@ -190,28 +191,32 @@ exports.payBbpsBill = async (req, res, next) => {
       paramValue,
     } = req.body;
 
-    refId = refId?.trim();
+    refid = refid?.trim();
     billerId = billerId?.trim();
     customerName = customerName?.trim();
     customerMobile = customerMobile?.trim();
     dueDate = dueDate?.trim();
-    billamount = billamount?.trim();
+    billAmount = Number(billAmount);
     billDate = billDate?.trim();
     billPeriod = billPeriod?.trim();
     billNumber = billNumber?.trim();
     placeholderValue = placeholderValue?.trim();
     paramValue = paramValue?.trim();
 
+    // billAmount = paiseToRupee(billAmount);
+
     console.log(userId, "userId");
     console.log(req.body, "body");
+    console.log(billAmount, "amount from body");
+    console.log(typeof billAmount, "amount from body bilAmoun type");
 
     const requiredFields = [
-      "refId",
+      "refid",
       "billerId",
       "customerName",
       "customerMobile",
       "dueDate",
-      "billamount",
+      "billAmount",
       "billDate",
       "billPeriod",
       "billNumber",
@@ -219,9 +224,13 @@ exports.payBbpsBill = async (req, res, next) => {
       "paramValue",
     ];
 
-    const missingFields = requiredFields.filter(
-      (field) => !req.body[field]?.trim?.(),
-    );
+    let missingFields = [];
+
+    requiredFields.forEach((field) => {
+      if (!req.body[field]) {
+        missingFields.push(field);
+      }
+    });
 
     if (missingFields.length) {
       return res.status(400).json({
@@ -230,26 +239,53 @@ exports.payBbpsBill = async (req, res, next) => {
       });
     }
 
-    const response = await payBbpsBillService(
-      refId,
+    if (!/^[6-9]\d{9}$/.test(customerMobile)) {
+      const err = new Error("Enter a valid mobile number");
+      err.statusCode = 400;
+      throw err;
+    }
+
+    if (billAmount <= 0) {
+      const err = new Error("Amount must be greater than 0");
+      err.statusCode = 400;
+      throw err;
+    }
+
+    const response = await payBbpsBillService({
+      userId,
+      refId: refid,
       billerId,
       customerName,
       customerMobile,
       dueDate,
-      billamount,
+      billamount: billAmount,
       billDate,
       billPeriod,
       billNumber,
       placeholderValue,
       paramValue,
-    );
+    });
 
     console.log(response, "controller response");
 
+    if (response.responseCode !== "000" || response.status === "ERROR") {
+      return res.status(500).json({
+        data: response,
+      });
+    }
+
+    if (response?.status === "FAILED" || response?.status === "ERROR") {
+      return res.status(400).json({
+        success: false,
+        message: response?.message || "Bill Payment Failed",
+        data: response?.data || null,
+      });
+    }
+
     return res.status(200).json({
       success: true,
-      message: "Bill Validated",
-      data: { ...response?.data, refid: response?.refid },
+      message: "Bill Paid Successfully",
+      data: response,
     });
   } catch (error) {
     next(error);

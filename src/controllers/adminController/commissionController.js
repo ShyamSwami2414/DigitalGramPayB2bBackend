@@ -7,7 +7,7 @@ const BbpsCategory = require("../../models/bbpsCategoryModel");
 
 exports.getCommissionList = async (req, res, next) => {
   try {
-    const { packageId, serviceId } = req.query;
+    const { packageId, serviceId, operatorId, categoryId } = req.query;
 
     if (!packageId || !serviceId) {
       return res.status(400).json({
@@ -62,6 +62,14 @@ exports.getCommissionList = async (req, res, next) => {
       packageId: new mongoose.Types.ObjectId(packageId),
       serviceId: new mongoose.Types.ObjectId(serviceId),
     };
+
+    if (operatorId) {
+      filter.operatorId = new mongoose.Types.ObjectId(operatorId);
+    }
+
+    if (categoryId) {
+      filter.categoryId = new mongoose.Types.ObjectId(categoryId);
+    }
 
     const commissions = await Commission.aggregate([
       { $match: filter },

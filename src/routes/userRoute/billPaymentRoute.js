@@ -6,7 +6,7 @@ const {
   fetchBbpsBillerInfo,
   fetchBbpsBill,
   validateBbpsBill,
-  payBbpsBill
+  payBbpsBill,
 } = require("../../controllers/userController/billPaymentController");
 const idempotencyMiddleware = require("../../middleware/idempotencyMiddleware");
 const apiLogger = require("../../middleware/apiLogger");
@@ -24,7 +24,13 @@ router.get(
 router.get("/fetch-biller-info", authenticateUser, fetchBbpsBillerInfo);
 router.post("/fetch-bill", authenticateUser, fetchBbpsBill);
 router.post("/validate-bill", authenticateUser, validateBbpsBill);
-router.post("/bill-pay", authenticateUser, payBbpsBill);
+router.post(
+  "/bill-pay",
+  authenticateUser,
+  idempotencyMiddleware,
+  apiLogger,
+  payBbpsBill,
+);
 
 // -----------------------------TPA------------------------------
 

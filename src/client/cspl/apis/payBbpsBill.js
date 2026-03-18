@@ -3,6 +3,7 @@ const { generateRequestId } = require("../../../utils/requestIdGenerator");
 const csplClient = require("../cspl.client");
 
 exports.payBbpsBill = async ({
+  client_referenceId,
   requestId,
   billerId,
   customerName,
@@ -15,10 +16,10 @@ exports.payBbpsBill = async ({
   placeholderValue,
   paramValue,
 }) => {
-  const client_referenceId = generateRequestId();
+  console.log(billamount, "billamount  in paise");
   const timestamp = new Date().toISOString();
+  const startTime = Date.now();
   try {
-    const startTime = Date.now();
     const response = await csplClient.post(
       "bbps/billpay",
       {
@@ -43,11 +44,11 @@ exports.payBbpsBill = async ({
         },
 
         // Accept any status code < 500 as "valid" so Axios doesn't throw
-        validateStatus: (status) => status < 500,
+        validateStatus: (status) => status < 400,
       },
     );
 
-    console.log(response?.data, "response");
+    console.log(response.data, "response");
 
     const responseTime = Date.now() - startTime;
 
@@ -55,7 +56,7 @@ exports.payBbpsBill = async ({
       response.data.status === "SUCCESS" ? "SUCCESS" : "FAILED";
 
     await ProviderLogs.create({
-      providerTxnId: response?.data?.txn_ref,
+      providerTxnId: response?.data?.txn_ref || undefined,
       referenceId: client_referenceId,
       providerName: "CSPL",
       endPoint: "bbps/billpay",
@@ -86,7 +87,7 @@ exports.payBbpsBill = async ({
     console.log("API Error Response:", error.response?.data || error.message);
 
     await ProviderLogs.create({
-      providerTxnId: error.response?.data?.txn_ref || null,
+      providerTxnId: error.response?.data?.txn_ref || undefined,
       referenceId: client_referenceId,
       providerName: "CSPL",
       endPoint: "bbps/billpay",
