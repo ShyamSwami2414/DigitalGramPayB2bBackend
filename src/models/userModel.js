@@ -74,19 +74,16 @@ const userSchema = new mongoose.Schema(
       default: null,
     },
 
-    assignedServices: [{
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Service",
-    }],
-
-    isPaymentRequired: {
-      type: Boolean,
-      default: false
-    },
+    assignedServices: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Service",
+      },
+    ],
 
     isPaymentDone: {
       type: Boolean,
-      default: false
+      default: false,
     },
 
     pin: { type: Number, required: true },

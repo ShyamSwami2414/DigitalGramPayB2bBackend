@@ -2,16 +2,10 @@ const express = require("express");
 const { authenticateUser } = require("../../middleware/authMiddleware");
 const checkUserPaymentAndKYC = require("../../middleware/kycPaymentCheckMiddleware");
 const {
-  getAllTopupBanks,
-} = require("../../controllers/userController/topupBankController");
-
+  redeemCoupon,
+} = require("../../controllers/userController/couponController");
 const router = express.Router();
 
-router.get(
-  "/get-all-topup-banks",
-  authenticateUser,
-  checkUserPaymentAndKYC,
-  getAllTopupBanks,
-);
+router.post("/redeem-coupon", authenticateUser, redeemCoupon);
 
 module.exports = router;

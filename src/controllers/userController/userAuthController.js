@@ -213,6 +213,15 @@ exports.verifyUserOtp = async (req, res, next) => {
       throw err;
     }
 
+    const role = await Role.findOne({ _id: user.roleId }).lean();
+
+    if (!role) {
+      const err = new Error("Role not assigned yet");
+      err.statusCode = 404;
+      err.stack = "Verify OTP";
+      throw err;
+    }
+
     const savedOtp = await Otp.findOne({
       userId: user._id,
       isUsed: false,
@@ -275,11 +284,15 @@ exports.verifyUserOtp = async (req, res, next) => {
 
     console.log(setting, "setting");
 
+    console.log(role, "role");
+
     const token = generateToken({
       id: user._id,
       role: user.roleId,
       kycStatus: user.kycStatus,
-      isPaymentRequired: user.isPaymentRequired,
+      isPaymentRequired: role?.isPaymentRequired,
+      onBoardCharge: role?.onBoardCharge,
+      isPaymentDone: user.isPaymentDone,
     });
 
     savedOtp.isUsed = true;
@@ -296,6 +309,8 @@ exports.verifyUserOtp = async (req, res, next) => {
       user,
       token,
       isKycOnline: setting?.isKycOnline,
+      isPaymentRequired: role?.isPaymentRequired,
+      onBoardCharge: role?.onBoardCharge,
     });
   } catch (error) {
     await session.abortTransaction();

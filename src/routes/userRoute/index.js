@@ -23,4 +23,7 @@ module.exports = (app) => {
   app.use(`${apiPrefix}/recharge`, require("./rechargeRoute"));
   app.use(`${apiPrefix}/bbps`, require("./billPaymentRoute"));
   app.use(`${apiPrefix}/userWalletRefill`, require("./userWalletRefillRoute"));
+  app.use(`${apiPrefix}/rechargeReport`, require("./rechargeReportRoute"));
+  app.use(`${apiPrefix}/coupon`, require("./couponRoute"));
+  app.use(`${apiPrefix}/commissionPlan`, require("./commissionPlanRoute"));
 };

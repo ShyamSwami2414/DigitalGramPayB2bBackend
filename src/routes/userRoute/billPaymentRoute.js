@@ -1,5 +1,6 @@
 const express = require("express");
 const { authenticateUser } = require("../../middleware/authMiddleware");
+const checkUserPaymentAndKYC = require("../../middleware/kycPaymentCheckMiddleware");
 const {
   fetchBbpsCategories,
   fetchParticularCategoryBillersList,
@@ -12,21 +13,43 @@ const idempotencyMiddleware = require("../../middleware/idempotencyMiddleware");
 const apiLogger = require("../../middleware/apiLogger");
 const router = express.Router();
 
-router.get("/fetch-bbps-categories", authenticateUser, fetchBbpsCategories);
+router.get(
+  "/fetch-bbps-categories",
+  authenticateUser,
+  checkUserPaymentAndKYC,
+  fetchBbpsCategories,
+);
 router.get(
   "/fetch-particular-category-billers",
   authenticateUser,
+  checkUserPaymentAndKYC,
   fetchParticularCategoryBillersList,
 );
 
 // -----------------------------TPA------------------------------
 
-router.get("/fetch-biller-info", authenticateUser, fetchBbpsBillerInfo);
-router.post("/fetch-bill", authenticateUser, fetchBbpsBill);
-router.post("/validate-bill", authenticateUser, validateBbpsBill);
+router.get(
+  "/fetch-biller-info",
+  authenticateUser,
+  checkUserPaymentAndKYC,
+  fetchBbpsBillerInfo,
+);
+router.post(
+  "/fetch-bill",
+  authenticateUser,
+  checkUserPaymentAndKYC,
+  fetchBbpsBill,
+);
+router.post(
+  "/validate-bill",
+  authenticateUser,
+  checkUserPaymentAndKYC,
+  validateBbpsBill,
+);
 router.post(
   "/bill-pay",
   authenticateUser,
+  checkUserPaymentAndKYC,
   idempotencyMiddleware,
   apiLogger,
   payBbpsBill,

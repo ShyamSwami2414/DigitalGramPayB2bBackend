@@ -376,14 +376,14 @@ exports.getWalletReport = async (req, res, next) => {
       userId: new mongoose.Types.ObjectId(userId),
     };
 
-    if (!["main", "aeps"].includes(wallet)) {
+    if (wallet && !["main", "aeps"].includes(wallet)) {
       return res.status(400).json({
         success: false,
         message: "Invalid wallet type",
       });
     }
 
-    if (!["credit", "debit"].includes(type)) {
+    if (type && !["credit", "debit"].includes(type)) {
       return res.status(400).json({
         success: false,
         message: "Invalid transaction type",
@@ -429,36 +429,141 @@ exports.getWalletReport = async (req, res, next) => {
       });
     }
 
-    const walletReport = await WalletLedger.aggregate([
+    const walletReport = await User.aggregate([
+      // 1. Start from logged-in user
       {
-        $match: filter,
+        $match: {
+          _id: new mongoose.Types.ObjectId(userId),
+        },
       },
+
+      // 2. Get full downline tree
+      {
+        $graphLookup: {
+          from: "users",
+          startWith: "$_id",
+          connectFromField: "_id",
+          connectToField: "parentUserId",
+          as: "downline",
+          maxDepth: 10, // or 3 if only 4 levels
+          depthField: "depth",
+        },
+      },
+
+      // 3. Merge self + downline
       {
         $project: {
-          userId: 1,
-          wallet: 1,
-          type: 1,
-          amount: 1,
-          openingBalance: 1,
-          closingBalance: 1,
-          description: 1,
-          referenceId: 1,
-          createdAt: 1,
-          updatedAt: 1,
+          allUsers: {
+            $concatArrays: [["$$ROOT"], "$downline"],
+          },
         },
       },
+
+      // 4. Flatten users
+      { $unwind: "$allUsers" },
+
+      // 5. Lookup wallet transactions
       {
-        $sort: {
-          createdAt: -1,
+        $lookup: {
+          from: "walletledgers",
+          localField: "allUsers._id",
+          foreignField: "userId",
+          as: "transactions",
         },
       },
+
+      // 6. Flatten transactions
+      { $unwind: "$transactions" },
+
+      // 7. Apply your filters HERE (IMPORTANT)
       {
-        $skip: skip,
+        $match: {
+          ...(wallet && { "transactions.wallet": wallet }),
+          ...(type && { "transactions.type": type }),
+
+          ...(search && {
+            $or: [
+              {
+                "transactions.referenceId": {
+                  $regex: search,
+                  $options: "i",
+                },
+              },
+            ],
+          }),
+
+          ...(fromDate &&
+            toDate && {
+              "transactions.createdAt": {
+                $gte: new Date(fromDate),
+                $lte: new Date(toDate),
+              },
+            }),
+        },
       },
+
+      // 8. Format output
       {
-        $limit: limit,
+        $project: {
+          _id: "$transactions._id",
+          amount: "$transactions.amount",
+          type: "$transactions.type",
+          wallet: "$transactions.wallet",
+          openingBalance: "$transactions.openingBalance",
+          closingBalance: "$transactions.closingBalance",
+          description: "$transactions.description",
+          referenceId: "$transactions.referenceId",
+          createdAt: "$transactions.createdAt",
+
+          // 👇 VERY IMPORTANT (user info)
+          user: {
+            _id: "$allUsers._id",
+            firstName: "$allUsers.firstName",
+            lastName: "$allUsers.lastName",
+            userName: "$allUsers.userName",
+            level: "$allUsers.level",
+          },
+        },
       },
+
+      // 9. Sort
+      { $sort: { createdAt: -1 } },
+
+      // 10. Pagination
+      { $skip: skip },
+      { $limit: limit },
     ]);
+
+    // const walletReport = await WalletLedger.aggregate([
+    //   {
+    //     $match: filter,
+    //   },
+    //   {
+    //     $project: {
+    //       userId: 1,
+    //       wallet: 1,
+    //       type: 1,
+    //       amount: 1,
+    //       openingBalance: 1,
+    //       closingBalance: 1,
+    //       description: 1,
+    //       referenceId: 1,
+    //       createdAt: 1,
+    //       updatedAt: 1,
+    //     },
+    //   },
+    //   {
+    //     $sort: {
+    //       createdAt: -1,
+    //     },
+    //   },
+    //   {
+    //     $skip: skip,
+    //   },
+    //   {
+    //     $limit: limit,
+    //   },
+    // ]);
 
     return res.status(200).json({
       success: true,

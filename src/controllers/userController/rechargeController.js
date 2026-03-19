@@ -219,14 +219,15 @@ exports.doMobilePrepaidRecharge = async (req, res, next) => {
       throw err;
     }
 
-    const response = await doRechargeService(
+    const response = await doRechargeService({
       userId,
-      operatorId,
+      operatorId: operatorId._id,
       amount,
       operatorCode,
+      operatorName: operatorId.name,
       number,
       billerMode,
-    );
+    });
 
     if (response.status === "FAILED") {
       return res.status(400).json({

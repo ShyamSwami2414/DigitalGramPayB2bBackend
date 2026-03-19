@@ -19,14 +19,15 @@ const { debitWallet } = require("./common/walletService");
 const { processCommission } = require("./common/commissionService");
 const { processRefund } = require("./common/refundService");
 
-exports.doRechargeService = async (
+exports.doRechargeService = async ({
   userId,
   operatorId,
   amount,
   operatorCode,
+  operatorName,
   number,
   billerMode,
-) => {
+}) => {
   const session = await mongoose.startSession();
   try {
     session.startTransaction();
@@ -37,7 +38,7 @@ exports.doRechargeService = async (
       userId: userId,
       serviceName: "recharge",
       operatorId: operatorId,
-      amount : amount
+      amount: amount,
     });
 
     const { openingBalance, closingBalance } = await debitWallet({
@@ -97,6 +98,8 @@ exports.doRechargeService = async (
       [
         {
           userId: userId,
+          operatorId: operatorId,
+          operatorName: operatorName,
           mobileNumber: number,
           amount: amount,
           referenceId: referenceId,
@@ -211,6 +214,7 @@ exports.doRechargeService = async (
           reportModel: RechargeReport,
           description: "Recharge Failed Refund",
         });
+
         // const wallet = await UserWallet.findOneAndUpdate(
         //   { userId, isActive: true, isDeleted: false },
         //   { $inc: { mainWallet: amount } },

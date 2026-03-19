@@ -152,7 +152,7 @@ exports.payBbpsBillService = async ({
         packageId: packageId,
         serviceId: serviceId,
         referenceId: referenceId,
-        reportModel: RechargeReport,
+        reportModel: BbpsReport,
         description: "BBPS Commission",
       });
     }

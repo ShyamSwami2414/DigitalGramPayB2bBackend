@@ -2,16 +2,16 @@ const express = require("express");
 const { authenticateUser } = require("../../middleware/authMiddleware");
 const checkUserPaymentAndKYC = require("../../middleware/kycPaymentCheckMiddleware");
 const {
-  getAllTopupBanks,
-} = require("../../controllers/userController/topupBankController");
+  getMyLastRechargeHistory,
+} = require("../../controllers/userController/rechargeReportController");
 
 const router = express.Router();
 
 router.get(
-  "/get-all-topup-banks",
+  "/my-recharge-history",
   authenticateUser,
   checkUserPaymentAndKYC,
-  getAllTopupBanks,
+  getMyLastRechargeHistory,
 );
 
 module.exports = router;

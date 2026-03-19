@@ -4,7 +4,7 @@ const mongoose = require("mongoose");
 
 const processRefund = async ({
   userId,
-  amount,
+  amount, //rupee
   referenceId,
   reportModel,
   description,
@@ -47,7 +47,7 @@ const processRefund = async ({
 
     await reportModel.updateOne(
       { referenceId },
-      { status: "FAILED" },
+      { $set: { status: "FAILED", isRefunded: true } },
       { session },
     );
 

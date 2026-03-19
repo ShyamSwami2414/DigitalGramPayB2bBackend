@@ -15,9 +15,9 @@ exports.doRecharge = async ({
   const requestId = generateRequestId();
 
   const timestamp = new Date().toISOString();
+  const startTime = Date.now();
 
   try {
-    const startTime = Date.now();
     const response = await csplClient.post(
       "mobile-prepaid-Recharge",
       { amount, client_referenceId, operatorCode, number, billerMode },

@@ -6,7 +6,7 @@ const { calculateTds } = require("../../helpers/calculateTds");
 
 const processCommission = async ({
   userId,
-  amount,
+  amount, //rupee
   packageId,
   serviceId,
   operatorId = null,

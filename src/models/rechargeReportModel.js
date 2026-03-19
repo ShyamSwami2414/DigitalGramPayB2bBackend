@@ -18,10 +18,12 @@ const rechargeReportSchema = new mongoose.Schema(
     operatorId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Operator",
+      required: true,
     },
 
     operatorName: {
       type: String,
+      required: true,
     },
 
     circle: {
@@ -31,6 +33,12 @@ const rechargeReportSchema = new mongoose.Schema(
     amount: {
       type: Number,
       required: true,
+    },
+
+    type: {
+      type: String,
+      enum: ["debit", "credit"],
+      default: "debit",
     },
 
     commission: {
@@ -62,6 +70,16 @@ const rechargeReportSchema = new mongoose.Schema(
       enum: ["PENDING", "SUCCESS", "FAILED", "REFUNDED"],
       default: "PENDING",
       index: true,
+    },
+
+    isRefunded: {
+      type: Boolean,
+      default: false,
+    },
+
+    description: {
+      type: String,
+      default: "",
     },
   },
   {

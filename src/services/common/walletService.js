@@ -4,7 +4,7 @@ const WalletLedger = require("../../models/walletLedgerModel");
 const debitWallet = async ({
   userId,
   amount, //paise
-  amountInRupee, //rupee
+  amountInRupee = null, //rupee
   serviceType,
   referenceId,
   description,
@@ -52,7 +52,12 @@ const debitWallet = async ({
   }
 
   closingBalance = wallet.mainWallet;
-  openingBalance = closingBalance + amount;
+
+  if (serviceType === "BBPS") {
+    openingBalance = closingBalance + amountInRupee;
+  } else {
+    openingBalance = closingBalance + amount;
+  }
 
   await WalletLedger.create(
     [
@@ -61,7 +66,7 @@ const debitWallet = async ({
         serviceType,
         wallet: "main",
         type: "debit",
-        amount: amountInRupee, //rupee
+        amount: serviceType === "BBPS" ? amountInRupee : amount,
         openingBalance,
         closingBalance,
         referenceId,
