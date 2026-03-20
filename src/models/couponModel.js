@@ -1,5 +1,7 @@
 const mongoose = require("mongoose");
 
+const round2 = (num) => Math.round(num * 100) / 100;
+
 const couponSchema = new mongoose.Schema(
   {
     code: {
@@ -14,6 +16,7 @@ const couponSchema = new mongoose.Schema(
       type: Number,
       required: true,
       min: 0,
+      set: round2,
     },
 
     isUsed: {
@@ -54,6 +57,29 @@ const couponSchema = new mongoose.Schema(
   {
     timestamps: true,
     versionKey: false,
+  },
+);
+
+couponSchema.pre("save", function (next) {
+  if (this.amount != null) this.amount = round2(this.amount);
+  next();
+});
+
+// Pre-update hooks for query-based updates
+couponSchema.pre(
+  ["updateOne", "updateMany", "findOneAndUpdate"],
+  function (next) {
+    const update = this.getUpdate();
+
+    if (update.$set?.amount != null) {
+      update.$set.amount = round2(update.$set.amount);
+    }
+    if (update.$inc?.amount != null) {
+      update.$inc.amount = round2(update.$inc.amount);
+    }
+
+    this.setUpdate(update);
+    next();
   },
 );
 

@@ -26,4 +26,6 @@ module.exports = (app) => {
   app.use(`${apiPrefix}/rechargeReport`, require("./rechargeReportRoute"));
   app.use(`${apiPrefix}/coupon`, require("./couponRoute"));
   app.use(`${apiPrefix}/commissionPlan`, require("./commissionPlanRoute"));
+  app.use(`${apiPrefix}/notification`, require("./notificationRoute"));
+  app.use(`${apiPrefix}/banner`, require("./bannerRoute"));
 };
