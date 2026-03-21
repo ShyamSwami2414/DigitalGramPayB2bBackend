@@ -1,7 +1,7 @@
 const Commission = require("../models/commissionModel");
 
 exports.calculateCommission = async ({
-  amount,
+  amount, //paise
   packageId,
   serviceId,
   operatorId = null,

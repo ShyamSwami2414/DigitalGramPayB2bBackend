@@ -4,7 +4,7 @@ const mongoose = require("mongoose");
 
 const processRefund = async ({
   userId,
-  amount, //rupee
+  amount, //paise
   referenceId,
   reportModel,
   description,
@@ -35,7 +35,7 @@ const processRefund = async ({
           serviceType: "REFUND",
           wallet: "main",
           type: "credit",
-          amount,
+          amount, //paise
           referenceId,
           openingBalance,
           closingBalance,

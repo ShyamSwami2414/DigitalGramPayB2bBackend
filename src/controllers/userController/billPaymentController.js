@@ -183,7 +183,7 @@ exports.payBbpsBill = async (req, res, next) => {
       customerName,
       customerMobile,
       dueDate,
-      billAmount,
+      billAmount, //paise
       billDate,
       billPeriod,
       billNumber,
@@ -202,8 +202,6 @@ exports.payBbpsBill = async (req, res, next) => {
     billNumber = billNumber?.trim();
     placeholderValue = placeholderValue?.trim();
     paramValue = paramValue?.trim();
-
-    // billAmount = paiseToRupee(billAmount);
 
     console.log(userId, "userId");
     console.log(req.body, "body");
@@ -258,7 +256,7 @@ exports.payBbpsBill = async (req, res, next) => {
       customerName,
       customerMobile,
       dueDate,
-      billamount: billAmount,
+      billamount: billAmount, //paise
       billDate,
       billPeriod,
       billNumber,

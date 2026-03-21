@@ -7,11 +7,13 @@ const {
   getMyOrderById,
 } = require("../../controllers/userController/orderController");
 const checkUserPaymentAndKYC = require("../../middleware/kycPaymentCheckMiddleware");
+const idempotencyMiddleware = require("../../middleware/idempotencyMiddleware");
 
 router.post(
   "/create-order",
   authenticateUser,
   checkUserPaymentAndKYC,
+  idempotencyMiddleware,
   createOrder,
 );
 

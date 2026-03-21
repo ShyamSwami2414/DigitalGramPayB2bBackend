@@ -2,18 +2,20 @@ const mongoose = require("mongoose");
 const UserWallet = require("../../models/userWallet");
 const User = require("../../models/userModel");
 const WalletLedger = require("../../models/walletLedgerModel");
+const { rupeeToPaise, paiseToRupee } = require("../../utils/money");
 const {
-  generateIdempotencyFingerprint,
-} = require("../../utils/generateIdempotencyFingerprint");
-const Idempotency = require("../../models/idempotencyModel");
+  generateUniqueRefernceId,
+} = require("../../utils/generateUniqueReferenceId");
 
 exports.aepsToMainTransfer = async (req, res, next) => {
   const session = await mongoose.startSession();
-  let fingerprint;
 
   try {
     let { amount } = req.body;
     amount = Number(amount);
+
+    const amountInPaise = rupeeToPaise(amount);
+
     const userId = req.user.id;
     const operation = "AEPS_TO_MAIN_TRANSFER";
 
@@ -23,66 +25,12 @@ exports.aepsToMainTransfer = async (req, res, next) => {
       throw error;
     }
 
-    fingerprint = generateIdempotencyFingerprint({
-      userId,
-      operation,
-      amount,
-    });
-
     session.startTransaction({
       readConcern: { level: "snapshot" },
       writeConcern: { w: "majority" },
     });
 
-    try {
-      await Idempotency.create(
-        [
-          {
-            fingerprint: fingerprint,
-            userId: userId,
-            operation: operation,
-            status: "processing",
-          },
-        ],
-        { session: session },
-      );
-    } catch (error) {
-      if (error.code === 11000) {
-        const existingRequest = await Idempotency.findOne({
-          fingerprint: fingerprint,
-        });
-
-        if (!existingRequest) {
-          const error = new Error("Idempotency state not found");
-          error.statusCode = 400;
-          throw error;
-        }
-
-        if (existingRequest.status === "completed") {
-          if (session.inTransaction()) {
-            await session.abortTransaction();
-          }
-          session.endSession();
-          return res.status(409).json({
-            success: false,
-            message: "Request already completed",
-          });
-        }
-
-        if (existingRequest.status === "processing") {
-          if (session.inTransaction()) {
-            await session.abortTransaction();
-          }
-          session.endSession();
-          return res.status(409).json({
-            success: false,
-            message: "Request already processing",
-          });
-        }
-      }
-    }
-
-    const referenceId = new mongoose.Types.ObjectId();
+    const referenceId = generateUniqueRefernceId();
 
     const userExist = await User.findOne({
       _id: new mongoose.Types.ObjectId(userId),
@@ -102,13 +50,16 @@ exports.aepsToMainTransfer = async (req, res, next) => {
         isActive: true,
         isDeleted: false,
         $expr: {
-          $gte: [{ $subtract: ["$aepsWallet", "$aepsHoldAmount"] }, amount],
+          $gte: [
+            { $subtract: ["$aepsWallet", "$aepsHoldAmount"] },
+            amountInPaise,
+          ],
         },
       },
       {
         $inc: {
-          aepsWallet: -amount,
-          mainWallet: amount,
+          aepsWallet: -amountInPaise,
+          mainWallet: amountInPaise,
         },
       },
       {
@@ -127,8 +78,8 @@ exports.aepsToMainTransfer = async (req, res, next) => {
 
     const aepsClosingBalance = updatedUserWallet.aepsWallet;
     const mainClosingBalance = updatedUserWallet.mainWallet;
-    const aepsOpeningBalance = aepsClosingBalance + amount;
-    const mainOpeningBalance = mainClosingBalance - amount;
+    const aepsOpeningBalance = aepsClosingBalance + amountInPaise;
+    const mainOpeningBalance = mainClosingBalance - amountInPaise;
 
     if (!updatedUserWallet) {
       const error = new Error("User wallet not found");
@@ -142,7 +93,7 @@ exports.aepsToMainTransfer = async (req, res, next) => {
           userId: new mongoose.Types.ObjectId(userId),
           wallet: "aeps",
           type: "debit",
-          amount: amount,
+          amount: amountInPaise,
           openingBalance: aepsOpeningBalance,
           closingBalance: aepsClosingBalance,
           description: "AEPS to Main Wallet Transfer",
@@ -152,26 +103,13 @@ exports.aepsToMainTransfer = async (req, res, next) => {
           userId: new mongoose.Types.ObjectId(userId),
           wallet: "main",
           type: "credit",
-          amount: amount,
+          amount: amountInPaise,
           openingBalance: mainOpeningBalance,
           closingBalance: mainClosingBalance,
           description: "AEPS to Main Wallet Transfer",
           referenceId: referenceId,
         },
       ],
-      { session: session },
-    );
-
-    await Idempotency.findOneAndUpdate(
-      {
-        fingerprint: fingerprint,
-      },
-      {
-        $set: {
-          status: "completed",
-          response: updatedUserWallet,
-        },
-      },
       { session: session },
     );
 
@@ -190,15 +128,6 @@ exports.aepsToMainTransfer = async (req, res, next) => {
     session.endSession();
 
     //mark failed idempotency
-    await Idempotency.findOneAndUpdate(
-      {
-        fingerprint: fingerprint,
-      },
-      {
-        status: "failed",
-        response: error,
-      },
-    );
     next(error);
   }
 };
@@ -254,10 +183,20 @@ exports.getWalletBalance = async (req, res, next) => {
       },
     ]);
 
+    const formattedData = userWallet
+      ? {
+          ...userWallet,
+          aepsWallet: paiseToRupee(userWallet.aepsWallet),
+          mainWallet: paiseToRupee(userWallet.mainWallet),
+          aepsHoldAmount: paiseToRupee(userWallet.aepsHoldAmount),
+          mainHoldAmount: paiseToRupee(userWallet.mainHoldAmount),
+        }
+      : null;
+
     return res.status(200).json({
       success: true,
       message: "User wallet fetched successfully",
-      data: userWallet,
+      data: formattedData,
     });
   } catch (error) {
     next(error);
@@ -340,10 +279,18 @@ exports.getWalletTransferHistory = async (req, res, next) => {
       },
     ]);
 
+    const formattedData = walletTransferHistory.map((item) => ({
+      ...item,
+
+      amount: paiseToRupee(item.amount),
+      openingBalance: paiseToRupee(item.openingBalance),
+      closingBalance: paiseToRupee(item.closingBalance),
+    }));
+
     return res.status(200).json({
       success: true,
       message: "Wallet transfer history fetched successfully",
-      data: walletTransferHistory,
+      data: formattedData,
     });
   } catch (error) {
     next(error);
@@ -430,14 +377,13 @@ exports.getWalletReport = async (req, res, next) => {
     }
 
     const walletReport = await User.aggregate([
-      // 1. Start from logged-in user
       {
         $match: {
           _id: new mongoose.Types.ObjectId(userId),
         },
       },
 
-      // 2. Get full downline tree
+      //Get full downline tree
       {
         $graphLookup: {
           from: "users",
@@ -445,12 +391,12 @@ exports.getWalletReport = async (req, res, next) => {
           connectFromField: "_id",
           connectToField: "parentUserId",
           as: "downline",
-          maxDepth: 10, // or 3 if only 4 levels
+          maxDepth: 10,
           depthField: "depth",
         },
       },
 
-      // 3. Merge self + downline
+      // Merge self + downline
       {
         $project: {
           allUsers: {
@@ -459,10 +405,8 @@ exports.getWalletReport = async (req, res, next) => {
         },
       },
 
-      // 4. Flatten users
       { $unwind: "$allUsers" },
 
-      // 5. Lookup wallet transactions
       {
         $lookup: {
           from: "walletledgers",
@@ -472,10 +416,9 @@ exports.getWalletReport = async (req, res, next) => {
         },
       },
 
-      // 6. Flatten transactions
+      // Flatten transactions
       { $unwind: "$transactions" },
 
-      // 7. Apply your filters HERE (IMPORTANT)
       {
         $match: {
           ...(wallet && { "transactions.wallet": wallet }),
@@ -502,7 +445,6 @@ exports.getWalletReport = async (req, res, next) => {
         },
       },
 
-      // 8. Format output
       {
         $project: {
           _id: "$transactions._id",
@@ -515,7 +457,6 @@ exports.getWalletReport = async (req, res, next) => {
           referenceId: "$transactions.referenceId",
           createdAt: "$transactions.createdAt",
 
-          // 👇 VERY IMPORTANT (user info)
           user: {
             _id: "$allUsers._id",
             firstName: "$allUsers.firstName",
@@ -526,49 +467,24 @@ exports.getWalletReport = async (req, res, next) => {
         },
       },
 
-      // 9. Sort
       { $sort: { createdAt: -1 } },
 
-      // 10. Pagination
       { $skip: skip },
       { $limit: limit },
     ]);
 
-    // const walletReport = await WalletLedger.aggregate([
-    //   {
-    //     $match: filter,
-    //   },
-    //   {
-    //     $project: {
-    //       userId: 1,
-    //       wallet: 1,
-    //       type: 1,
-    //       amount: 1,
-    //       openingBalance: 1,
-    //       closingBalance: 1,
-    //       description: 1,
-    //       referenceId: 1,
-    //       createdAt: 1,
-    //       updatedAt: 1,
-    //     },
-    //   },
-    //   {
-    //     $sort: {
-    //       createdAt: -1,
-    //     },
-    //   },
-    //   {
-    //     $skip: skip,
-    //   },
-    //   {
-    //     $limit: limit,
-    //   },
-    // ]);
+    const formattedData = walletReport.map((item) => ({
+      ...item,
+
+      amount: paiseToRupee(item.amount),
+      openingBalance: paiseToRupee(item.openingBalance),
+      closingBalance: paiseToRupee(item.closingBalance),
+    }));
 
     return res.status(200).json({
       success: true,
       message: "Wallet report fetched successfully",
-      data: walletReport,
+      data: formattedData,
     });
   } catch (error) {
     next(error);

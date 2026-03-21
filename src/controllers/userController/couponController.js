@@ -36,6 +36,7 @@ const redeemCoupon = async (req, res, next) => {
         message: "Role not found",
       });
     }
+    
 
     const coupon = await Coupon.findOneAndUpdate(
       {

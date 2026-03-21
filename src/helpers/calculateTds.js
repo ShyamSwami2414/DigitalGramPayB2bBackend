@@ -1,4 +1,5 @@
 exports.calculateTds = (amount) => {
+  //in paise tds
   const tdsPercent = 5;
   if (!amount) {
     return 0;

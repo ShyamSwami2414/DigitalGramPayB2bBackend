@@ -1,6 +1,7 @@
 const mongoose = require("mongoose");
 const FundRequest = require("../../models/fundRequestModel");
 const WalletTopupBank = require("../../models/walletTopupBankModel");
+const { rupeeToPaise, paiseToRupee } = require("../../utils/money");
 
 exports.getAllOfflineTopupRequests = async (req, res, next) => {
   try {
@@ -16,14 +17,20 @@ exports.getAllOfflineTopupRequests = async (req, res, next) => {
     const offlineTopupRequests = await FundRequest.find(filter)
       .sort({ createdAt: -1 })
       .skip(skip)
-      .limit(limit);
+      .limit(limit)
+      .lean();
 
     const total = await FundRequest.countDocuments(filter);
+
+    const formattedData = offlineTopupRequests.map((item) => ({
+      ...item,
+      amount: paiseToRupee(item.amount),
+    }));
 
     return res.status(200).json({
       success: true,
       message: "Offline topup requests fetched successfully",
-      data: offlineTopupRequests,
+      data: formattedData,
       pagination: {
         total,
         page,
@@ -44,6 +51,8 @@ exports.addOfflineTopupRequest = async (req, res, next) => {
 
     mode = mode?.trim()?.toLowerCase();
     utrNumber = utrNumber?.trim();
+
+    const amountInPaise = rupeeToPaise(amount);
 
     const paymentProof = req.file?.filename;
     const requiredFields = [
@@ -109,7 +118,7 @@ exports.addOfflineTopupRequest = async (req, res, next) => {
 
     const offlineTopupRequest = new FundRequest({
       userId: req.user.id,
-      amount,
+      amount: amountInPaise,
       mode,
       walletTopupBankId: receiverBank,
       utrNumber,

@@ -11,6 +11,7 @@ const getAllNotification = async (req, res, next) => {
       })
       .select("name")
       .lean();
+      
 
     return res.status(200).json({
       success: true,

@@ -3,28 +3,28 @@ const User = require("../../models/userModel");
 const UserWallet = require("../../models/userWallet");
 const WalletLedger = require("../../models/walletLedgerModel");
 const mongoose = require("mongoose");
+const { paiseToRupee } = require("../../utils/money");
 
 exports.fundRequestStats = async (req, res, next) => {
   try {
-
     const result = await FundRequest.aggregate([
       {
-        $match: {}
+        $match: {},
       },
       {
         $group: {
           _id: null,
           pending: {
-            $sum: { $cond: [{ $eq: ["$status", "pending"] }, 1, 0] }
+            $sum: { $cond: [{ $eq: ["$status", "pending"] }, 1, 0] },
           },
           approved: {
-            $sum: { $cond: [{ $eq: ["$status", "approved"] }, 1, 0] }
+            $sum: { $cond: [{ $eq: ["$status", "approved"] }, 1, 0] },
           },
           rejected: {
-            $sum: { $cond: [{ $eq: ["$status", "rejected"] }, 1, 0] }
+            $sum: { $cond: [{ $eq: ["$status", "rejected"] }, 1, 0] },
           },
-          total: { $sum: 1 }
-        }
+          total: { $sum: 1 },
+        },
       },
       {
         $project: {
@@ -33,26 +33,25 @@ exports.fundRequestStats = async (req, res, next) => {
           approved: 1,
           rejected: 1,
           // total: 1
-        }
-      }
+        },
+      },
     ]);
 
     return res.status(200).json({
       success: true,
       message: "Fund requests stats fetched successfully",
-      data: result[0] || { pending: 0, approved: 0, rejected: 0, total: 0 }
+      data: result[0] || { pending: 0, approved: 0, rejected: 0, total: 0 },
     });
-
   } catch (error) {
     next(error);
   }
-}
+};
 
 exports.getAllFundRequests = async (req, res, next) => {
   try {
     let { page = 1, limit = 10, status = "", search = "" } = req.query;
     page = Number(page);
-    limit = Number (limit);
+    limit = Number(limit);
     status = status.trim();
     search = search.trim();
     const skip = (page - 1) * limit;
@@ -64,68 +63,69 @@ exports.getAllFundRequests = async (req, res, next) => {
 
     const fundRequests = await FundRequest.aggregate([
       {
-        $match: filter
+        $match: filter,
       },
       {
         $lookup: {
           from: "users",
           localField: "userId",
           foreignField: "_id",
-          as: "user"
-        }
+          as: "user",
+        },
       },
       {
         $unwind: {
           path: "$user",
-          preserveNullAndEmptyArrays: true
-        }
+          preserveNullAndEmptyArrays: true,
+        },
       },
       {
         $addFields: {
           userName: {
-            $concat: [
-              "$user.firstName", " ", "$user.lastName"
-            ]
+            $concat: ["$user.firstName", " ", "$user.lastName"],
           },
-        }
+        },
       },
       {
         $project: {
-          user: 0
-        }
+          user: 0,
+        },
       },
       {
-        $sort: { createdAt: -1 }
+        $sort: { createdAt: -1 },
       },
       {
-        $skip: skip
+        $skip: skip,
       },
       {
-        $limit: limit
-      }
-
-    ])
+        $limit: limit,
+      },
+    ]);
 
     console.log(fundRequests, "fundRequests");
 
-    const total = await FundRequest.countDocuments(filter)
+    const total = await FundRequest.countDocuments(filter);
+
+    const formattedData = fundRequests.map((item) => ({
+      ...item,
+      amount: paiseToRupee(item?.amount),
+    }));
 
     return res.status(200).json({
       success: true,
       message: "Fund requests fetched successfully",
-      data: fundRequests,
+      data: formattedData,
       pagination: {
         total,
         page,
         limit,
         totalPages: Math.ceil(total / limit),
       },
-    })
-
+    });
   } catch (error) {
     next(error);
   }
-}
+};
 
 exports.approveFundRequest = async (req, res, next) => {
   const session = await mongoose.startSession();
@@ -152,18 +152,18 @@ exports.approveFundRequest = async (req, res, next) => {
     const fundRequest = await FundRequest.findOneAndUpdate(
       {
         _id: id,
-        status: "pending"
+        status: "pending",
       },
       {
         $set: {
           status: "approved",
-        }
+        },
       },
       {
         new: true,
-        session
-      }
-    )
+        session,
+      },
+    );
 
     if (!fundRequest) {
       const err = new Error("Fund request already processed or not found");
@@ -174,11 +174,11 @@ exports.approveFundRequest = async (req, res, next) => {
     const fundRequestUser = await User.findOne(
       {
         _id: fundRequest.userId,
-        isDeleted: false
+        isDeleted: false,
       },
       null,
-      { session }
-    )
+      { session },
+    );
 
     if (!fundRequestUser) {
       const err = new Error("User not found");
@@ -189,13 +189,13 @@ exports.approveFundRequest = async (req, res, next) => {
     const wallet = await UserWallet.findOneAndUpdate(
       {
         userId: fundRequest.userId,
-        isDeleted: false
+        isDeleted: false,
       },
       {
-        $inc: { mainWallet: fundRequest.amount }
+        $inc: { mainWallet: fundRequest.amount },
       },
-      { new: true, session }
-    )
+      { new: true, session },
+    );
 
     if (!wallet) {
       const err = new Error("User wallet not found");
@@ -206,35 +206,42 @@ exports.approveFundRequest = async (req, res, next) => {
     closingBalance = wallet.mainWallet;
     openingBalance = closingBalance - fundRequest.amount;
 
-    await WalletLedger.create([
-      {
-        userId: fundRequest.userId,
-        wallet: "main",
-        type: "credit",
+    await WalletLedger.create(
+      [
+        {
+          userId: fundRequest.userId,
+          wallet: "main",
+          type: "credit",
 
-        amount: fundRequest.amount,
-        openingBalance: openingBalance,
-        closingBalance: closingBalance,
+          amount: fundRequest.amount,
+          openingBalance: openingBalance,
+          closingBalance: closingBalance,
 
-        referenceId: fundRequest._id,
-        description: "Fund request approved",
-      }
-    ], { session })
+          referenceId: fundRequest._id,
+          description: "Fund request approved",
+        },
+      ],
+      { session },
+    );
 
     await session.commitTransaction();
     session.endSession();
 
+    const formattedData = fundRequest
+      ? { ...fundRequest, amount: paiseToRupee(fundRequest?.amount) }
+      : null;
+
     return res.status(200).json({
       success: true,
       message: "Fund request approved successfully",
-      data: fundRequest,
+      data: formattedData,
     });
   } catch (error) {
     await session.abortTransaction();
     session.endSession();
     next(error);
   }
-}
+};
 
 exports.rejectFundRequest = async (req, res, next) => {
   const session = await mongoose.startSession();
@@ -267,20 +274,20 @@ exports.rejectFundRequest = async (req, res, next) => {
     const fundRequest = await FundRequest.findOneAndUpdate(
       {
         _id: id,
-        status: "pending"
+        status: "pending",
       },
       {
         $set: {
           status: "rejected",
           rejectionReason: rejectionReason,
-          rejectedAt: new Date()
-        }
+          rejectedAt: new Date(),
+        },
       },
       {
         new: true,
-        session
-      }
-    )
+        session,
+      },
+    );
 
     if (!fundRequest) {
       const err = new Error("Fund request already processed or not found");
@@ -291,14 +298,18 @@ exports.rejectFundRequest = async (req, res, next) => {
     await session.commitTransaction();
     session.endSession();
 
+    const formattedData = fundRequest
+      ? { ...fundRequest, amount: paiseToRupee(fundRequest?.amount) }
+      : null;
+
     return res.status(200).json({
       success: true,
       message: "Fund request rejected successfully",
-      data: fundRequest,
+      data: formattedData,
     });
   } catch (error) {
     await session.abortTransaction();
     session.endSession();
     next(error);
   }
-}
+};

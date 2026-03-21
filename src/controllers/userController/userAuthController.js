@@ -16,6 +16,7 @@ const Setting = require("../../models/settingModel");
 const UserRequest = require("../../models/userRequestModel");
 const { generateOTP } = require("../../utils/generateOTP");
 const Otp = require("../../models/otpModel");
+const { paiseToRupee } = require("../../utils/money");
 
 exports.userRegister = async (req, res, next) => {
   try {
@@ -310,7 +311,7 @@ exports.verifyUserOtp = async (req, res, next) => {
       token,
       isKycOnline: setting?.isKycOnline,
       isPaymentRequired: role?.isPaymentRequired,
-      onBoardCharge: role?.onBoardCharge,
+      onBoardCharge: paiseToRupee(role?.onBoardCharge),
     });
   } catch (error) {
     await session.abortTransaction();
@@ -368,6 +369,7 @@ exports.changePassword = async (req, res, next) => {
     next(error);
   }
 };
+
 exports.fetchProfile = async (req, res, next) => {
   try {
     const userId = req.user.id;
@@ -437,6 +439,7 @@ exports.fetchProfile = async (req, res, next) => {
         },
       },
     ]);
+
     if (!user.length) {
       return res.status(404).json({
         success: false,
@@ -444,9 +447,9 @@ exports.fetchProfile = async (req, res, next) => {
       });
     }
 
-    return res.status(201).json({
+    return res.status(200).json({
       success: true,
-      message: "user fetched successfully",
+      message: "User fetched successfully",
       data: user[0],
     });
   } catch (error) {

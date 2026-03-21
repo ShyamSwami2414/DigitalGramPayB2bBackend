@@ -8,7 +8,7 @@ const validateUserPackageAndService = async ({
   serviceName,
   operatorId = null,
   categoryId = null,
-  amount,
+  amount, //paise
 }) => {
   const user = await User.findOne({
     _id: userId,

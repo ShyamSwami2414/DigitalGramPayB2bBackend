@@ -27,6 +27,7 @@ exports.offlineKycSubmission = async (req, res, next) => {
       "and files:",
       req.files,
     );
+
     const aadharFile = req.files?.aadharFile?.[0];
     const panFile = req.files?.panFile?.[0];
     const shopImage = req.files?.shopImage?.[0];

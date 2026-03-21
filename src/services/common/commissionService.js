@@ -6,11 +6,12 @@ const { calculateTds } = require("../../helpers/calculateTds");
 
 const processCommission = async ({
   userId,
-  amount, //rupee
+  amount, //paise
   packageId,
   serviceId,
   operatorId = null,
   referenceId,
+  providerTxnId = null,
   reportModel, //dynamic (RechargeReport, BBPSReport, etc.)
   description,
 }) => {
@@ -20,7 +21,7 @@ const processCommission = async ({
   let closingBalance = 0;
   try {
     const commission = await calculateCommission({
-      amount,
+      amount, //paise
       packageId,
       serviceId,
       operatorId,
@@ -64,6 +65,7 @@ const processCommission = async ({
         commission,
         tds: tdsAmount,
         netCommission,
+        providerTxnId: providerTxnId,
       },
       { session },
     );

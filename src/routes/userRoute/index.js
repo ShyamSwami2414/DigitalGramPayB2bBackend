@@ -28,4 +28,6 @@ module.exports = (app) => {
   app.use(`${apiPrefix}/commissionPlan`, require("./commissionPlanRoute"));
   app.use(`${apiPrefix}/notification`, require("./notificationRoute"));
   app.use(`${apiPrefix}/banner`, require("./bannerRoute"));
+  app.use(`${apiPrefix}/stateCity`, require("./stateCityRoute"));
+  app.use(`${apiPrefix}/globalBank`, require("./globalBanksRoute"));
 };

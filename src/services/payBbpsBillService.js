@@ -37,8 +37,6 @@ exports.payBbpsBillService = async ({
     const referenceId = generateUniqueRefernceId();
 
     let packageId, serviceId;
-    const amountInRupee = paiseToRupee(billamount);
-    console.log(amountInRupee, "amountInRupee");
 
     console.log(billerId, "billerId");
 
@@ -75,7 +73,7 @@ exports.payBbpsBillService = async ({
         userId: userId,
         serviceName: "bbps",
         categoryId: billerCategory?._id,
-        amount: amountInRupee, //rupee
+        amount: billamount, //paise
       }));
     } catch (err) {
       console.warn("Service validation failed:", err.message);
@@ -85,7 +83,6 @@ exports.payBbpsBillService = async ({
     const { openingBalance, closingBalance } = await debitWallet({
       userId: userId,
       amount: billamount, //paise
-      amountInRupee: amountInRupee,
       serviceType: "BBPS",
       referenceId: referenceId,
       description: "BBPS Bill Payment",
@@ -97,7 +94,7 @@ exports.payBbpsBillService = async ({
         {
           userId: userId,
           mobileNumber: customerMobile, //customer mobile number not users
-          amount: amountInRupee, //rupee
+          amount: billamount, //paise
           referenceId: referenceId,
         },
       ],
@@ -148,10 +145,11 @@ exports.payBbpsBillService = async ({
     if (result.status === "SUCCESS") {
       const { commission, tdsAmount, netCommission } = await processCommission({
         userId: userId,
-        amount: amountInRupee, //rupee
+        amount: billamount, //paise
         packageId: packageId,
         serviceId: serviceId,
         referenceId: referenceId,
+        providerTxnId: result?.billerstatus?.txnRefId,
         reportModel: BbpsReport,
         description: "BBPS Commission",
       });
@@ -161,7 +159,7 @@ exports.payBbpsBillService = async ({
       console.log("Entered");
       const { openingBalance, closingBalance } = await processRefund({
         userId: userId,
-        amount: amountInRupee, //rupee
+        amount: billamount, //paise
         referenceId: referenceId,
         reportModel: BbpsReport,
         description: "Bbps Bill Failed Refund",

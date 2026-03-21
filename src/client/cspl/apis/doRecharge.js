@@ -7,7 +7,7 @@ const ProviderLogs = require("../../../models/providerLogsModel");
 
 exports.doRecharge = async ({
   client_referenceId,
-  amount,
+  amount, //paise
   operatorCode,
   number,
   billerMode,

@@ -1,6 +1,7 @@
 const RechargeReport = require("../../models/rechargeReportModel");
 const mongoose = require("mongoose");
 const User = require("../../models/userModel");
+const { paiseToRupee } = require("../../utils/money");
 
 //last 5 my recharge history
 const getMyLastRechargeHistory = async (req, res, next) => {
@@ -14,10 +15,18 @@ const getMyLastRechargeHistory = async (req, res, next) => {
       .limit(5)
       .lean();
 
+    const formattedData = data.map((item) => ({
+      ...item,
+      amount: paiseToRupee(item.amount),
+      commission: paiseToRupee(item.commission),
+      tds: paiseToRupee(item.tds),
+      netCommission: paiseToRupee(item.netCommission),
+    }));
+
     return res.status(200).json({
       success: true,
       message: "Last recharge history fetched",
-      data,
+      formattedData,
     });
   } catch (error) {
     next(error);
@@ -144,10 +153,18 @@ const getCompleteRechargeReport = async (req, res, next) => {
       { $limit: limit },
     ]);
 
+    const formattedData = rechargeReport.map((item) => ({
+      ...item,
+      amount: paiseToRupee(item.amount),
+      commission: paiseToRupee(item.commission),
+      tds: paiseToRupee(item.tds),
+      netCommission: paiseToRupee(item.netCommission),
+    }));
+
     return res.status(200).json({
       success: true,
       message: "Recharge report fetched successfully",
-      data: rechargeReport,
+      data: formattedData,
     });
   } catch (error) {
     next(error);

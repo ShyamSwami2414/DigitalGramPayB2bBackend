@@ -22,7 +22,7 @@ const { processRefund } = require("./common/refundService");
 exports.doRechargeService = async ({
   userId,
   operatorId,
-  amount,
+  amount, //paise
   operatorCode,
   operatorName,
   number,
@@ -38,7 +38,7 @@ exports.doRechargeService = async ({
       userId: userId,
       serviceName: "recharge",
       operatorId: operatorId,
-      amount: amount,
+      amount: amount, //paise
     });
 
     const { openingBalance, closingBalance } = await debitWallet({
@@ -139,11 +139,12 @@ exports.doRechargeService = async ({
         const { commission, tdsAmount, netCommission } =
           await processCommission({
             userId: userId,
-            amount: amount,
+            amount: amount, //paise
             packageId: packageId,
             serviceId: serviceId,
             operatorId: operatorId,
             referenceId: referenceId,
+            providerTxnId: result?.txn_ref,
             reportModel: RechargeReport,
             description: "Recharge Commission",
           });
@@ -209,7 +210,7 @@ exports.doRechargeService = async ({
       try {
         const { openingBalance, closingBalance } = await processRefund({
           userId: userId,
-          amount: amount,
+          amount: amount, //paise
           referenceId: referenceId,
           reportModel: RechargeReport,
           description: "Recharge Failed Refund",

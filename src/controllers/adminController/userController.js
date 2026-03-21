@@ -11,6 +11,7 @@ const {
   generateWelcomeEmail,
 } = require("../../templates/emailTemplates/welcomeEmail");
 const { sendEmail } = require("../../utils/email");
+const { paiseToRupee } = require("../../utils/money");
 
 exports.getAllUserList = async (req, res, next) => {
   try {
@@ -56,10 +57,18 @@ exports.getAllUserList = async (req, res, next) => {
       },
     ]);
 
+    const formattedData = users.map((item) => ({
+      ...item,
+      aepsWallet: paiseToRupee(item?.aepsWallet),
+      mainWallet: paiseToRupee(item?.mainWallet),
+      aepsHold: paiseToRupee(item?.aepsHold),
+      mainHold: paiseToRupee(item?.mainHold),
+    }));
+
     return res.status(200).json({
       success: true,
       message: "Users fetched successfully",
-      data: users,
+      data: formattedData,
     });
   } catch (error) {
     next(error);
@@ -435,12 +444,10 @@ exports.assignPackageToUser = async (req, res, next) => {
       !mongoose.Types.ObjectId.isValid(userId) ||
       !mongoose.Types.ObjectId.isValid(packageId)
     ) {
-      return res
-        .status(400)
-        .json({
-          success: false,
-          message: "Invalid User Id or Package Id Provided",
-        });
+      return res.status(400).json({
+        success: false,
+        message: "Invalid User Id or Package Id Provided",
+      });
     }
 
     const existingPackage = await Package.findOne({

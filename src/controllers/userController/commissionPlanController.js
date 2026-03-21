@@ -1,6 +1,7 @@
 const Commission = require("../../models/commissionModel");
 const User = require("../../models/userModel");
 const mongoose = require("mongoose");
+const { paiseToRupee } = require("../../utils/money");
 
 const getMyCommissionPlan = async (req, res, next) => {
   try {
@@ -143,10 +144,23 @@ const getMyCommissionPlan = async (req, res, next) => {
       },
     ]);
 
+    const formattedData = data.map((item) => ({
+      ...item,
+      rows: item.rows.map((row) => ({
+        ...row,
+        fromAmount: paiseToRupee(row.fromAmount),
+        toAmount: paiseToRupee(row.toAmount),
+        commission:
+          row.type === "percent"
+            ? row.commission
+            : paiseToRupee(row.commission),
+      })),
+    }));
+
     return res.status(200).json({
       success: true,
       message: "Commission Plan Fetched",
-      data,
+      data: formattedData,
     });
   } catch (error) {
     next(error);

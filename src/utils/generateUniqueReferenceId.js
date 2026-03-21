@@ -1,6 +1,5 @@
-exports.generateUniqueRefernceId = () => {
-  const timestamp = Date.now(); // current time
-  const random = Math.floor(100000 + Math.random() * 900000); // 6 digit random
+const { nanoid } = require("nanoid");
 
-  return `REF${timestamp}${random}`;
+exports.generateUniqueRefernceId = () => {
+  return `REF-${nanoid(10)}`;
 };

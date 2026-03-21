@@ -42,6 +42,14 @@ const bbpsReportSchema = new mongoose.Schema(
       index: true,
     },
 
+    //external reference id
+    providerTxnId: {
+      type: String,
+      unique: true,
+      index: true,
+      sparse: true,
+    },
+
     // Recharge Status
     status: {
       type: String,

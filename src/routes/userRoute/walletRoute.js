@@ -8,6 +8,8 @@ const {
   getWalletTransferHistory,
   getWalletReport,
 } = require("../../controllers/userController/walletController");
+const idempotencyMiddleware = require("../../middleware/idempotencyMiddleware");
+const apiLogger = require("../../middleware/apiLogger");
 const router = express.Router();
 
 router.get(
@@ -23,6 +25,8 @@ router.patch(
   "/aeps-to-main",
   authenticateUser,
   checkUserPaymentAndKYC,
+  idempotencyMiddleware,
+  apiLogger,
   aepsToMainTransfer,
 );
 

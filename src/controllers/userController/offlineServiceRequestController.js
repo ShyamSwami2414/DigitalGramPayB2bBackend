@@ -225,7 +225,6 @@ exports.getOfflineServiceRequestById = async (req, res, next) => {
     const [offlineServiceRequest] = await OfflineServiceRequest.aggregate([
       { $match: filter },
 
-      // 🔹 Lookup Fields
       {
         $lookup: {
           from: "offlineservices",

@@ -1,5 +1,6 @@
 const mongoose = require("mongoose");
 const Coupon = require("../../models/couponModel");
+const { rupeeToPaise, paiseToRupee } = require("../../utils/money");
 
 exports.getCouponList = async (req, res, next) => {
   try {
@@ -19,14 +20,20 @@ exports.getCouponList = async (req, res, next) => {
     const coupons = await Coupon.find(filter)
       .sort({ createdAt: -1 })
       .skip(skip)
-      .limit(limit);
+      .limit(limit)
+      .lean();
 
     const total = await Coupon.countDocuments(filter);
+
+    const formattedData = coupons.map((item) => ({
+      ...item,
+      amount: paiseToRupee(item?.amount),
+    }));
 
     return res.status(200).json({
       success: true,
       message: "Coupons fetched successfully",
-      data: coupons,
+      data: formattedData,
       pagination: {
         total,
         page,
@@ -45,6 +52,8 @@ exports.createCoupon = async (req, res, next) => {
 
     code = code?.trim().toUpperCase();
     amount = Number(amount);
+
+    const amountInPaise = rupeeToPaise(amount);
 
     if (isNaN(amount)) {
       return res.status(400).json({
@@ -77,13 +86,17 @@ exports.createCoupon = async (req, res, next) => {
 
     const newCoupon = await Coupon.create({
       code: code,
-      amount,
+      amount: amountInPaise,
     });
+
+    const formattedData = newCoupon
+      ? { ...newCoupon._doc, amount: paiseToRupee(newCoupon?.amount) }
+      : null;
 
     return res.status(201).json({
       success: true,
       message: "Coupon created successfully",
-      data: newCoupon,
+      data: formattedData,
     });
   } catch (error) {
     next(error);
@@ -117,7 +130,6 @@ exports.toggleCoupon = async (req, res, next) => {
     return res.status(200).json({
       success: true,
       message: `Coupon is now ${coupon.isActive ? "active" : "inactive"}`,
-      data: coupon,
     });
   } catch (error) {
     next(error);

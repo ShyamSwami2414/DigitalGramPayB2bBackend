@@ -4,6 +4,7 @@ const Package = require("../../models/packageModel");
 const Service = require("../../models/serviceModel");
 const Operator = require("../../models/operatorModel");
 const BbpsCategory = require("../../models/bbpsCategoryModel");
+const { rupeeToPaise, paiseToRupee } = require("../../utils/money");
 
 exports.getCommissionList = async (req, res, next) => {
   try {
@@ -147,10 +148,17 @@ exports.getCommissionList = async (req, res, next) => {
       },
     ]);
 
+    const formattedData = commissions.map((item) => ({
+      ...item,
+      from: paiseToRupee(item?.from),
+      to: paiseToRupee(item?.to),
+      commission: paiseToRupee(item?.commission),
+    }));
+
     return res.status(200).json({
       success: true,
       message: "Commissions fetched successfully",
-      data: commissions,
+      data: formattedData,
     });
   } catch (error) {
     next(error);
@@ -188,6 +196,17 @@ exports.createCommission = async (req, res, next) => {
         message: "Invalid Service ID",
       });
     }
+
+    //rupee to paise
+    plan = plan.map((p) => ({
+      from: rupeeToPaise(p.from),
+      to: rupeeToPaise(p.to),
+      commission:
+        p.type === "percent"
+          ? Number(p.commission)
+          : rupeeToPaise(p.commission),
+      type: p.type?.trim().toLowerCase(),
+    }));
 
     // sort plans
     plan.sort((a, b) => a.from - b.from);
@@ -250,9 +269,9 @@ exports.createCommission = async (req, res, next) => {
       }
 
       validatedPlans.push({
-        from,
-        to,
-        commission,
+        from: from,
+        to: to,
+        commission: commission,
         type,
       });
     }
@@ -338,7 +357,6 @@ exports.createCommission = async (req, res, next) => {
       return res.status(201).json({
         success: true,
         message: "Commission Created Successfully",
-        data: commissionDoc,
       });
     }
 
@@ -383,7 +401,6 @@ exports.createCommission = async (req, res, next) => {
     return res.status(200).json({
       success: true,
       message: "Commission Plans Added Successfully",
-      data: commissionDoc,
     });
   } catch (error) {
     next(error);

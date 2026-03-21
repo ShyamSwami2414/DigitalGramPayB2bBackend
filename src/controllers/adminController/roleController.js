@@ -1,4 +1,5 @@
 const Role = require("../../models/roleModel");
+const { rupeeToPaise } = require("../../utils/money");
 
 exports.getUserRoles = async (req, res, next) => {
   try {
@@ -15,7 +16,11 @@ exports.getUserRoles = async (req, res, next) => {
 
 exports.createRole = async (req, res, next) => {
   try {
-    const { name, roleCode, level, onBoardCharge } = req.body;
+    let { name, roleCode, level, onBoardCharge } = req.body;
+
+    onBoardCharge = Number(onBoardCharge);
+
+    const onBoardInPaise = rupeeToPaise(onBoardCharge);
 
     if (!name || !roleCode || !level || onBoardCharge == undefined) {
       return res
@@ -35,7 +40,7 @@ exports.createRole = async (req, res, next) => {
       name,
       roleCode,
       level,
-      onBoardCharge,
+      onBoardCharge: onBoardInPaise,
     });
 
     await newRole.save();

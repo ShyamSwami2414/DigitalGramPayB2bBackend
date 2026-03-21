@@ -1,5 +1,6 @@
 const mongoose = require("mongoose");
 const Role = require("../../models/roleModel");
+const { rupeeToPaise, paiseToRupee } = require("../../utils/money");
 
 exports.getOnBoardCharges = async (req, res, next) => {
   try {
@@ -8,10 +9,15 @@ exports.getOnBoardCharges = async (req, res, next) => {
       isDeleted: false,
     }).select("name onBoardCharge isPaymentRequired");
 
+    const formattedData = charges.map((item) => ({
+      ...item,
+      onBoardCharge: paiseToRupee(item?.onBoardCharge),
+    }));
+
     return res.status(200).json({
       success: true,
       message: "Charges fetched successfully",
-      data: charges,
+      data: formattedData,
     });
   } catch (error) {
     next(error);
@@ -21,7 +27,11 @@ exports.getOnBoardCharges = async (req, res, next) => {
 exports.setOnBoardCharges = async (req, res, next) => {
   try {
     console.log(req.body, "body");
-    const { role, amount, isPaymentRequired } = req.body;
+    let { role, amount, isPaymentRequired } = req.body;
+
+    amount = Number(amount);
+
+    const amountInPaise = rupeeToPaise(amount);
 
     if (!role || !amount || isPaymentRequired === null) {
       return res
@@ -39,7 +49,7 @@ exports.setOnBoardCharges = async (req, res, next) => {
       { _id: role, isDeleted: false },
       {
         $set: {
-          onBoardCharge: amount,
+          onBoardCharge: amountInPaise, //paise
           isPaymentRequired: isPaymentRequired,
         },
       },
@@ -55,7 +65,6 @@ exports.setOnBoardCharges = async (req, res, next) => {
     return res.status(200).json({
       success: true,
       message: "Charges Set Successfully",
-      data: newRole,
     });
   } catch (error) {
     next(error);
@@ -65,7 +74,11 @@ exports.setOnBoardCharges = async (req, res, next) => {
 exports.updateCharge = async (req, res, next) => {
   try {
     const { id } = req.params;
-    const { amount, isPaymentRequired } = req.body;
+    let { amount, isPaymentRequired } = req.body;
+
+    amount = Number(amount);
+
+    const amountInPaise = rupeeToPaise(amount);
 
     if (!id || !amount || isPaymentRequired === null) {
       return res
@@ -85,7 +98,7 @@ exports.updateCharge = async (req, res, next) => {
       },
       {
         $set: {
-          onBoardCharge: amount,
+          onBoardCharge: amountInPaise,
           isPaymentRequired: isPaymentRequired,
         },
       },
@@ -100,9 +113,7 @@ exports.updateCharge = async (req, res, next) => {
         .json({ success: false, message: "Charge Data Not Found" });
     }
 
-    return res
-      .status(200)
-      .json({ success: true, message: "Charges Updated", data: charge });
+    return res.status(200).json({ success: true, message: "Charges Updated" });
   } catch (error) {
     next(error);
   }

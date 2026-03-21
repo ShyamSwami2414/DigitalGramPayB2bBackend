@@ -9,7 +9,7 @@ exports.payBbpsBill = async ({
   customerName,
   customerMobile,
   dueDate,
-  billamount,
+  billamount, //paise
   billDate,
   billPeriod,
   billNumber,
@@ -56,7 +56,7 @@ exports.payBbpsBill = async ({
       response.data.status === "SUCCESS" ? "SUCCESS" : "FAILED";
 
     await ProviderLogs.create({
-      providerTxnId: response?.data?.txn_ref || undefined,
+      providerTxnId: response?.data?.billerstatus?.txnRefId || null,
       referenceId: client_referenceId,
       providerName: "CSPL",
       endPoint: "bbps/billpay",
@@ -87,7 +87,7 @@ exports.payBbpsBill = async ({
     console.log("API Error Response:", error.response?.data || error.message);
 
     await ProviderLogs.create({
-      providerTxnId: error.response?.data?.txn_ref || undefined,
+      providerTxnId: error.response?.data?.txn_ref || null,
       referenceId: client_referenceId,
       providerName: "CSPL",
       endPoint: "bbps/billpay",

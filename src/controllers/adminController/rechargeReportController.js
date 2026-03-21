@@ -2,6 +2,7 @@ const mongoose = require("mongoose");
 const Service = require("../../models/serviceModel");
 const User = require("../../models/userModel");
 const RechargeReport = require("../../models/rechargeReportModel");
+const { paiseToRupee } = require("../../utils/money");
 
 exports.getRechargeStats = async (req, res, next) => {
   try {
@@ -75,19 +76,21 @@ exports.getRechargeStats = async (req, res, next) => {
       data: {
         totalSuccess: {
           count: stats.totalSuccess.totalCount,
-          amount: stats.totalSuccess.totalAmount.toFixed(2),
+          amount: paiseToRupee(stats.totalSuccess.totalAmount),
         },
         totalPending: {
           count: stats.totalPending.totalCount,
-          amount: stats.totalPending.totalAmount.toFixed(2),
+          amount: paiseToRupee(stats.totalPending.totalAmount),
         },
         totalFailed: {
           count: stats.totalFailed.totalCount,
-          amount: stats.totalFailed.totalAmount.toFixed(2),
+          amount: paiseToRupee(stats.totalFailed.totalAmount),
         },
         commissionOverview: {
           totalDays: stats.commissionOverview.totalDays,
-          totalCommission: stats.commissionOverview.totalCommission.toFixed(2),
+          totalCommission: paiseToRupee(
+            stats.commissionOverview.totalCommission,
+          ),
         },
       },
     });
@@ -145,10 +148,20 @@ exports.getRechargeReportById = async (req, res, next) => {
       });
     }
 
+    const formattedData = report
+      ? {
+          ...report,
+          amount: paiseToRupee(report?.amount),
+          commission: paiseToRupee(report?.commission),
+          tds: paiseToRupee(report?.tds),
+          netCommission: paiseToRupee(report?.netCommission),
+        }
+      : null;
+
     return res.status(200).json({
       success: true,
       message: "Recharge report fetched successfully",
-      data: report,
+      data: formattedData,
     });
   } catch (error) {
     next(error);
@@ -294,10 +307,18 @@ exports.getRechargeReport = async (req, res, next) => {
 
     const total = await RechargeReport.countDocuments(filter);
 
+    const formattedData = rechargeReport.map((item) => ({
+      ...item,
+      amount: paiseToRupee(item?.amount),
+      commission: paiseToRupee(item?.commission),
+      tds: paiseToRupee(item?.tds),
+      netCommission: paiseToRupee(item?.netCommission),
+    }));
+
     return res.status(200).json({
       success: true,
       message: "Recharge Report fetched successfully",
-      data: rechargeReport,
+      data: formattedData,
       pagination: {
         page,
         limit,

@@ -1,5 +1,6 @@
 const Order = require("../../models/orderModel");
 const mongoose = require("mongoose");
+const { paiseToRupee } = require("../../utils/money");
 
 exports.getOrderById = async (req, res, next) => {
   try {
@@ -26,7 +27,7 @@ exports.getOrderById = async (req, res, next) => {
 
     const [order] = await Order.aggregate([
       {
-        $match: filter
+        $match: filter,
       },
       {
         $lookup: {
@@ -79,7 +80,7 @@ exports.getOrderById = async (req, res, next) => {
           createdAt: 1,
         },
       },
-    ])
+    ]);
 
     if (!order) {
       return res.status(404).json({
@@ -88,10 +89,29 @@ exports.getOrderById = async (req, res, next) => {
       });
     }
 
+    const formattedData = order
+      ? {
+          ...order,
+          subTotal: paiseToRupee(order?.subTotal),
+          shippingCharge: paiseToRupee(order?.shippingCharge),
+          gst: paiseToRupee(order?.gst),
+          grandTotal: paiseToRupee(order?.grandTotal),
+
+          p: order.p
+            ? {
+                ...order.p,
+                price: paiseToRupee(order.p?.price),
+                discount: paiseToRupee(order.p?.discount),
+                priceAfterDiscount: paiseToRupee(order.p?.priceAfterDiscount),
+              }
+            : null,
+        }
+      : null;
+
     res.status(200).json({
       success: true,
       message: "Order fetched successfully",
-      data: order,
+      data: formattedData,
     });
   } catch (error) {
     next(error);
@@ -174,10 +194,15 @@ exports.getOrderList = async (req, res, next) => {
 
     const total = await Order.countDocuments(filter);
 
+    const formattedData = orders.map((item) => ({
+      ...item,
+      grandTotal: paiseToRupee(item?.grandTotal),
+    }));
+
     res.status(200).json({
       success: true,
       message: "Orders fetched successfully",
-      data: orders,
+      data: formattedData,
       pagination: {
         page,
         limit,
@@ -267,8 +292,9 @@ exports.updateOrderStatus = async (req, res, next) => {
       },
       {
         new: true,
-        runValidators: true
-      });
+        runValidators: true,
+      },
+    ).lean();
 
     if (!order) {
       return res.status(404).json({
@@ -277,13 +303,20 @@ exports.updateOrderStatus = async (req, res, next) => {
       });
     }
 
-    order.orderStatus = orderStatus;
-    await order.save();
+    const formattedData = order
+      ? {
+          ...order,
+          subTotal: paiseToRupee(order?.subTotal),
+          shippingCharge: paiseToRupee(order?.shippingCharge),
+          gst: paiseToRupee(order?.gst),
+          grandTotal: paiseToRupee(order?.grandTotal),
+        }
+      : null;
 
     res.status(200).json({
       success: true,
       message: "Order status updated successfully",
-      data: order,
+      data: formattedData,
     });
   } catch (error) {
     next(error);
