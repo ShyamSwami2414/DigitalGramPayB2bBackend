@@ -77,7 +77,7 @@ exports.userRegister = async (req, res, next) => {
     }
 
     const pin = generateUniquePin();
-    const userName = await generateUsername();
+    const userName = await generateUsername({ role: isRoleValid?.name });
     const password = await generateUserPassword();
 
     const hashedPassword = await bcrypt.hashPassword(password);
@@ -314,9 +314,13 @@ exports.verifyUserOtp = async (req, res, next) => {
       onBoardCharge: paiseToRupee(role?.onBoardCharge),
     });
   } catch (error) {
-    await session.abortTransaction();
-    session.endSession();
+    if (session.inTransaction) {
+      await session.abortTransaction();
+    }
+
     next(error);
+  } finally {
+    session.endSession();
   }
 };
 

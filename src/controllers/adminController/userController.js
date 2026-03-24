@@ -348,7 +348,7 @@ exports.createUser = async (req, res, next) => {
     const password = generateUserPassword();
     const hashedPassword = await hashPassword(password);
 
-    const userName = await generateUsername();
+    const userName = await generateUsername({ role: isRoleValid?.name });
     const pin = await generateUniquePin();
 
     const newUser = new User({

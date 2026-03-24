@@ -1,7 +1,9 @@
 const Kyc = require("../../models/kycModel");
 const User = require("../../models/userModel");
 const mongoose = require("mongoose");
-const { kycStatusTemplate } = require("../../templates/emailTemplates/kycEmail");
+const {
+  kycStatusTemplate,
+} = require("../../templates/emailTemplates/kycEmail");
 const { sendEmail } = require("../../utils/email");
 
 exports.getKycData = async (req, res, next) => {
@@ -62,14 +64,14 @@ exports.getKycById = async (req, res, next) => {
     if (!id) {
       return res.status(400).json({
         success: false,
-        message: "Invalid ID"
+        message: "Invalid ID",
       });
     }
 
     if (!mongoose.Types.ObjectId.isValid(id)) {
       return res.status(400).json({
         success: false,
-        message: "Invalid ID"
+        message: "Invalid ID",
       });
     }
 
@@ -78,7 +80,7 @@ exports.getKycById = async (req, res, next) => {
     if (!kyc) {
       return res.status(404).json({
         success: false,
-        message: "Kyc Not Found"
+        message: "Kyc Not Found",
       });
     }
 
@@ -87,7 +89,6 @@ exports.getKycById = async (req, res, next) => {
       message: "KYC fetched successfully",
       data: kyc,
     });
-
   } catch (error) {
     next(error);
   }
@@ -100,14 +101,14 @@ exports.getKycByUserId = async (req, res, next) => {
     if (!userId) {
       return res.status(400).json({
         success: false,
-        message: "Invalid User ID"
+        message: "Invalid User ID",
       });
     }
 
     if (!mongoose.Types.ObjectId.isValid(userId)) {
       return res.status(400).json({
         success: false,
-        message: "Invalid User ID"
+        message: "Invalid User ID",
       });
     }
 
@@ -116,18 +117,18 @@ exports.getKycByUserId = async (req, res, next) => {
     if (!userExist) {
       return res.status(404).json({
         success: false,
-        message: "User Not Found"
+        message: "User Not Found",
       });
     }
 
     const kyc = await Kyc.findOne({ userId: userId, isDeleted: false }).lean();
 
-    console.log(kyc, "Kyc By User ID")
+    console.log(kyc, "Kyc By User ID");
 
     if (!kyc) {
       return res.status(400).json({
         success: false,
-        message: "Kyc Not Found"
+        message: "Kyc Not Found",
       });
     }
 
@@ -136,7 +137,6 @@ exports.getKycByUserId = async (req, res, next) => {
       message: "KYC fetched successfully",
       data: kyc,
     });
-
   } catch (error) {
     next(error);
   }
@@ -149,47 +149,56 @@ exports.updateSectionStatus = async (req, res, next) => {
     section = section?.trim();
     status = status?.trim();
 
-    const allowedSections = ["personalDetailStatus", "businessDetailStatus", "bankDetailStatus", "identityDetailStatus"];
+    const allowedSections = [
+      "personalDetailStatus",
+      "businessDetailStatus",
+      "bankDetailStatus",
+      "identityDetailStatus",
+    ];
     const allowedStatus = ["approved", "rejected", "pending"];
 
     if (!id || !section || !status) {
       return res.status(400).json({
         success: false,
-        message: "Details Missing"
+        message: "Details Missing",
       });
     }
 
     if (!mongoose.Types.ObjectId.isValid(id)) {
       return res.status(400).json({
         success: false,
-        message: "Invalid ID"
+        message: "Invalid ID",
       });
     }
 
     if (!allowedSections.includes(section)) {
       return res.status(400).json({
         success: false,
-        message: "Invalid Section name"
+        message: "Invalid Section name",
       });
     }
 
     if (!allowedStatus.includes(status?.toLowerCase())) {
       return res.status(400).json({
         success: false,
-        message: "Invalid Status name"
+        message: "Invalid Status name",
       });
     }
 
-    const kyc = await Kyc.findByIdAndUpdate(id, {
-      $set: {
-        [section]: status,
-      }
-    }, { new: true });
+    const kyc = await Kyc.findByIdAndUpdate(
+      id,
+      {
+        $set: {
+          [section]: status,
+        },
+      },
+      { new: true },
+    );
 
     if (!kyc) {
       return res.status(404).json({
         success: false,
-        message: "Kyc Not Found"
+        message: "Kyc Not Found",
       });
     }
 
@@ -198,12 +207,10 @@ exports.updateSectionStatus = async (req, res, next) => {
       message: "Section status updated successfully",
       data: kyc,
     });
-
   } catch (error) {
     next(error);
   }
-
-}
+};
 
 exports.updateOverAllKycStatus = async (req, res, next) => {
   const session = await mongoose.startSession();
@@ -247,7 +254,7 @@ exports.updateOverAllKycStatus = async (req, res, next) => {
         .json({ success: false, message: "Invalid Status Change" });
     }
 
-    const kyc = await Kyc.findOne({ _id: id, isDeleted: false })
+    const kyc = await Kyc.findOne({ _id: id, isDeleted: false });
 
     if (!kyc) {
       await session.abortTransaction();
@@ -260,10 +267,14 @@ exports.updateOverAllKycStatus = async (req, res, next) => {
       (kyc.personalDetailStatus?.toLowerCase() !== "approved" ||
         kyc.businessDetailStatus?.toLowerCase() !== "approved" ||
         kyc.bankDetailStatus?.toLowerCase() !== "approved" ||
-        kyc.identityDetailStatus?.toLowerCase() !== "approved")) {
+        kyc.identityDetailStatus?.toLowerCase() !== "approved")
+    ) {
       await session.abortTransaction();
       session.endSession();
-      return res.status(400).json({ success: false, message: "All sections must be approved before approving kyc" });
+      return res.status(400).json({
+        success: false,
+        message: "All sections must be approved before approving kyc",
+      });
     }
 
     kyc.status = status?.toLowerCase();
@@ -294,8 +305,8 @@ exports.updateOverAllKycStatus = async (req, res, next) => {
       name: user.firstName,
       status: status?.toLowerCase(),
       rejectionReason: reason,
-      company: "B2B"
-    })
+      company: "B2B",
+    });
 
     await sendEmail({
       to: user.email,
@@ -312,8 +323,12 @@ exports.updateOverAllKycStatus = async (req, res, next) => {
       .status(200)
       .json({ success: true, message: "Kyc Updated", data: kyc });
   } catch (error) {
-    await session.abortTransaction();
-    session.endSession();
+    if (session.inTransaction) {
+      await session.abortTransaction();
+    }
+
     next(error);
+  } finally {
+    session.endSession();
   }
-}
+};

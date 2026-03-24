@@ -10,6 +10,13 @@ const OrderSchema = new mongoose.Schema(
       index: true,
     },
 
+    referenceId: {
+      type: String,
+      required: true,
+      unique: true,
+      index: true,
+    },
+
     product: {
       productId: {
         type: mongoose.Schema.Types.ObjectId,

@@ -13,7 +13,14 @@ const walletLedgerSchema = new mongoose.Schema(
 
     serviceType: {
       type: "String",
-      enum: ["RECHARGE", "COMMISSION", "REFUND", "BBPS", "DMT"],
+      enum: [
+        "RECHARGE",
+        "COMMISSION",
+        "REFUND",
+        "BBPS",
+        "DMT",
+        "WALLET_REFILL",
+      ],
       trim: true,
       uppercase: true,
     },

@@ -23,11 +23,16 @@ module.exports = (app) => {
   app.use(`${apiPrefix}/recharge`, require("./rechargeRoute"));
   app.use(`${apiPrefix}/bbps`, require("./billPaymentRoute"));
   app.use(`${apiPrefix}/userWalletRefill`, require("./userWalletRefillRoute"));
-  app.use(`${apiPrefix}/rechargeReport`, require("./rechargeReportRoute"));
+
   app.use(`${apiPrefix}/coupon`, require("./couponRoute"));
   app.use(`${apiPrefix}/commissionPlan`, require("./commissionPlanRoute"));
   app.use(`${apiPrefix}/notification`, require("./notificationRoute"));
   app.use(`${apiPrefix}/banner`, require("./bannerRoute"));
   app.use(`${apiPrefix}/stateCity`, require("./stateCityRoute"));
   app.use(`${apiPrefix}/globalBank`, require("./globalBanksRoute"));
+  app.use(`${apiPrefix}/walletLedger`, require("./walletLedgerRoute"));
+  app.use(`${apiPrefix}/rechargeReport`, require("./rechargeReportRoute"));
+  app.use(`${apiPrefix}/bbpsReport`, require("./billPaymentReportRoute"));
+  app.use(`${apiPrefix}/dmtReport`, require("./dmtReportRoute"));
+  app.use(`${apiPrefix}/search`, require("./transactionSearchRoute"));
 };

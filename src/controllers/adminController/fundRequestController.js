@@ -210,6 +210,7 @@ exports.approveFundRequest = async (req, res, next) => {
       [
         {
           userId: fundRequest.userId,
+          referenceId: fundRequest?.referenceId,
           wallet: "main",
           type: "credit",
 
@@ -217,7 +218,6 @@ exports.approveFundRequest = async (req, res, next) => {
           openingBalance: openingBalance,
           closingBalance: closingBalance,
 
-          referenceId: fundRequest._id,
           description: "Fund request approved",
         },
       ],
@@ -225,10 +225,9 @@ exports.approveFundRequest = async (req, res, next) => {
     );
 
     await session.commitTransaction();
-    session.endSession();
 
     const formattedData = fundRequest
-      ? { ...fundRequest, amount: paiseToRupee(fundRequest?.amount) }
+      ? { ...fundRequest?._doc, amount: paiseToRupee(fundRequest?.amount) }
       : null;
 
     return res.status(200).json({
@@ -237,9 +236,13 @@ exports.approveFundRequest = async (req, res, next) => {
       data: formattedData,
     });
   } catch (error) {
-    await session.abortTransaction();
-    session.endSession();
+    if (session.inTransaction()) {
+      await session.abortTransaction();
+    }
+
     next(error);
+  } finally {
+    session.endSession();
   }
 };
 
@@ -296,10 +299,9 @@ exports.rejectFundRequest = async (req, res, next) => {
     }
 
     await session.commitTransaction();
-    session.endSession();
 
     const formattedData = fundRequest
-      ? { ...fundRequest, amount: paiseToRupee(fundRequest?.amount) }
+      ? { ...fundRequest?.doc, amount: paiseToRupee(fundRequest?.amount) }
       : null;
 
     return res.status(200).json({
@@ -308,8 +310,12 @@ exports.rejectFundRequest = async (req, res, next) => {
       data: formattedData,
     });
   } catch (error) {
-    await session.abortTransaction();
-    session.endSession();
+    if (session.inTransaction()) {
+      await session.abortTransaction();
+    }
+
     next(error);
+  } finally {
+    session.endSession();
   }
 };

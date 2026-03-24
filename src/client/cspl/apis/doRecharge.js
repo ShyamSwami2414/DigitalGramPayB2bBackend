@@ -4,6 +4,7 @@ const {
 const { generateRequestId } = require("../../../utils/requestIdGenerator");
 const csplClient = require("../cspl.client");
 const ProviderLogs = require("../../../models/providerLogsModel");
+const { paiseToRupee } = require("../../../utils/money");
 
 exports.doRecharge = async ({
   client_referenceId,
@@ -17,10 +18,20 @@ exports.doRecharge = async ({
   const timestamp = new Date().toISOString();
   const startTime = Date.now();
 
+  const amountInRupee = paiseToRupee(amount); //rupee
+
+  console.log(amountInRupee, "amountInRupee");
+
   try {
     const response = await csplClient.post(
       "mobile-prepaid-Recharge",
-      { amount, client_referenceId, operatorCode, number, billerMode },
+      {
+        amount: amountInRupee, //rupee
+        client_referenceId,
+        operatorCode,
+        number,
+        billerMode,
+      },
       {
         headers: {
           "X-TIMESTAMP": timestamp,

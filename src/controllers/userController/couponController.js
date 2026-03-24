@@ -3,6 +3,7 @@ const User = require("../../models/userModel");
 const Role = require("../../models/roleModel");
 
 const mongoose = require("mongoose");
+const { rupeeToPaise } = require("../../utils/money");
 
 const redeemCoupon = async (req, res, next) => {
   const session = await mongoose.startSession();
@@ -12,7 +13,9 @@ const redeemCoupon = async (req, res, next) => {
 
     const userId = req.user.id;
     const roleId = req.user.role;
-    const { couponCode } = req.body;
+    let { couponCode } = req.body;
+
+    console.log(couponCode, "couponCode");
 
     if (!couponCode) {
       return res.status(400).json({
@@ -36,7 +39,6 @@ const redeemCoupon = async (req, res, next) => {
         message: "Role not found",
       });
     }
-    
 
     const coupon = await Coupon.findOneAndUpdate(
       {
@@ -106,9 +108,13 @@ const redeemCoupon = async (req, res, next) => {
       },
     });
   } catch (error) {
-    await session.abortTransaction();
-    session.endSession();
+    if (session.inTransaction) {
+      await session.abortTransaction();
+    }
+
     next(error);
+  } finally {
+    session.endSession();
   }
 };
 

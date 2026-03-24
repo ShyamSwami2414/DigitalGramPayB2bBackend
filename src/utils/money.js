@@ -1,4 +1,5 @@
 const rupeeToPaise = (rupees) => {
+  console.log("rupees", rupees);
   if (rupees == null || isNaN(rupees)) {
     throw new Error("Invalid amount");
   }
@@ -6,6 +7,7 @@ const rupeeToPaise = (rupees) => {
 };
 
 const paiseToRupee = (paise) => {
+  console.log("paise", paise);
   if (paise == null || isNaN(paise)) {
     throw new Error("Invalid amount");
   }

@@ -5,7 +5,9 @@ const { generateUserPassword } = require("../../utils/generateUserPassword");
 const { hashPassword } = require("../../utils/bcrypt");
 const { generateUsername } = require("../../utils/generateUsername");
 const { generateUniquePin } = require("../../utils/uniquePinGenerator");
-const { generateWelcomeEmail } = require("../../templates/emailTemplates/welcomeEmail");
+const {
+  generateWelcomeEmail,
+} = require("../../templates/emailTemplates/welcomeEmail");
 const { sendEmail } = require("../../utils/email");
 
 exports.getAllUsers = async (req, res, next) => {
@@ -23,7 +25,10 @@ exports.getAllUsers = async (req, res, next) => {
         .json({ success: false, message: "Invalid page or limit" });
     }
 
-    const filter = { isDeleted: false, parentUserId: new mongoose.Types.ObjectId(req.user.id) };
+    const filter = {
+      isDeleted: false,
+      parentUserId: new mongoose.Types.ObjectId(req.user.id),
+    };
 
     const users = await User.aggregate([
       { $match: filter },
@@ -32,32 +37,31 @@ exports.getAllUsers = async (req, res, next) => {
           from: "roles",
           localField: "roleId",
           foreignField: "_id",
-          as: "role"
+          as: "role",
         },
       },
       {
         $unwind: {
           path: "$role",
-          preserveNullAndEmptyArrays: true
-        }
+          preserveNullAndEmptyArrays: true,
+        },
       },
       {
         $addFields: {
-          roleName: "$role.name"
-        }
+          roleName: "$role.name",
+        },
       },
       {
         $project: {
-          role: 0
-        }
-
+          role: 0,
+        },
       },
       { $sort: { createdAt: -1 } },
       { $skip: skip },
-      { $limit: limit }
-    ])
+      { $limit: limit },
+    ]);
 
-    console.log(users, "users")
+    console.log(users, "users");
 
     const total = await User.countDocuments(filter);
 
@@ -83,7 +87,7 @@ exports.createUser = async (req, res, next) => {
     const { firstName, lastName, email, phone, role } = req.body;
 
     const requiredFields = ["firstName", "lastName", "email", "phone", "role"];
-    const missingField = []
+    const missingField = [];
 
     if (!firstName || !lastName || !email || !phone || !role) {
       return res
@@ -118,25 +122,25 @@ exports.createUser = async (req, res, next) => {
         .json({ success: false, message: "User already exists" });
     }
 
-     const userRole = await Role.findById(req.user.role).select("level").lean();
-        if (!userRole) {
-          return res.status(404).json({
-            success: false,
-            message: "user role not found",
-          });
-        }
+    const userRole = await Role.findById(req.user.role).select("level").lean();
+    if (!userRole) {
+      return res.status(404).json({
+        success: false,
+        message: "user role not found",
+      });
+    }
 
     if (isRoleValid.level <= userRole.level) {
       return res.status(400).json({
         success: false,
-        message: `You are not authorized to create user with ${isRoleValid.name} role`
+        message: `You are not authorized to create user with ${isRoleValid.name} role`,
       });
     }
 
     const password = generateUserPassword();
     const hashedPassword = await hashPassword(password);
 
-    const userName = await generateUsername();
+    const userName = await generateUsername({ role: isRoleValid?.name });
     const pin = await generateUniquePin();
 
     const newUser = new User({
@@ -175,7 +179,6 @@ exports.createUser = async (req, res, next) => {
   }
 };
 
-
 exports.updateUserStatus = async (req, res, next) => {
   try {
     console.log(req.user, "user");
@@ -190,7 +193,7 @@ exports.updateUserStatus = async (req, res, next) => {
     const existingUser = await User.findOne({
       _id: id,
       isDeleted: false,
-      parentUserId: req.user.id
+      parentUserId: req.user.id,
     });
 
     if (!existingUser) {
@@ -204,7 +207,7 @@ exports.updateUserStatus = async (req, res, next) => {
     if (existingUser.level <= req.user.level) {
       return res.status(400).json({
         success: false,
-        message: `You are not authorized to update this users status`
+        message: `You are not authorized to update this users status`,
       });
     }
 
@@ -220,7 +223,3 @@ exports.updateUserStatus = async (req, res, next) => {
     next(error);
   }
 };
-
-
-
-

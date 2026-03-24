@@ -3,7 +3,8 @@ const { authenticateUser } = require("../../middleware/authMiddleware");
 const checkUserPaymentAndKYC = require("../../middleware/kycPaymentCheckMiddleware");
 const {
   getMyLastRechargeHistory,
-  getCompleteRechargeReport
+  getRechargeStats,
+  getCompleteRechargeReport,
 } = require("../../controllers/userController/rechargeReportController");
 
 const router = express.Router();
@@ -14,6 +15,13 @@ router.get(
   authenticateUser,
   checkUserPaymentAndKYC,
   getMyLastRechargeHistory,
+);
+
+router.get(
+  "/recharge-stats",
+  authenticateUser,
+  checkUserPaymentAndKYC,
+  getRechargeStats,
 );
 
 //get all recharge transaction of me and my downline

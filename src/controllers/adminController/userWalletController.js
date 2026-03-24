@@ -3,6 +3,9 @@ const UserWallet = require("../../models/userWallet");
 const User = require("../../models/userModel");
 const WalletLedger = require("../../models/walletLedgerModel");
 const { rupeeToPaise, paiseToRupee } = require("../../utils/money");
+const {
+  generateUniqueRefernceId,
+} = require("../../utils/generateUniqueReferenceId");
 
 exports.getWalletBalances = async (req, res, next) => {
   try {
@@ -249,6 +252,7 @@ exports.creditDebitAmount = async (req, res, next) => {
     amount = Number(amount);
 
     const amountInPaise = rupeeToPaise(amount);
+    const referenceId = generateUniqueRefernceId();
 
     type = type?.trim().toLowerCase();
     walletType = walletType?.trim().toLowerCase();
@@ -366,12 +370,12 @@ exports.creditDebitAmount = async (req, res, next) => {
       [
         {
           userId: new mongoose.Types.ObjectId(userId),
+          referenceId: referenceId,
           wallet: walletType,
           type: type,
           amount: amountInPaise,
           openingBalance: openingBalance,
           closingBalance: closingBalance,
-          referenceId: updatedUserWallet._id,
           description: reason,
         },
       ],
@@ -397,8 +401,12 @@ exports.creditDebitAmount = async (req, res, next) => {
       data: formattedData,
     });
   } catch (error) {
-    await session.abortTransaction();
-    session.endSession();
+    if (session.inTransaction()) {
+      await session.abortTransaction();
+    }
+
     next(error);
+  } finally {
+    session.endSession();
   }
 };

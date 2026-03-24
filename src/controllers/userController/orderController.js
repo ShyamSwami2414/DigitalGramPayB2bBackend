@@ -4,6 +4,9 @@ const Product = require("../../models/productModel");
 const UserWallet = require("../../models/userWallet");
 const WalletLedger = require("../../models/walletLedgerModel");
 const { rupeeToPaise, paiseToRupee } = require("../../utils/money");
+const {
+  generateUniqueRefernceId,
+} = require("../../utils/generateUniqueReferenceId");
 
 exports.createOrder = async (req, res, next) => {
   const session = await mongoose.startSession();
@@ -81,11 +84,14 @@ exports.createOrder = async (req, res, next) => {
     const gstAmount = Math.round((subTotal * gst) / 100);
     const grandTotal = subTotal + gstAmount + shippingChargeInPaise;
 
+    const referenceId = generateUniqueRefernceId();
+
     // Create order
     const order = await Order.create(
       [
         {
           userId,
+          referenceId: referenceId,
           product,
           shippingAddress,
           shippingCharge: shippingChargeInPaise,
@@ -142,6 +148,7 @@ exports.createOrder = async (req, res, next) => {
       [
         {
           userId,
+          referenceId: referenceId,
           wallet: "main",
           type: "debit",
           amount: grandTotal,
@@ -163,9 +170,13 @@ exports.createOrder = async (req, res, next) => {
       data: order[0],
     });
   } catch (error) {
-    await session.abortTransaction();
-    session.endSession();
+    if (session.inTransaction) {
+      await session.abortTransaction();
+    }
+
     next(error);
+  } finally {
+    session.endSession();
   }
 };
 

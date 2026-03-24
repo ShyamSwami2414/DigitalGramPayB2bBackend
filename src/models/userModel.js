@@ -9,6 +9,10 @@ const userSchema = new mongoose.Schema(
       trim: true,
       minlength: 3,
       maxlength: 50,
+      match: [
+        /^[A-Za-z\s]+$/,
+        "First name can only contain letters and spaces",
+      ],
     },
 
     lastName: {
@@ -17,6 +21,7 @@ const userSchema = new mongoose.Schema(
       trim: true,
       minlength: 3,
       maxlength: 50,
+      match: [/^[A-Za-z\s]+$/, "Last name can only contain letters and spaces"],
     },
 
     userName: {
@@ -24,6 +29,7 @@ const userSchema = new mongoose.Schema(
       required: true,
       trim: true,
       unique: true,
+      index: true,
       uppercase: true,
       trim: true,
     },

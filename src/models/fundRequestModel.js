@@ -9,6 +9,13 @@ const fundRequestSchema = new mongoose.Schema(
       required: true,
     },
 
+    referenceId: {
+      type: String,
+      required: true,
+      unique: true,
+      index: true,
+    },
+
     walletTopupBankId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "WalletTopupBank",
