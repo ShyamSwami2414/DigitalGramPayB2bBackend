@@ -60,7 +60,7 @@ const deleteBanner = async (req, res, next) => {
     );
 
     if (!banner) {
-      const err = new Error("Banner not found");
+      const err = new Error("Banner not found or Deleted");
       err.statusCode = 404;
       throw err;
     }
@@ -91,7 +91,7 @@ const toggleBannerStatus = async (req, res, next) => {
     const banner = await Banner.findOne({ _id: id, isDeleted: false });
 
     if (!banner) {
-      const err = new Error("Banner not found");
+      const err = new Error("Banner not found or Deleted");
       err.statusCode = 404;
       throw err;
     }

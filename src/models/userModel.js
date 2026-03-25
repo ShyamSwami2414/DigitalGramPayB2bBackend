@@ -27,7 +27,6 @@ const userSchema = new mongoose.Schema(
     userName: {
       type: String,
       required: true,
-      trim: true,
       unique: true,
       index: true,
       uppercase: true,
@@ -38,6 +37,7 @@ const userSchema = new mongoose.Schema(
       type: String,
       required: true,
       unique: true,
+      index: true,
       lowercase: true,
       match: [/^\S+@\S+\.\S+$/, "Invalid email format"],
     },
@@ -100,6 +100,8 @@ const userSchema = new mongoose.Schema(
   },
   { timestamps: true, versionKey: false },
 );
+
+userSchema.index({ parentUserId: 1 });
 
 userSchema.post("save", async function (doc, next) {
   try {

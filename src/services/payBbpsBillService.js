@@ -29,6 +29,7 @@ exports.payBbpsBillService = async ({
   billNumber,
   placeholderValue,
   paramValue,
+  inputParams,
 }) => {
   const session = await mongoose.startSession();
   try {
@@ -119,6 +120,7 @@ exports.payBbpsBillService = async ({
         billNumber,
         placeholderValue,
         paramValue,
+        inputParams,
       });
     } catch (error) {
       result = {

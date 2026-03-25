@@ -1,11 +1,11 @@
 const mongoose = require("mongoose");
-const round2 = (num) => Math.round(num * 100) / 100;
 
 const transactionSchema = new mongoose.Schema(
   {
-    txnId: {
-      type: String,
+    referenceId: {
+      type: mongoose.Schema.Types.ObjectId,
       required: true,
+      index: true,
       unique: true,
     },
 
@@ -24,25 +24,24 @@ const transactionSchema = new mongoose.Schema(
     amount: {
       type: Number,
       default: 0,
-      set: round2,
     },
 
     wallet: {
       type: String,
       enum: ["main", "aeps"],
-      default: "none",
+      default: null,
     },
 
     type: {
       type: String,
-      enum: ["debit", "credit", "none"],
-      default: "none",
+      enum: ["debit", "credit"],
+      default: null,
     },
 
     status: {
       type: String,
       enum: ["success", "failed", "pending"],
-      default: "success",
+      default: "pending",
     },
 
     remark: {
@@ -55,12 +54,6 @@ const transactionSchema = new mongoose.Schema(
       default: "",
     },
 
-    referenceId: {
-      type: mongoose.Schema.Types.ObjectId,
-      required: true,
-      index: true,
-    },
-
     meta: {
       type: Object,
       default: {},
@@ -68,28 +61,6 @@ const transactionSchema = new mongoose.Schema(
   },
   {
     timestamps: true,
-  },
-);
-
-userWalletSchema.pre("save", function (next) {
-  if (this.amount != null) this.amount = round2(this.amount);
-  next();
-});
-
-transactionSchema.pre(
-  ["updateOne", "updateMany", "findOneAndUpdate"],
-  function (next) {
-    const update = this.getUpdate();
-
-    if (update.$inc?.amount != null) {
-      update.$inc.amount = round2(update.$inc.amount);
-    }
-    if (update.$set?.amount != null) {
-      update.$set.amount = round2(update.$set.amount);
-    }
-
-    this.setUpdate(update);
-    next();
   },
 );
 

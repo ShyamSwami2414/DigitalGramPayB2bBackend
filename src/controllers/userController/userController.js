@@ -10,6 +10,33 @@ const {
 } = require("../../templates/emailTemplates/welcomeEmail");
 const { sendEmail } = require("../../utils/email");
 
+const buildTree = (users) => {
+  const map = {};
+  let root = null;
+
+  // Step 1: Create map
+  users.forEach((user) => {
+    map[user._id.toString()] = {
+      ...user,
+      children: [],
+    };
+  });
+
+  // Step 2: Link nodes
+  users.forEach((user) => {
+    if (user.isSelf) {
+      root = map[user._id.toString()];
+    } else {
+      const parent = map[user.parentUserId?.toString()];
+      if (parent) {
+        parent.children.push(map[user._id.toString()]);
+      }
+    }
+  });
+
+  return root;
+};
+
 exports.getAllUsers = async (req, res, next) => {
   try {
     console.log(req.user, "user");
@@ -75,6 +102,82 @@ exports.getAllUsers = async (req, res, next) => {
         limit,
         totalPages: Math.ceil(total / limit),
       },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+exports.getMyDownlineUsers = async (req, res, next) => {
+  try {
+    const userId = req.user.id;
+
+    const result = await User.aggregate([
+      {
+        $match: { _id: new mongoose.Types.ObjectId(userId) },
+      },
+      {
+        $graphLookup: {
+          from: "users",
+          startWith: "$_id",
+          connectFromField: "_id",
+          connectToField: "parentUserId",
+          as: "downline",
+          maxDepth: 5,
+          depthField: "levelDepth",
+        },
+      },
+      {
+        $project: {
+          allUsers: {
+            $concatArrays: [
+              [
+                {
+                  _id: "$_id",
+                  parentUserId: "$parentUserId",
+                  fullName: { $concat: ["$firstName", " ", "$lastName"] },
+                  userName: "$userName",
+                  levelDepth: -1, // special marker
+                  isSelf: true,
+                },
+              ],
+              {
+                $map: {
+                  input: {
+                    $filter: {
+                      input: "$downline",
+                      as: "user",
+                      cond: { $eq: ["$$user.isDeleted", false] },
+                    },
+                  },
+                  as: "u",
+                  in: {
+                    _id: "$$u._id",
+                    parentUserId: "$$u.parentUserId",
+                    fullName: {
+                      $concat: ["$$u.firstName", " ", "$$u.lastName"],
+                    },
+                    userName: "$$u.userName",
+                    levelDepth: "$$u.levelDepth",
+                    isSelf: false,
+                  },
+                },
+              },
+            ],
+          },
+        },
+      },
+    ]);
+
+    const flatUsers = result[0]?.allUsers || [];
+
+    // Build tree
+    const formattedData = buildTree(flatUsers, userId);
+
+    return res.status(200).json({
+      success: true,
+      message: "Users Fetched Suceessfully",
+      data: formattedData,
     });
   } catch (error) {
     next(error);

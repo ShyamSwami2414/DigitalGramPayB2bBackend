@@ -35,13 +35,141 @@ const getMyLastRechargeHistory = async (req, res, next) => {
 
 const getRechargeStats = async (req, res, next) => {
   try {
-    let { user = "", from = "", to = "" } = req.query;
+    let { user = "", status = "", from = "", to = "", range = "" } = req.query;
     console.log(req.query);
     user = user?.trim();
-    from = from?.trim();
-    to = to?.trim();
+    status = status?.trim().toLowerCase();
+
+    range = typeof range === "string" ? range?.trim().toLowerCase() : "";
+    from = typeof from === "string" ? from.trim().toLowerCase() : "";
+    to = typeof to === "string" ? to.trim().toLowerCase() : "";
+
+    // normalize invalid inputs
+    if (!from || from === "null" || from === "undefined") {
+      from = undefined;
+    }
+
+    if (!to || to === "null" || to === "undefined") {
+      to = undefined;
+    }
+
+    if (!range || range === "null" || range === "undefined") {
+      range = undefined;
+    }
 
     const filter = {};
+
+    const now = new Date();
+    let fromDate, toDate;
+
+    const allowedStatus = ["success", "failed", "pending"];
+    const allowedRanges = ["today", "yesterday", "last7days", "thismonth"];
+
+    if (status && !allowedStatus.includes(status)) {
+      const err = new Error("Invalid Status");
+      err.statusCode = 400;
+      throw err;
+    }
+
+    if (range && !allowedRanges.includes(range)) {
+      const err = new Error("Invalid Range");
+      err.statusCode = 400;
+      throw err;
+    }
+
+    if (from && new Date(from) > now) {
+      const err = new Error("Starting Date can not be in future");
+      err.statusCode = 400;
+      throw err;
+    }
+
+    if (to && new Date(to) > now) {
+      const err = new Error("Ending Date can not be in future");
+      err.statusCode = 400;
+      throw err;
+    }
+
+    if (status) {
+      filter.status = status?.toUpperCase();
+    }
+
+    if (range) {
+      switch (range) {
+        case "today":
+          fromDate = new Date();
+          fromDate.setHours(0, 0, 0, 0);
+
+          toDate = new Date();
+          toDate.setHours(23, 59, 59, 999);
+          break;
+
+        case "yesterday":
+          fromDate = new Date();
+          fromDate.setDate(fromDate.getDate() - 1);
+          fromDate.setHours(0, 0, 0, 0);
+
+          toDate = new Date();
+          toDate.setDate(toDate.getDate() - 1);
+          toDate.setHours(23, 59, 59, 999);
+          break;
+
+        case "last7days":
+          fromDate = new Date();
+          fromDate.setDate(fromDate.getDate() - 6); // includes today
+          fromDate.setHours(0, 0, 0, 0);
+
+          toDate = new Date();
+          toDate.setHours(23, 59, 59, 999);
+          break;
+
+        case "thismonth":
+          fromDate = new Date(now.getFullYear(), now.getMonth(), 1);
+
+          toDate = new Date();
+          toDate.setHours(23, 59, 59, 999);
+          break;
+      }
+    } else {
+      //  MANUAL DATE VALIDATION
+
+      const isValidDate = (date) => !isNaN(new Date(date).getTime());
+
+      if (from) {
+        if (!isValidDate(from)) {
+          const err = new Error("Invalid 'from' date");
+          err.statusCode = 400;
+          throw err;
+        }
+        fromDate = new Date(from);
+      }
+
+      if (to) {
+        if (!isValidDate(to)) {
+          const err = new Error("Invalid 'to' date");
+          err.statusCode = 400;
+          throw err;
+        }
+        toDate = new Date(to);
+      }
+
+      if (fromDate && toDate && fromDate > toDate) {
+        const err = new Error("'from' cannot be greater than 'to'");
+        err.statusCode = 400;
+        throw err;
+      }
+
+      if (toDate) {
+        toDate.setHours(23, 59, 59, 999);
+      }
+    }
+
+    //  APPLY DATE FILTER
+    if (fromDate || toDate) {
+      filter.createdAt = {};
+
+      if (fromDate) filter.createdAt.$gte = fromDate;
+      if (toDate) filter.createdAt.$lte = toDate;
+    }
 
     if (user) {
       if (!mongoose.Types.ObjectId.isValid(user)) {
@@ -50,7 +178,7 @@ const getRechargeStats = async (req, res, next) => {
           .json({ success: false, message: "Invalid user ID" });
       }
 
-      const userExist = await User.findOne({ _id: user });
+      const userExist = await User.findOne({ _id: user }).lean();
 
       if (!userExist) {
         return res
@@ -58,124 +186,220 @@ const getRechargeStats = async (req, res, next) => {
           .json({ success: false, message: "User not found" });
       }
 
-      filter.userId = new mongoose.Types.ObjectId(user);
-    }
-
-    if (from || to) {
-      filter.createdAt = {};
-
-      if (from) {
-        filter.createdAt.$gte = new Date(from);
-      }
-
-      if (to) {
-        const toDate = new Date(to);
-        toDate.setHours(23, 59, 59, 999);
-        filter.createdAt.$lte = toDate;
+      if (
+        userExist._id.toString() !== req.user.id.toString() && // not self
+        userExist.parentUserId?.toString() !== req.user.id.toString() // not child
+      ) {
+        return res.status(403).json({
+          success: false,
+          message: "Not allowed to access this user",
+        });
       }
     }
 
-    const [result] = await RechargeReport.aggregate([
-      { $match: filter },
-      {
-        $group: {
-          _id: null,
+    const isSpecificUser = user && mongoose.Types.ObjectId.isValid(user);
+    const targetUserId = isSpecificUser ? user : req.user.id;
 
-          // totals
-          totalCount: { $sum: 1 },
-          totalAmount: { $sum: "$amount" },
-          totalCommission: { $sum: "$netCommission" },
+    let pipeline = [];
 
-          // SUCCESS
-          successCount: {
-            $sum: {
-              $cond: [{ $eq: ["$status", "SUCCESS"] }, 1, 0],
-            },
+    if (isSpecificUser) {
+      pipeline.push(
+        {
+          $match: {
+            userId: new mongoose.Types.ObjectId(targetUserId),
           },
-          successAmount: {
-            $sum: {
-              $cond: [{ $eq: ["$status", "SUCCESS"] }, "$amount", 0],
-            },
-          },
+        },
 
-          // PENDING
-          pendingCount: {
-            $sum: {
-              $cond: [{ $eq: ["$status", "PENDING"] }, 1, 0],
-            },
-          },
-          pendingAmount: {
-            $sum: {
-              $cond: [{ $eq: ["$status", "PENDING"] }, "$amount", 0],
-            },
-          },
+        ...(filter.status ? [{ $match: { status: filter.status } }] : []),
+        ...(filter.createdAt
+          ? [{ $match: { createdAt: filter.createdAt } }]
+          : []),
 
-          // FAILED
-          failedCount: {
-            $sum: {
-              $cond: [{ $eq: ["$status", "FAILED"] }, 1, 0],
+        {
+          $group: {
+            _id: null,
+            totalCount: { $sum: 1 },
+            totalAmount: { $sum: "$amount" },
+            totalCommission: { $sum: "$netCommission" },
+
+            successCount: {
+              $sum: { $cond: [{ $eq: ["$status", "SUCCESS"] }, 1, 0] },
             },
-          },
-          failedAmount: {
-            $sum: {
-              $cond: [{ $eq: ["$status", "FAILED"] }, "$amount", 0],
+            successAmount: {
+              $sum: {
+                $cond: [{ $eq: ["$status", "SUCCESS"] }, "$amount", 0],
+              },
+            },
+
+            pendingCount: {
+              $sum: { $cond: [{ $eq: ["$status", "PENDING"] }, 1, 0] },
+            },
+            pendingAmount: {
+              $sum: {
+                $cond: [{ $eq: ["$status", "PENDING"] }, "$amount", 0],
+              },
+            },
+
+            failedCount: {
+              $sum: { $cond: [{ $eq: ["$status", "FAILED"] }, 1, 0] },
+            },
+            failedAmount: {
+              $sum: {
+                $cond: [{ $eq: ["$status", "FAILED"] }, "$amount", 0],
+              },
             },
           },
         },
-      },
-      {
-        $project: {
-          _id: 0,
-
-          total: {
-            count: "$totalCount",
-            amount: "$totalAmount",
-            commission: "$totalCommission",
-          },
-
-          success: {
-            count: "$successCount",
-            amount: "$successAmount",
-          },
-
-          pending: {
-            count: "$pendingCount",
-            amount: "$pendingAmount",
-          },
-
-          failed: {
-            count: "$failedCount",
-            amount: "$failedAmount",
+        {
+          $project: {
+            _id: 0,
+            total: {
+              count: "$totalCount",
+              amount: "$totalAmount",
+              commission: "$totalCommission",
+            },
+            success: {
+              count: "$successCount",
+              amount: "$successAmount",
+            },
+            pending: {
+              count: "$pendingCount",
+              amount: "$pendingAmount",
+            },
+            failed: {
+              count: "$failedCount",
+              amount: "$failedAmount",
+            },
           },
         },
-      },
-    ]);
+      );
+    } else {
+      pipeline.push(
+        {
+          $match: {
+            _id: new mongoose.Types.ObjectId(targetUserId),
+          },
+        },
+        {
+          $graphLookup: {
+            from: "users",
+            startWith: "$_id",
+            connectFromField: "_id",
+            connectToField: "parentUserId",
+            as: "downline",
+            maxDepth: 4,
+          },
+        },
+        {
+          $project: {
+            allUserIds: {
+              $concatArrays: [["$_id"], "$downline._id"],
+            },
+          },
+        },
+        {
+          $lookup: {
+            from: "rechargereports",
+            let: { userIds: "$allUserIds" },
+            pipeline: [
+              {
+                $match: {
+                  $expr: { $in: ["$userId", "$$userIds"] },
+                },
+              },
 
-    const formattedData = result
+              ...(filter.status ? [{ $match: { status: filter.status } }] : []),
+              ...(filter.createdAt
+                ? [{ $match: { createdAt: filter.createdAt } }]
+                : []),
+
+              {
+                $group: {
+                  _id: null,
+                  totalCount: { $sum: 1 },
+                  totalAmount: { $sum: "$amount" },
+                  totalCommission: { $sum: "$netCommission" },
+
+                  successCount: {
+                    $sum: { $cond: [{ $eq: ["$status", "SUCCESS"] }, 1, 0] },
+                  },
+                  successAmount: {
+                    $sum: {
+                      $cond: [{ $eq: ["$status", "SUCCESS"] }, "$amount", 0],
+                    },
+                  },
+
+                  pendingCount: {
+                    $sum: { $cond: [{ $eq: ["$status", "PENDING"] }, 1, 0] },
+                  },
+                  pendingAmount: {
+                    $sum: {
+                      $cond: [{ $eq: ["$status", "PENDING"] }, "$amount", 0],
+                    },
+                  },
+
+                  failedCount: {
+                    $sum: { $cond: [{ $eq: ["$status", "FAILED"] }, 1, 0] },
+                  },
+                  failedAmount: {
+                    $sum: {
+                      $cond: [{ $eq: ["$status", "FAILED"] }, "$amount", 0],
+                    },
+                  },
+                },
+              },
+            ],
+            as: "stats",
+          },
+        },
+      );
+    }
+
+    const Model = isSpecificUser ? RechargeReport : User;
+    const [result] = await Model.aggregate(pipeline);
+
+    const statsData = isSpecificUser ? result : result?.stats?.[0];
+
+    //aggregation start ---------------------------------
+
+    const defaultStats = {
+      total: { count: 0, amount: 0, commission: 0 },
+      success: { count: 0, amount: 0 },
+      pending: { count: 0, amount: 0 },
+      failed: { count: 0, amount: 0 },
+    };
+
+    const formattedData = statsData
       ? {
-          ...result,
           total: {
-            count: result?.total?.count,
-            amount: paiseToRupee(result?.total?.amount),
-            commission: paiseToRupee(result?.total?.commission),
+            count: statsData.totalCount ?? statsData.total?.count ?? 0,
+            amount: paiseToRupee(
+              statsData.totalAmount ?? statsData.total?.amount ?? 0,
+            ),
+            commission: paiseToRupee(
+              statsData.totalCommission ?? statsData.total?.commission ?? 0,
+            ),
           },
-
           success: {
-            count: result?.success?.count,
-            amount: paiseToRupee(result?.success?.amount),
+            count: statsData.successCount ?? statsData.success?.count ?? 0,
+            amount: paiseToRupee(
+              statsData.successAmount ?? statsData.success?.amount ?? 0,
+            ),
           },
-
           pending: {
-            count: result?.pending?.count,
-            amount: paiseToRupee(result?.pending?.amount),
+            count: statsData.pendingCount ?? statsData.pending?.count ?? 0,
+            amount: paiseToRupee(
+              statsData.pendingAmount ?? statsData.pending?.amount ?? 0,
+            ),
           },
-
           failed: {
-            count: result?.failed?.count,
-            amount: paiseToRupee(result?.failed?.amount),
+            count: statsData.failedCount ?? statsData.failed?.count ?? 0,
+            amount: paiseToRupee(
+              statsData.failedAmount ?? statsData.failed?.amount ?? 0,
+            ),
           },
         }
-      : null;
+      : defaultStats;
 
     return res
       .status(200)
@@ -191,36 +415,189 @@ const getCompleteRechargeReport = async (req, res, next) => {
       page = 1,
       limit = 10,
       search = "",
-      fromDate = "",
-      toDate = "",
-      status = "",
       operator = "",
       type = "",
+      user = "",
+      status = "",
+      from = "",
+      to = "",
+      range = "",
     } = req.query;
 
-    page = parseInt(page);
-    limit = parseInt(limit);
+    console.log(req.query, "query");
+
+    page = Number(page);
+    limit = Number(limit);
+    search = search?.trim();
+    operator = operator?.trim().toUpperCase();
+    type = type?.trim().toLowerCase();
+    user = user?.trim();
+    status = status?.trim().toLowerCase();
+    range = typeof range === "string" ? range?.trim().toLowerCase() : "";
+    from = typeof from === "string" ? from.trim().toLowerCase() : "";
+    to = typeof to === "string" ? to.trim().toLowerCase() : "";
+
+    // normalize invalid inputs
+    if (!from || from === "null" || from === "undefined") {
+      from = undefined;
+    }
+
+    if (!to || to === "null" || to === "undefined") {
+      to = undefined;
+    }
+
+    if (!range || range === "null" || range === "undefined") {
+      range = undefined;
+    }
+
+    const filter = {};
+    const userId = req.user.id;
     const skip = (page - 1) * limit;
 
-    search = search.trim();
-    status = status.trim().toUpperCase();
-    operator = operator.trim().toUpperCase();
-    type = type.trim().toLowerCase();
-    fromDate = fromDate.trim();
-    toDate = toDate.trim();
+    const now = new Date();
+    let fromDate, toDate;
 
-    const userId = req.user.id;
+    const allowedStatus = ["success", "failed", "pending"];
+    const allowedRanges = ["today", "yesterday", "last7days", "thismonth"];
 
-    if (!mongoose.Types.ObjectId.isValid(userId)) {
-      return res
-        .status(400)
-        .json({ success: false, message: "Invalid user ID" });
+    if (status && !allowedStatus.includes(status)) {
+      const err = new Error("Invalid Status");
+      err.statusCode = 400;
+      throw err;
+    }
+
+    if (range && !allowedRanges.includes(range)) {
+      const err = new Error("Invalid Range");
+      err.statusCode = 400;
+      throw err;
+    }
+
+    if (from && new Date(from) > now) {
+      const err = new Error("Starting Date can not be in future");
+      err.statusCode = 400;
+      throw err;
+    }
+
+    if (to && new Date(to) > now) {
+      const err = new Error("Ending Date can not be in future");
+      err.statusCode = 400;
+      throw err;
+    }
+
+    if (status) {
+      filter.status = status?.toUpperCase();
+    }
+
+    if (range) {
+      switch (range) {
+        case "today":
+          fromDate = new Date();
+          fromDate.setHours(0, 0, 0, 0);
+
+          toDate = new Date();
+          toDate.setHours(23, 59, 59, 999);
+          break;
+
+        case "yesterday":
+          fromDate = new Date();
+          fromDate.setDate(fromDate.getDate() - 1);
+          fromDate.setHours(0, 0, 0, 0);
+
+          toDate = new Date();
+          toDate.setDate(toDate.getDate() - 1);
+          toDate.setHours(23, 59, 59, 999);
+          break;
+
+        case "last7days":
+          fromDate = new Date();
+          fromDate.setDate(fromDate.getDate() - 6); // includes today
+          fromDate.setHours(0, 0, 0, 0);
+
+          toDate = new Date();
+          toDate.setHours(23, 59, 59, 999);
+          break;
+
+        case "thismonth":
+          fromDate = new Date(now.getFullYear(), now.getMonth(), 1);
+
+          toDate = new Date();
+          toDate.setHours(23, 59, 59, 999);
+          break;
+      }
+    } else {
+      //  MANUAL DATE VALIDATION
+
+      const isValidDate = (date) => !isNaN(new Date(date).getTime());
+
+      if (from) {
+        if (!isValidDate(from)) {
+          const err = new Error("Invalid 'from' date");
+          err.statusCode = 400;
+          throw err;
+        }
+        fromDate = new Date(from);
+      }
+
+      if (to) {
+        if (!isValidDate(to)) {
+          const err = new Error("Invalid 'to' date");
+          err.statusCode = 400;
+          throw err;
+        }
+        toDate = new Date(to);
+      }
+
+      if (fromDate && toDate && fromDate > toDate) {
+        const err = new Error("'from' cannot be greater than 'to'");
+        err.statusCode = 400;
+        throw err;
+      }
+
+      if (toDate) {
+        toDate.setHours(23, 59, 59, 999);
+      }
+    }
+
+    //  APPLY DATE FILTER
+    if (fromDate || toDate) {
+      filter.createdAt = {};
+
+      if (fromDate) filter.createdAt.$gte = fromDate;
+      if (toDate) filter.createdAt.$lte = toDate;
+    }
+
+    if (user) {
+      if (!mongoose.Types.ObjectId.isValid(user)) {
+        return res
+          .status(400)
+          .json({ success: false, message: "Invalid user ID" });
+      }
+
+      const userExist = await User.findOne({ _id: user }).lean();
+
+      if (!userExist) {
+        return res
+          .status(404)
+          .json({ success: false, message: "User not found" });
+      }
+
+      if (
+        userExist._id.toString() !== req.user.id.toString() && // not self
+        userExist.parentUserId?.toString() !== req.user.id.toString() // not child
+      ) {
+        return res.status(403).json({
+          success: false,
+          message: "Not allowed to access this user",
+        });
+      }
     }
 
     const rechargeReport = await User.aggregate([
-      { $match: { _id: new mongoose.Types.ObjectId(userId) } },
+      {
+        $match: { _id: new mongoose.Types.ObjectId(userId) },
+      },
 
-      //downline
+      // 🔹 Get downline
       {
         $graphLookup: {
           from: "users",
@@ -229,83 +606,147 @@ const getCompleteRechargeReport = async (req, res, next) => {
           connectToField: "parentUserId",
           as: "downline",
           maxDepth: 10,
-          depthField: "depth",
         },
       },
 
-      { $project: { allUsers: { $concatArrays: [["$$ROOT"], "$downline"] } } },
-
-      { $unwind: "$allUsers" },
-
-      {
-        $lookup: {
-          from: "rechargereports",
-          localField: "allUsers._id",
-          foreignField: "userId",
-          as: "recharges",
-        },
-      },
-
-      { $unwind: "$recharges" },
-
-      {
-        $match: {
-          ...(status && { "recharges.status": status }),
-          ...(operator && {
-            "recharges.operatorName": { $regex: operator, $options: "i" },
-          }),
-          ...(type && { "recharges.type": type }),
-          ...(search && {
-            $or: [
-              { "recharges.mobileNumber": { $regex: search, $options: "i" } },
-              { "recharges.referenceId": { $regex: search, $options: "i" } },
-            ],
-          }),
-          ...(fromDate &&
-            toDate && {
-              "recharges.createdAt": {
-                $gte: new Date(fromDate),
-                $lte: new Date(toDate),
-              },
-            }),
-        },
-      },
-
-      // Project required fields
+      // 🔹 Collect all user IDs
       {
         $project: {
-          _id: "$recharges._id",
-          mobileNumber: "$recharges.mobileNumber",
-          operatorId: "$recharges.operatorId",
-          operatorName: "$recharges.operatorName",
-          amount: "$recharges.amount",
-          type: "$recharges.type",
-          status: "$recharges.status",
-          commission: "$recharges.commission",
-          tds: "$recharges.tds",
-          netCommission: "$recharges.netCommission",
-          referenceId: "$recharges.referenceId",
-          isRefunded: "$recharges.isRefunded",
-          description: "$recharges.description",
-          createdAt: "$recharges.createdAt",
-          updatedAt: "$recharges.updatedAt",
-          user: {
-            _id: "$allUsers._id",
-            firstName: "$allUsers.firstName",
-            lastName: "$allUsers.lastName",
-            userName: "$allUsers.userName",
-            level: "$allUsers.level",
+          allUserIds: {
+            $concatArrays: [["$_id"], "$downline._id"],
           },
         },
       },
 
+      // 🔹 Lookup recharge reports
+      {
+        $lookup: {
+          from: "rechargereports",
+          let: { userIds: "$allUserIds" },
+          pipeline: [
+            {
+              $match: {
+                $expr: {
+                  $in: ["$userId", "$$userIds"],
+                },
+              },
+            },
+
+            ...(status ? [{ $match: { status: status.toUpperCase() } }] : []),
+
+            ...(operator
+              ? [
+                  {
+                    $match: {
+                      operatorName: { $regex: operator, $options: "i" },
+                    },
+                  },
+                ]
+              : []),
+
+            ...(type ? [{ $match: { type } }] : []),
+
+            ...(search
+              ? [
+                  {
+                    $match: {
+                      $or: [
+                        { mobileNumber: { $regex: search, $options: "i" } },
+                        { referenceId: { $regex: search, $options: "i" } },
+                      ],
+                    },
+                  },
+                ]
+              : []),
+
+            ...(filter.createdAt && Object.keys(filter.createdAt).length
+              ? [{ $match: { createdAt: filter.createdAt } }]
+              : []),
+          ],
+          as: "recharges",
+        },
+      },
+
+      // 🔥 IMPORTANT: unwind BEFORE pagination
+      {
+        $unwind: {
+          path: "$recharges",
+          preserveNullAndEmptyArrays: false,
+        },
+      },
+
+      // 🔹 Replace root (flatten)
+      {
+        $replaceRoot: { newRoot: "$recharges" },
+      },
+
+      // 🔹 Apply user filter (IMPORTANT FIX)
+      ...(user
+        ? [
+            {
+              $match: {
+                userId: new mongoose.Types.ObjectId(user),
+              },
+            },
+          ]
+        : []),
+
+      // 🔹 SORT globally
       { $sort: { createdAt: -1 } },
 
-      { $skip: skip },
-      { $limit: limit },
+      // 🔥 FACET (pagination + total in single query)
+      {
+        $facet: {
+          data: [
+            { $skip: skip },
+            { $limit: limit },
+
+            {
+              $lookup: {
+                from: "users",
+                localField: "userId",
+                foreignField: "_id",
+                as: "user",
+              },
+            },
+            { $unwind: "$user" },
+
+            {
+              $project: {
+                mobileNumber: 1,
+                operatorId: 1,
+                operatorName: 1,
+                amount: 1,
+                type: 1,
+                status: 1,
+                commission: 1,
+                tds: 1,
+                netCommission: 1,
+                referenceId: 1,
+                isRefunded: 1,
+                description: 1,
+                createdAt: 1,
+
+                user: {
+                  _id: "$user._id",
+                  firstName: "$user.firstName",
+                  lastName: "$user.lastName",
+                  userName: "$user.userName",
+                  level: "$user.level",
+                },
+              },
+            },
+          ],
+
+          totalCount: [{ $count: "count" }],
+        },
+      },
     ]);
 
-    const formattedData = rechargeReport.map((item) => ({
+    const data = rechargeReport[0]?.data || [];
+    const total = rechargeReport[0]?.totalCount[0]?.count || 0;
+
+    const formattedData = data.map((item) => ({
       ...item,
       amount: paiseToRupee(item.amount),
       commission: paiseToRupee(item.commission),
@@ -316,7 +757,15 @@ const getCompleteRechargeReport = async (req, res, next) => {
     return res.status(200).json({
       success: true,
       message: "Recharge report fetched successfully",
-      data: formattedData,
+      data: {
+        data: formattedData,
+        pagination: {
+          page,
+          limit,
+          total,
+          totalPages: Math.ceil(total / limit),
+        },
+      },
     });
   } catch (error) {
     next(error);
