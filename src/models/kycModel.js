@@ -225,6 +225,7 @@ const kycSchema = new mongoose.Schema(
       default: null,
     },
 
+    //for approve and reject time
     reviewedAt: {
       type: Date,
       default: null,

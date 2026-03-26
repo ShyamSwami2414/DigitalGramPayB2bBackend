@@ -222,16 +222,16 @@ exports.doMobilePrepaidRecharge = async (req, res, next) => {
       throw err;
     }
 
-    return res.status(200).json({
-      success: true,
-      message: "Dummy Recharge Successful",
-      data: {
-        status: "SUCCESS",
-        txn_ref: "RCHG202603201533425337",
-        utr: null,
-        message: "Transaction Successful",
-      },
-    });
+    // return res.status(200).json({
+    //   success: true,
+    //   message: "Dummy Recharge Successful",
+    //   data: {
+    //     status: "SUCCESS",
+    //     txn_ref: "RCHG202603201533425337",
+    //     utr: null,
+    //     message: "Transaction Successful",
+    //   },
+    // });
 
     const response = await doRechargeService({
       userId,

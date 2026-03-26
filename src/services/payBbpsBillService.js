@@ -4,6 +4,7 @@ const User = require("../models/userModel");
 const BbpsReport = require("../models/bbpsReportModel");
 const BbpsBiller = require("../models/bbpsBillersModel");
 const BbpsCategory = require("../models/bbpsCategoryModel");
+const Transaction = require("../models/transactionModel");
 const mongoose = require("mongoose");
 const {
   generateUniqueRefernceId,
@@ -102,6 +103,43 @@ exports.payBbpsBillService = async ({
       { session },
     );
 
+    await Transaction.create(
+      [
+        {
+          userId: userId,
+          referenceId: referenceId,
+          serviceType: "BBPS",
+          amount: amount,
+          wallet: "main",
+          type: "debit",
+          status: "PENDING",
+          meta: {
+            request: {
+              ...(refId?.trim() && { refId: refId.trim() }),
+              ...(billerId !== undefined && billerId !== null && { billerId }),
+              ...(customerName?.trim() && {
+                customerName: customerName.trim(),
+              }),
+              ...(customerMobile?.trim() && {
+                customerMobile: customerMobile.trim(),
+              }),
+              ...(dueDate && { dueDate }),
+              ...(billamount !== undefined &&
+                billamount !== null && { billamount }),
+              ...(billDate && { billDate }),
+              ...(billPeriod && { billPeriod }),
+              ...(billNumber && { billNumber }),
+              ...(placeholderValue && { placeholderValue }),
+              ...(paramValue && { paramValue }),
+              ...(Array.isArray(inputParams) &&
+                inputParams.length > 0 && { inputParams }),
+            },
+          },
+        },
+      ],
+      { session },
+    );
+
     await session.commitTransaction();
 
     let result;
@@ -154,10 +192,11 @@ exports.payBbpsBillService = async ({
         providerTxnId: result?.billerstatus?.txnRefId,
         reportModel: BbpsReport,
         description: "BBPS Commission",
+        apiResponse: result,
       });
     }
 
-    if (result.status === "FAILED") {
+    if (result?.status === "FAILED") {
       console.log("Entered");
       const { openingBalance, closingBalance } = await processRefund({
         userId: userId,
@@ -165,6 +204,7 @@ exports.payBbpsBillService = async ({
         referenceId: referenceId,
         reportModel: BbpsReport,
         description: "Bbps Bill Failed Refund",
+        apiResponse: result,
       });
     }
 

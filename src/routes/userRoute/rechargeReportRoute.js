@@ -5,6 +5,7 @@ const {
   getMyLastRechargeHistory,
   getRechargeStats,
   getCompleteRechargeReport,
+  getRechargeReportById,
 } = require("../../controllers/userController/rechargeReportController");
 
 const router = express.Router();
@@ -30,6 +31,13 @@ router.get(
   authenticateUser,
   checkUserPaymentAndKYC,
   getCompleteRechargeReport,
+);
+
+router.get(
+  "/report/:id",
+  authenticateUser,
+  checkUserPaymentAndKYC,
+  getRechargeReportById,
 );
 
 module.exports = router;

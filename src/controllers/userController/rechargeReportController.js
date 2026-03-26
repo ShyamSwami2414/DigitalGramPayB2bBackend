@@ -26,7 +26,7 @@ const getMyLastRechargeHistory = async (req, res, next) => {
     return res.status(200).json({
       success: true,
       message: "Last recharge history fetched",
-      formattedData,
+      data: formattedData,
     });
   } catch (error) {
     next(error);
@@ -597,7 +597,7 @@ const getCompleteRechargeReport = async (req, res, next) => {
         $match: { _id: new mongoose.Types.ObjectId(userId) },
       },
 
-      // 🔹 Get downline
+      //  Get downline
       {
         $graphLookup: {
           from: "users",
@@ -609,16 +609,16 @@ const getCompleteRechargeReport = async (req, res, next) => {
         },
       },
 
-      // 🔹 Collect all user IDs
+      //  Collect all user IDs
       {
         $project: {
-          allUserIds: {
-            $concatArrays: [["$_id"], "$downline._id"],
-          },
+          allUserIds: user
+            ? [new mongoose.Types.ObjectId(user)] //  only selected user
+            : { $concatArrays: [["$_id"], "$downline._id"] },
         },
       },
 
-      // 🔹 Lookup recharge reports
+      //  Lookup recharge reports
       {
         $lookup: {
           from: "rechargereports",
@@ -667,7 +667,7 @@ const getCompleteRechargeReport = async (req, res, next) => {
         },
       },
 
-      // 🔥 IMPORTANT: unwind BEFORE pagination
+      //  IMPORTANT: unwind BEFORE pagination
       {
         $unwind: {
           path: "$recharges",
@@ -675,12 +675,12 @@ const getCompleteRechargeReport = async (req, res, next) => {
         },
       },
 
-      // 🔹 Replace root (flatten)
+      //  Replace root (flatten)
       {
         $replaceRoot: { newRoot: "$recharges" },
       },
 
-      // 🔹 Apply user filter (IMPORTANT FIX)
+      //  Apply user filter (IMPORTANT FIX)
       ...(user
         ? [
             {
@@ -691,10 +691,10 @@ const getCompleteRechargeReport = async (req, res, next) => {
           ]
         : []),
 
-      // 🔹 SORT globally
+      //  SORT globally
       { $sort: { createdAt: -1 } },
 
-      // 🔥 FACET (pagination + total in single query)
+      //  FACET (pagination + total in single query)
       {
         $facet: {
           data: [
@@ -756,16 +756,114 @@ const getCompleteRechargeReport = async (req, res, next) => {
 
     return res.status(200).json({
       success: true,
-      message: "Recharge report fetched successfully",
-      data: {
-        data: formattedData,
-        pagination: {
-          page,
-          limit,
-          total,
-          totalPages: Math.ceil(total / limit),
+      message: "Recharge reports fetched successfully",
+
+      data: formattedData,
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages: Math.ceil(total / limit),
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+const getRechargeReportById = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+
+    if (!id) {
+      return res.status(400).json({
+        success: false,
+        message: "Report Id required",
+      });
+    }
+
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid Report Id",
+      });
+    }
+
+    const [report] = await RechargeReport.aggregate([
+      {
+        $match: {
+          _id: new mongoose.Types.ObjectId(id),
         },
       },
+      {
+        $lookup: {
+          from: "users",
+          localField: "userId",
+          foreignField: "_id",
+          as: "user",
+        },
+      },
+      {
+        $unwind: {
+          path: "$user",
+          preserveNullAndEmptyArrays: true,
+        },
+      },
+      {
+        $lookup: {
+          from: "providerlogs",
+          localField: "referenceId",
+          foreignField: "referenceId",
+          as: "provider",
+        },
+      },
+      {
+        $unwind: {
+          path: "$provider",
+          preserveNullAndEmptyArrays: true,
+        },
+      },
+      {
+        $addFields: {
+          fullName: { $concat: ["$user.firstName", " ", "$user.lastName"] },
+          userName: "$user.userName",
+          email: "$user.email",
+          phone: "$user.phone",
+          serviceName: "RECHARGE",
+          providerTxnId: "$provider.providerTxnId",
+          requestBody: "$provider.request",
+          responseBody: "$provider.response",
+        },
+      },
+      {
+        $project: {
+          user: 0,
+          provider: 0,
+        },
+      },
+    ]);
+
+    if (!report) {
+      return res.status(404).json({
+        success: false,
+        message: "Recharge Report not found",
+      });
+    }
+
+    const formattedData = report
+      ? {
+          ...report,
+          amount: paiseToRupee(report?.amount),
+          commission: paiseToRupee(report?.commission),
+          tds: paiseToRupee(report?.tds),
+          netCommission: paiseToRupee(report?.netCommission),
+        }
+      : null;
+
+    return res.status(200).json({
+      success: true,
+      message: "Recharge report fetched successfully",
+      data: formattedData,
     });
   } catch (error) {
     next(error);
@@ -776,4 +874,5 @@ module.exports = {
   getMyLastRechargeHistory,
   getRechargeStats,
   getCompleteRechargeReport,
+  getRechargeReportById,
 };

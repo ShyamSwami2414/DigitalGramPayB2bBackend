@@ -27,5 +27,6 @@ exports.fetchPlans = async (operator_code, circle_id) => {
     return response?.data;
   } catch (error) {
     console.log("API Error Response:", error.response?.data || error.message);
+    throw error;
   }
 };

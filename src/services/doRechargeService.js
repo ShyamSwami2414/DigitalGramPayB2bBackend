@@ -18,6 +18,7 @@ const {
 const { debitWallet } = require("./common/walletService");
 const { processCommission } = require("./common/commissionService");
 const { processRefund } = require("./common/refundService");
+const Transaction = require("../models/transactionModel");
 
 exports.doRechargeService = async ({
   userId,
@@ -108,6 +109,28 @@ exports.doRechargeService = async ({
       { session },
     );
 
+    await Transaction.create(
+      [
+        {
+          userId: userId,
+          referenceId: referenceId,
+          serviceType: "RECHARGE",
+          amount: amount,
+          wallet: "main",
+          type: "debit",
+          status: "PENDING",
+          meta: {
+            request: {
+              operatorId: operatorId,
+              operatorName: operatorName,
+              mobileNumber: number,
+            },
+          },
+        },
+      ],
+      { session },
+    );
+
     await session.commitTransaction();
 
     let result;
@@ -147,6 +170,7 @@ exports.doRechargeService = async ({
             providerTxnId: result?.txn_ref,
             reportModel: RechargeReport,
             description: "Recharge Commission",
+            apiResponse: result,
           });
         // const commission = await calculateCommission({
         //   amount,
@@ -214,6 +238,7 @@ exports.doRechargeService = async ({
           referenceId: referenceId,
           reportModel: RechargeReport,
           description: "Recharge Failed Refund",
+          apiResponse: result,
         });
 
         // const wallet = await UserWallet.findOneAndUpdate(

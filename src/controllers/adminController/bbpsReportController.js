@@ -1,10 +1,9 @@
 const mongoose = require("mongoose");
-const Service = require("../../models/serviceModel");
 const User = require("../../models/userModel");
-const RechargeReport = require("../../models/rechargeReportModel");
+const BbpsReport = require("../../models/bbpsReportModel");
 const { paiseToRupee } = require("../../utils/money");
 
-exports.getRechargeStats = async (req, res, next) => {
+exports.getBbpsStats = async (req, res, next) => {
   try {
     let { user = "", status = "", from = "", to = "", range = "" } = req.query;
 
@@ -163,7 +162,7 @@ exports.getRechargeStats = async (req, res, next) => {
 
     console.log(filter, "filter");
 
-    const result = await RechargeReport.aggregate([
+    const result = await BbpsReport.aggregate([
       {
         $match: filter,
       },
@@ -232,7 +231,7 @@ exports.getRechargeStats = async (req, res, next) => {
     // Respond with proper numbers formatted
     return res.status(200).json({
       success: true,
-      message: "Recharge stats fetched successfully",
+      message: "Bbps Stats fetched successfully",
       data: {
         totalSuccess: {
           count: stats.totalSuccess.totalCount,
@@ -259,25 +258,25 @@ exports.getRechargeStats = async (req, res, next) => {
   }
 };
 
-exports.getRechargeReportById = async (req, res, next) => {
+exports.getBbpsReportById = async (req, res, next) => {
   try {
     const { id } = req.params;
 
     if (!id) {
       return res.status(400).json({
         success: false,
-        message: "Report ID Required",
+        message: "Bbps ID Required",
       });
     }
 
     if (!mongoose.Types.ObjectId.isValid(id)) {
       return res.status(400).json({
         success: false,
-        message: "Invalid report ID",
+        message: "Invalid bbps report ID",
       });
     }
 
-    const [report] = await RechargeReport.aggregate([
+    const [report] = await BbpsReport.aggregate([
       { $match: { _id: new mongoose.Types.ObjectId(id) } },
       {
         $lookup: {
@@ -304,7 +303,7 @@ exports.getRechargeReportById = async (req, res, next) => {
     if (!report) {
       return res.status(404).json({
         success: false,
-        message: "Recharge report not found",
+        message: "Bbps report not found",
       });
     }
 
@@ -320,7 +319,7 @@ exports.getRechargeReportById = async (req, res, next) => {
 
     return res.status(200).json({
       success: true,
-      message: "Recharge report fetched successfully",
+      message: "Bbps report fetched successfully",
       data: formattedData,
     });
   } catch (error) {
@@ -328,7 +327,7 @@ exports.getRechargeReportById = async (req, res, next) => {
   }
 };
 
-exports.getRechargeReport = async (req, res, next) => {
+exports.getBbpsReport = async (req, res, next) => {
   try {
     let {
       page = 1,
@@ -525,7 +524,7 @@ exports.getRechargeReport = async (req, res, next) => {
       }
     }
 
-    const rechargeReport = await RechargeReport.aggregate([
+    const bbpsReport = await BbpsReport.aggregate([
       {
         $match: filter,
       },
@@ -577,8 +576,8 @@ exports.getRechargeReport = async (req, res, next) => {
       },
     ]);
 
-    const data = rechargeReport[0]?.data || [];
-    const total = rechargeReport[0]?.totalCount[0]?.total || 0;
+    const data = bbpsReport[0]?.data || [];
+    const total = bbpsReport[0]?.totalCount[0]?.total || 0;
 
     const formattedData = data.map((item) => ({
       ...item,
@@ -590,7 +589,7 @@ exports.getRechargeReport = async (req, res, next) => {
 
     return res.status(200).json({
       success: true,
-      message: "Recharge Report fetched successfully",
+      message: "Bbps Report fetched successfully",
       data: formattedData,
       pagination: {
         page,

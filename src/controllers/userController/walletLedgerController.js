@@ -8,13 +8,141 @@ const { paiseToRupee } = require("../../utils/money");
 //wallet stats from leedger and report combined
 exports.getWalletStats = async (req, res, next) => {
   try {
-    let { user = "", status = "", from = "", to = "" } = req.query;
+    let { user = "", status = "", from = "", to = "", range = "" } = req.query;
+    console.log(req.query);
     user = user?.trim();
-    status = status?.trim();
-    from = from?.trim();
-    to = to?.trim();
+    status = status?.trim().toLowerCase();
+
+    range = typeof range === "string" ? range?.trim().toLowerCase() : "";
+    from = typeof from === "string" ? from.trim().toLowerCase() : "";
+    to = typeof to === "string" ? to.trim().toLowerCase() : "";
+
+    // normalize invalid inputs
+    if (!from || from === "null" || from === "undefined") {
+      from = undefined;
+    }
+
+    if (!to || to === "null" || to === "undefined") {
+      to = undefined;
+    }
+
+    if (!range || range === "null" || range === "undefined") {
+      range = undefined;
+    }
 
     const filter = {};
+
+    const now = new Date();
+    let fromDate, toDate;
+
+    const allowedStatus = ["success", "failed", "pending"];
+    const allowedRanges = ["today", "yesterday", "last7days", "thismonth"];
+
+    if (status && !allowedStatus.includes(status)) {
+      const err = new Error("Invalid Status");
+      err.statusCode = 400;
+      throw err;
+    }
+
+    if (range && !allowedRanges.includes(range)) {
+      const err = new Error("Invalid Range");
+      err.statusCode = 400;
+      throw err;
+    }
+
+    if (from && new Date(from) > now) {
+      const err = new Error("Starting Date can not be in future");
+      err.statusCode = 400;
+      throw err;
+    }
+
+    if (to && new Date(to) > now) {
+      const err = new Error("Ending Date can not be in future");
+      err.statusCode = 400;
+      throw err;
+    }
+
+    if (status) {
+      filter.status = status?.toUpperCase();
+    }
+
+    if (range) {
+      switch (range) {
+        case "today":
+          fromDate = new Date();
+          fromDate.setHours(0, 0, 0, 0);
+
+          toDate = new Date();
+          toDate.setHours(23, 59, 59, 999);
+          break;
+
+        case "yesterday":
+          fromDate = new Date();
+          fromDate.setDate(fromDate.getDate() - 1);
+          fromDate.setHours(0, 0, 0, 0);
+
+          toDate = new Date();
+          toDate.setDate(toDate.getDate() - 1);
+          toDate.setHours(23, 59, 59, 999);
+          break;
+
+        case "last7days":
+          fromDate = new Date();
+          fromDate.setDate(fromDate.getDate() - 6); // includes today
+          fromDate.setHours(0, 0, 0, 0);
+
+          toDate = new Date();
+          toDate.setHours(23, 59, 59, 999);
+          break;
+
+        case "thismonth":
+          fromDate = new Date(now.getFullYear(), now.getMonth(), 1);
+
+          toDate = new Date();
+          toDate.setHours(23, 59, 59, 999);
+          break;
+      }
+    } else {
+      //  MANUAL DATE VALIDATION
+
+      const isValidDate = (date) => !isNaN(new Date(date).getTime());
+
+      if (from) {
+        if (!isValidDate(from)) {
+          const err = new Error("Invalid 'from' date");
+          err.statusCode = 400;
+          throw err;
+        }
+        fromDate = new Date(from);
+      }
+
+      if (to) {
+        if (!isValidDate(to)) {
+          const err = new Error("Invalid 'to' date");
+          err.statusCode = 400;
+          throw err;
+        }
+        toDate = new Date(to);
+      }
+
+      if (fromDate && toDate && fromDate > toDate) {
+        const err = new Error("'from' cannot be greater than 'to'");
+        err.statusCode = 400;
+        throw err;
+      }
+
+      if (toDate) {
+        toDate.setHours(23, 59, 59, 999);
+      }
+    }
+
+    //  APPLY DATE FILTER
+    if (fromDate || toDate) {
+      filter.createdAt = {};
+
+      if (fromDate) filter.createdAt.$gte = fromDate;
+      if (toDate) filter.createdAt.$lte = toDate;
+    }
 
     if (user) {
       if (!mongoose.Types.ObjectId.isValid(user)) {
@@ -23,7 +151,7 @@ exports.getWalletStats = async (req, res, next) => {
           .json({ success: false, message: "Invalid user ID" });
       }
 
-      const userExist = await User.findOne({ _id: user });
+      const userExist = await User.findOne({ _id: user }).lean();
 
       if (!userExist) {
         return res
@@ -31,20 +159,14 @@ exports.getWalletStats = async (req, res, next) => {
           .json({ success: false, message: "User not found" });
       }
 
-      filter.userId = new mongoose.Types.ObjectId(user);
-    }
-
-    if (from || to) {
-      filter.createdAt = {};
-
-      if (from) {
-        filter.createdAt.$gte = new Date(from);
-      }
-
-      if (to) {
-        const toDate = new Date(to);
-        toDate.setHours(23, 59, 59, 999);
-        filter.createdAt.$lte = toDate;
+      if (
+        userExist._id.toString() !== req.user.id.toString() && // not self
+        userExist.parentUserId?.toString() !== req.user.id.toString() // not child
+      ) {
+        return res.status(403).json({
+          success: false,
+          message: "Not allowed to access this user",
+        });
       }
     }
 
@@ -176,8 +298,8 @@ exports.getWalletStats = async (req, res, next) => {
           _id: 0,
 
           total: {
-            count: "$totalCount",
-            amount: "$totalAmount",
+            // count: "$totalCount",
+            // amount: "$totalAmount",
             commission: "$totalCommission",
           },
 
@@ -213,8 +335,8 @@ exports.getWalletStats = async (req, res, next) => {
       ? {
           ...result,
           total: {
-            count: result?.total?.count,
-            amount: paiseToRupee(result?.total?.amount),
+            // count: result?.total?.count,
+            // amount: paiseToRupee(result?.total?.amount),
             commission: paiseToRupee(result?.total?.commission),
           },
 

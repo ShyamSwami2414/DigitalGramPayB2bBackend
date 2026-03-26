@@ -63,6 +63,13 @@ exports.userProfileForRefill = async (req, res, next) => {
       },
     ]);
 
+    if (!result) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
     const formattedData = result
       ? {
           ...result,
@@ -227,12 +234,160 @@ exports.refillUserWallet = async (req, res, next) => {
 
 exports.getDownlineWalletRefillHistory = async (req, res, next) => {
   try {
-    let { userId = "", status = "" } = req.query;
-    userId = userId?.trim();
-    status = status?.trim().toLowerCase();
+    let {
+      page = 1,
+      limit = 10,
+      search = "",
+      userId = "",
+      status = "",
+      from = "",
+      to = "",
+      range = "",
+    } = req.query;
 
-    const filter = { serviceType: "WALLET_REFILL" };
+    console.log(req.query, "query");
+
+    page = Number(page);
+    limit = Number(limit);
+    search = search?.trim();
+    status = status?.trim().toLowerCase();
+    userId = userId?.trim();
+    range = typeof range === "string" ? range?.trim().toLowerCase() : "";
+    from = typeof from === "string" ? from.trim().toLowerCase() : "";
+    to = typeof to === "string" ? to.trim().toLowerCase() : "";
+
+    // normalize invalid inputs
+    if (!from || from === "null" || from === "undefined") {
+      from = undefined;
+    }
+
+    if (!to || to === "null" || to === "undefined") {
+      to = undefined;
+    }
+
+    if (!range || range === "null" || range === "undefined") {
+      range = undefined;
+    }
+
+    const filter = {
+      serviceType: "WALLET_REFILL",
+      userId: { $ne: new mongoose.Types.ObjectId(req.user.id) },
+    };
+
+    const skip = (page - 1) * limit;
+    const now = new Date();
+    let fromDate, toDate;
+
     const allowedStatus = ["success", "pending", "failed"];
+    const allowedRanges = ["today", "yesterday", "last7days", "thismonth"];
+
+    if (status && !allowedStatus.includes(status)) {
+      const err = new Error("Invalid Status");
+      err.statusCode = 400;
+      throw err;
+    }
+
+    if (status) {
+      filter.status = status;
+    }
+
+    if (range && !allowedRanges.includes(range)) {
+      const err = new Error("Invalid Range");
+      err.statusCode = 400;
+      throw err;
+    }
+
+    if (from && new Date(from) > now) {
+      const err = new Error("Starting Date can not be in future");
+      err.statusCode = 400;
+      throw err;
+    }
+
+    if (to && new Date(to) > now) {
+      const err = new Error("Ending Date can not be in future");
+      err.statusCode = 400;
+      throw err;
+    }
+
+    if (range) {
+      const now = new Date();
+
+      switch (range) {
+        case "today":
+          fromDate = new Date();
+          fromDate.setHours(0, 0, 0, 0);
+
+          toDate = new Date();
+          toDate.setHours(23, 59, 59, 999);
+          break;
+
+        case "yesterday":
+          fromDate = new Date();
+          fromDate.setDate(fromDate.getDate() - 1);
+          fromDate.setHours(0, 0, 0, 0);
+
+          toDate = new Date();
+          toDate.setDate(toDate.getDate() - 1);
+          toDate.setHours(23, 59, 59, 999);
+          break;
+
+        case "last7days":
+          fromDate = new Date();
+          fromDate.setDate(fromDate.getDate() - 6); // includes today
+          fromDate.setHours(0, 0, 0, 0);
+
+          toDate = new Date();
+          toDate.setHours(23, 59, 59, 999);
+          break;
+
+        case "thismonth":
+          fromDate = new Date(now.getFullYear(), now.getMonth(), 1);
+
+          toDate = new Date();
+          toDate.setHours(23, 59, 59, 999);
+          break;
+      }
+    } else {
+      //  MANUAL DATE VALIDATION
+
+      const isValidDate = (date) => !isNaN(new Date(date).getTime());
+
+      if (from) {
+        if (!isValidDate(from)) {
+          const err = new Error("Invalid 'from' date");
+          err.statusCode = 400;
+          throw err;
+        }
+        fromDate = new Date(from);
+      }
+
+      if (to) {
+        if (!isValidDate(to)) {
+          const err = new Error("Invalid 'to' date");
+          err.statusCode = 400;
+          throw err;
+        }
+        toDate = new Date(to);
+      }
+
+      if (fromDate && toDate && fromDate > toDate) {
+        const err = new Error("'from' cannot be greater than 'to'");
+        err.statusCode = 400;
+        throw err;
+      }
+
+      if (toDate) {
+        toDate.setHours(23, 59, 59, 999);
+      }
+    }
+
+    //  APPLY DATE FILTER
+    if (fromDate || toDate) {
+      filter.createdAt = {};
+
+      if (fromDate) filter.createdAt.$gte = fromDate;
+      if (toDate) filter.createdAt.$lte = toDate;
+    }
 
     if (userId) {
       if (!mongoose.Types.ObjectId.isValid(userId)) {
@@ -245,18 +400,7 @@ exports.getDownlineWalletRefillHistory = async (req, res, next) => {
       filter.userId = new mongoose.Types.ObjectId(userId);
     }
 
-    if (status) {
-      if (!allowedStatus.includes(status)) {
-        return res.status(400).json({
-          success: false,
-          message: "Invalid Status",
-        });
-      }
-
-      filter.status = status;
-    }
-
-    const [result] = await WalletLedger.aggregate([
+    const result = await WalletLedger.aggregate([
       {
         $match: filter,
       },
@@ -271,37 +415,74 @@ exports.getDownlineWalletRefillHistory = async (req, res, next) => {
       {
         $unwind: "$user",
       },
+      //  SEARCH (optional)
+      ...(search
+        ? [
+            {
+              $match: {
+                $or: [
+                  { "user.firstName": { $regex: search, $options: "i" } },
+                  { "user.lastName": { $regex: search, $options: "i" } },
+                  { "user.userName": { $regex: search, $options: "i" } },
+                  { "user.phone": { $regex: search, $options: "i" } },
+                  { referenceId: { $regex: search, $options: "i" } },
+                ],
+              },
+            },
+          ]
+        : []),
       {
-        $project: {
-          _id: 0,
-          userId: "$userId",
-          name: { $concat: ["$user.firstName", " ", "$user.lastName"] },
-          userName: "$user.userName",
-          phone: "$user.phone",
-          email: "$user.email",
-          serviceType: 1,
-          referenceId: 1,
-          amount: 1,
-          openingBalance: "$openingBalance",
-          closingBalance: "$closingBalance",
-          createdAt: 1,
+        $facet: {
+          data: [
+            { $sort: { createdAt: -1 } },
+            { $skip: skip },
+            { $limit: limit },
+
+            {
+              $project: {
+                _id: 0,
+                userId: "$userId",
+                name: {
+                  $concat: ["$user.firstName", " ", "$user.lastName"],
+                },
+                userName: "$user.userName",
+                phone: "$user.phone",
+                email: "$user.email",
+                serviceType: 1,
+                referenceId: 1,
+                amount: { $ifNull: ["$amount", 0] },
+                openingBalance: { $ifNull: ["$openingBalance", 0] },
+                closingBalance: { $ifNull: ["$closingBalance", 0] },
+                createdAt: 1,
+              },
+            },
+          ],
+
+          totalCount: [{ $count: "count" }],
         },
       },
     ]);
 
-    const formattedData = result
-      ? {
-          ...result,
-          amount: paiseToRupee(result.amount),
-          openingBalance: paiseToRupee(result.openingBalance),
-          closingBalance: paiseToRupee(result.closingBalance),
-        }
-      : null;
+    const data = result[0]?.data || [];
+    const total = result[0]?.totalCount[0]?.count || 0;
+
+    const formattedData = data.map((item) => ({
+      ...item,
+      amount: paiseToRupee(item.amount),
+      openingBalance: paiseToRupee(item.openingBalance),
+      closingBalance: paiseToRupee(item.closingBalance),
+    }));
 
     return res.status(200).json({
       success: true,
       message: "User profile fetched Successfully",
       data: formattedData,
+      pagination: {
+        total,
+        page,
+        limit,
+        totalPages: Math.ceil(total / limit),
+      },
     });
   } catch (error) {
     next(error);

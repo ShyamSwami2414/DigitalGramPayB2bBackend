@@ -217,9 +217,7 @@ exports.payBbpsBill = async (req, res, next) => {
       "billerId",
       "customerName",
       "customerMobile",
-      "dueDate",
       "billAmount",
-      "billDate",
     ];
 
     let missingFields = [];
