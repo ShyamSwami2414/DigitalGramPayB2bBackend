@@ -31,7 +31,7 @@ const processCommission = async ({
 
     console.log("commission", commission);
 
-    const tdsAmount = calculateTds(commission);
+    const tdsAmount = calculateTds(commission); //paise
     const netCommission = commission - tdsAmount;
 
     const wallet = await UserWallet.findOneAndUpdate(

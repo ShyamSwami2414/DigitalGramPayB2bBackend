@@ -347,7 +347,7 @@ exports.creditDebitAmount = async (req, res, next) => {
 
     let updateData = { $inc: { [field]: transactionAmount } };
 
-    const updatedUserWallet = await UserWallet.findOneAndUpdate(
+    let updatedUserWallet = await UserWallet.findOneAndUpdate(
       query,
       updateData,
       { new: true, session },
@@ -382,8 +382,9 @@ exports.creditDebitAmount = async (req, res, next) => {
       { session },
     );
 
+    updatedUserWallet = updatedUserWallet ? updatedUserWallet.toObject() : null;
+
     await session.commitTransaction();
-    session.endSession();
 
     const formattedData = updatedUserWallet
       ? {

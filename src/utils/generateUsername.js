@@ -1,25 +1,22 @@
 const User = require("../models/userModel");
+const Counter = require("../models/counterModel");
 
 const getRolePrefix = (role) => {
-  if (!role) return "U";
+  if (!role) return "U"; // default prefix
   return role.trim().split(" ")[0][0].toUpperCase();
 };
 
 exports.generateUsername = async ({ role }) => {
-  const prefix = getRolePrefix(role);
-  const lastUser = await User.findOne({ userName: { $regex: /^UCAM/ } }).sort({
-    createdAt: -1,
-  });
+  const prefix = getRolePrefix(role) + "CAM";
 
-  let newNumber = 1;
+  const counter = await Counter.findOneAndUpdate(
+    { _id: prefix }, //
+    { $inc: { seq: 1 } },
+    { new: true, upsert: true },
+  );
 
-  if (lastUser) {
-    const lastNumber = parseInt(lastUser.userName.replace("UCAM", ""));
-    newNumber = lastNumber + 1;
-  }
+  // Build username with 5-digit padded number
+  const userName = `${prefix}${String(counter.seq).padStart(5, "0")}`;
 
-  const userName = `${prefix}CAM${String(newNumber).padStart(5, "0")}`;
-
-  console.log(userName);
   return userName;
 };

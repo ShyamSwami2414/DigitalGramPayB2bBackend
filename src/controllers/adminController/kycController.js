@@ -5,6 +5,9 @@ const {
   kycStatusTemplate,
 } = require("../../templates/emailTemplates/kycEmail");
 const { sendEmail } = require("../../utils/email");
+const {
+  reKycTemplate,
+} = require("../../templates/emailTemplates/reKycTemplate");
 
 exports.getKycData = async (req, res, next) => {
   try {
@@ -327,6 +330,97 @@ exports.updateOverAllKycStatus = async (req, res, next) => {
       await session.abortTransaction();
     }
 
+    next(error);
+  } finally {
+    session.endSession();
+  }
+};
+
+exports.requestReKyc = async (req, res, next) => {
+  const session = await mongoose.startSession();
+
+  try {
+    session.startTransaction();
+
+    const { id } = req.params;
+    let { reason = "" } = req.body;
+
+    //  THROW ERRORS (no manual abort here)
+    if (!id || !mongoose.Types.ObjectId.isValid(id)) {
+      const error = new Error("Invalid KYC ID");
+      error.statusCode = 400;
+      throw error;
+    }
+
+    if (!reason) {
+      const error = new Error("Rekyc reason required");
+      error.statusCode = 400;
+      throw error;
+    }
+
+    const kyc = await Kyc.findOne(
+      {
+        _id: id,
+        isDeleted: false,
+        status: { $ne: "approved" },
+      },
+      null,
+      { session },
+    );
+
+    if (!kyc) {
+      const error = new Error("KYC not found");
+      error.statusCode = 404;
+      throw error;
+    }
+
+    const updateFields = {
+      status: "rekyc",
+      rejectionReason: reason,
+      reviewedBy: req.user.id,
+      reviewedAt: new Date(),
+    };
+
+    const updatedKyc = await Kyc.findByIdAndUpdate(
+      id,
+      { $set: updateFields },
+      { new: true, session },
+    );
+
+    const updatedUser = await User.findByIdAndUpdate(
+      kyc.userId,
+      {
+        $set: { kycStatus: "rekyc" },
+      },
+      { new: true, session },
+    );
+
+    if (!updatedUser) {
+      const error = new Error("User not found");
+      error.statusCode = 404;
+      throw error;
+    }
+
+    const html = reKycTemplate({ name: updatedUser?.name, reason: reason });
+
+    await session.commitTransaction();
+
+    await sendEmail(
+      updatedUser?.email,
+      [],
+      [],
+      "KYC marked for re-upload",
+      html,
+    );
+
+    return res.status(200).json({
+      success: true,
+      message: "KYC marked for re-upload",
+    });
+  } catch (error) {
+    if (session.inTransaction()) {
+      await session.abortTransaction();
+    }
     next(error);
   } finally {
     session.endSession();

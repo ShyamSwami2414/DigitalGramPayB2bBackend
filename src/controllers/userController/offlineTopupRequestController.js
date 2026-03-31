@@ -256,6 +256,7 @@ exports.getAllOfflineTopupRequests = async (req, res, next) => {
       page = 1,
       limit = 10,
       status = "",
+      search = "",
       from = "",
       to = "",
       range = "",
@@ -265,6 +266,7 @@ exports.getAllOfflineTopupRequests = async (req, res, next) => {
     limit = Number(limit);
 
     status = status?.trim().toLowerCase();
+    search = search?.trim();
     range = typeof range === "string" ? range?.trim().toLowerCase() : "";
     from = typeof from === "string" ? from.trim().toLowerCase() : "";
     to = typeof to === "string" ? to.trim().toLowerCase() : "";
@@ -399,15 +401,52 @@ exports.getAllOfflineTopupRequests = async (req, res, next) => {
       if (toDate) filter.createdAt.$lte = toDate;
     }
 
-    const offlineTopupRequests = await FundRequest.find(filter)
-      .sort({ createdAt: -1 })
-      .skip(skip)
-      .limit(limit)
-      .lean();
+    const result = await FundRequest.aggregate([
+      {
+        $match: filter,
+      },
+      ...(search
+        ? [
+            {
+              $addFields: {
+                amountStr: { $toString: "$amount" },
+              },
+            },
+          ]
+        : []),
 
-    const total = await FundRequest.countDocuments(filter);
+      ...(search
+        ? [
+            {
+              $match: {
+                $or: [
+                  { referenceId: { $regex: search, $options: "i" } },
+                  { amountStr: { $regex: search, $options: "i" } },
+                  { mode: { $regex: search, $options: "i" } },
+                  { utrNumber: { $regex: search, $options: "i" } },
+                  { rejectionReason: { $regex: search, $options: "i" } },
+                  { status: { $regex: search, $options: "i" } },
+                ],
+              },
+            },
+          ]
+        : []),
+      {
+        $facet: {
+          data: [
+            { $sort: { createdAt: -1 } },
+            { $skip: skip },
+            { $limit: limit },
+          ],
+          totalCount: [{ $count: "count" }],
+        },
+      },
+    ]);
 
-    const formattedData = offlineTopupRequests.map((item) => ({
+    const data = result?.[0]?.data || [];
+    const total = result?.[0]?.totalCount?.[0]?.count || 0;
+
+    const formattedData = data.map((item) => ({
       ...item,
       amount: paiseToRupee(item.amount),
     }));

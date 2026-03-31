@@ -24,8 +24,8 @@ exports.sendEmail = async (to, cc, bcc, subject, html) => {
       html,
     });
     console.log(`Email sent to: ${to}`);
-    console.log(`Email sent to: ${cc}`);
-    console.log(`Email sent to: ${bcc}`);
+    // console.log(`Email sent to: ${cc}`);
+    // console.log(`Email sent to: ${bcc}`);
   } catch (error) {
     console.error("Error sending email:", error.message);
   }

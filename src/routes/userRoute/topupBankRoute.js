@@ -10,7 +10,7 @@ const router = express.Router();
 router.get(
   "/get-all-topup-banks",
   authenticateUser,
-  checkUserPaymentAndKYC,
+  // checkUserPaymentAndKYC,
   getAllTopupBanks,
 );
 

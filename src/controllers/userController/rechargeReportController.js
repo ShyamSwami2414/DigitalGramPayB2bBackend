@@ -6,21 +6,75 @@ const { paiseToRupee } = require("../../utils/money");
 //last 5 my recharge history
 const getMyLastRechargeHistory = async (req, res, next) => {
   try {
+    let { search = "" } = req.query;
+    search = search?.trim();
+
     const userId = req.user.id;
 
-    const data = await RechargeReport.find({
-      userId,
-    })
-      .sort({ createdAt: -1 })
-      .limit(5)
-      .lean();
+    const result = await RechargeReport.aggregate([
+      {
+        $match: {
+          userId: new mongoose.Types.ObjectId(userId),
+        },
+      },
+      ...(search
+        ? [
+            {
+              $addFields: {
+                amountStr: { $toString: "$amount" },
+                commissionStr: { $toString: "$commission" },
+                netCommissionStr: { $toString: "$netCommission" },
+                tdsStr: { $toString: "$tds" },
+              },
+            },
+          ]
+        : []),
 
-    const formattedData = data.map((item) => ({
+      ...(search
+        ? [
+            {
+              $match: {
+                $or: [
+                  { referenceId: { $regex: search, $options: "i" } },
+                  { amountStr: { $regex: search, $options: "i" } },
+                  { commissionStr: { $regex: search, $options: "i" } },
+                  { netCommissionStr: { $regex: search, $options: "i" } },
+                  { tdsStr: { $regex: search, $options: "i" } },
+                  { operatorName: { $regex: search, $options: "i" } },
+                  { mobileNumber: { $regex: search, $options: "i" } },
+                  { status: { $regex: search, $options: "i" } },
+                ],
+              },
+            },
+          ]
+        : []),
+      {
+        $sort: { createdAt: -1 },
+      },
+      {
+        $limit: 5,
+      },
+      {
+        $project: {
+          amount: 1,
+          commission: 1,
+          netCommission: 1,
+          tds: 1,
+          operatorName: 1,
+          mobileNumber: 1,
+          status: 1,
+          createdAt: 1,
+          referenceId: 1,
+        },
+      },
+    ]);
+
+    const formattedData = result.map((item) => ({
       ...item,
-      amount: paiseToRupee(item.amount),
-      commission: paiseToRupee(item.commission),
-      tds: paiseToRupee(item.tds),
-      netCommission: paiseToRupee(item.netCommission),
+      amount: paiseToRupee(item?.amount),
+      commission: paiseToRupee(item?.commission),
+      tds: paiseToRupee(item?.tds),
+      netCommission: paiseToRupee(item?.netCommission),
     }));
 
     return res.status(200).json({

@@ -40,7 +40,7 @@ const buildTree = (users) => {
 exports.getAllUsers = async (req, res, next) => {
   try {
     console.log(req.user, "user");
-    let { page = 1, limit = 10 } = req.query;
+    let { page = 1, limit = 10, search = "" } = req.query;
     page = Number(page);
     limit = Number(limit);
 
@@ -74,13 +74,47 @@ exports.getAllUsers = async (req, res, next) => {
         },
       },
       {
-        $addFields: {
-          roleName: "$role.name",
+        $lookup: {
+          from: "packages",
+          localField: "packageId",
+          foreignField: "_id",
+          as: "package",
         },
       },
       {
+        $unwind: {
+          path: "$package",
+          preserveNullAndEmptyArrays: true,
+        },
+      },
+      {
+        $addFields: {
+          roleName: "$role.name",
+          packageName: "$package.name",
+        },
+      },
+
+      ...(search
+        ? [
+            {
+              $match: {
+                $or: [
+                  { firstName: { $regex: search, $options: "i" } },
+                  { lastName: { $regex: search, $options: "i" } },
+                  { userName: { $regex: search, $options: "i" } },
+                  { email: { $regex: search, $options: "i" } },
+                  { phone: { $regex: search, $options: "i" } },
+                  { roleName: { $regex: search, $options: "i" } },
+                  { packageName: { $regex: search, $options: "i" } },
+                ],
+              },
+            },
+          ]
+        : []),
+      {
         $project: {
           role: 0,
+          package: 0,
         },
       },
       { $sort: { createdAt: -1 } },
@@ -110,12 +144,29 @@ exports.getAllUsers = async (req, res, next) => {
 
 exports.getMyDownlineUsers = async (req, res, next) => {
   try {
+    let { search = "" } = req.query;
+    search = search?.trim();
     const userId = req.user.id;
 
     const result = await User.aggregate([
       {
         $match: { _id: new mongoose.Types.ObjectId(userId) },
       },
+      ...(search
+        ? [
+            {
+              $match: {
+                $or: [
+                  { firstName: { $regex: search, $options: "i" } },
+                  { lastName: { $regex: search, $options: "i" } },
+                  { userName: { $regex: search, $options: "i" } },
+                  { email: { $regex: search, $options: "i" } },
+                  { phone: { $regex: search, $options: "i" } },
+                ],
+              },
+            },
+          ]
+        : []),
       {
         $graphLookup: {
           from: "users",
@@ -128,6 +179,46 @@ exports.getMyDownlineUsers = async (req, res, next) => {
         },
       },
       {
+        $lookup: {
+          from: "roles",
+          localField: "downline.roleId",
+          foreignField: "_id",
+          as: "downlineRoles",
+        },
+      },
+
+      // 🔽 Merge role into downline users
+      {
+        $addFields: {
+          downline: {
+            $map: {
+              input: "$downline",
+              as: "u",
+              in: {
+                $mergeObjects: [
+                  "$$u",
+                  {
+                    role: {
+                      $arrayElemAt: [
+                        {
+                          $filter: {
+                            input: "$downlineRoles",
+                            as: "r",
+                            cond: { $eq: ["$$r._id", "$$u.roleId"] },
+                          },
+                        },
+                        0,
+                      ],
+                    },
+                  },
+                ],
+              },
+            },
+          },
+        },
+      },
+
+      {
         $project: {
           allUsers: {
             $concatArrays: [
@@ -136,6 +227,8 @@ exports.getMyDownlineUsers = async (req, res, next) => {
                   _id: "$_id",
                   parentUserId: "$parentUserId",
                   fullName: { $concat: ["$firstName", " ", "$lastName"] },
+                   phone: "$phone",
+                   email: "$email",
                   userName: "$userName",
                   levelDepth: -1, // special marker
                   isSelf: true,
@@ -160,6 +253,12 @@ exports.getMyDownlineUsers = async (req, res, next) => {
                     userName: "$$u.userName",
                     levelDepth: "$$u.levelDepth",
                     isSelf: false,
+                    phone: "$$u.phone",
+                     email: "$$u.email",
+                    role: {
+                      _id: "$$u.role._id",
+                      name: "$$u.role.name",
+                    },
                   },
                 },
               },

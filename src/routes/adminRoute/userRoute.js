@@ -8,6 +8,7 @@ const {
   assignServiceToUser,
   getAssignedServices,
   getAllUserList,
+  getParticularUserDetail,
 } = require("../../controllers/adminController/userController");
 const { authenticateUser } = require("../../middleware/authMiddleware");
 const { authorizeRoles } = require("../../middleware/roleMiddleware");
@@ -64,6 +65,13 @@ router.get(
   authenticateUser,
   authorizeRoles("admin"),
   getAssignedServices,
+);
+
+router.get(
+  "/particular-user/:id",
+  authenticateUser,
+  authorizeRoles("admin"),
+  getParticularUserDetail,
 );
 
 module.exports = router;

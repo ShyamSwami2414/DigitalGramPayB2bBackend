@@ -20,6 +20,8 @@ const walletLedgerSchema = new mongoose.Schema(
         "BBPS",
         "DMT",
         "WALLET_REFILL",
+        "AEPSTOMAIN",
+        "FUNDREQUEST",
       ],
       trim: true,
       uppercase: true,

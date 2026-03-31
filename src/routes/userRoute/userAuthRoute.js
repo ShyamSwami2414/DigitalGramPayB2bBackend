@@ -11,8 +11,11 @@ const checkUserPaymentAndKYC = require("../../middleware/kycPaymentCheckMiddlewa
 const router = express.Router();
 
 router.post("/user-register", userRegister);
+
 router.post("/user-login", userLogin);
+
 router.post("/verify-user-otp", verifyUserOtp);
+
 router.patch(
   "/change-user-password",
   authenticateUser,
@@ -22,7 +25,7 @@ router.patch(
 router.get(
   "/fetch-user-profile",
   authenticateUser,
-  checkUserPaymentAndKYC,
+  // checkUserPaymentAndKYC,
   fetchProfile,
 );
 
