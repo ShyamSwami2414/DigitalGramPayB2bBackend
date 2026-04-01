@@ -731,7 +731,7 @@ exports.reuploadKycSections = async (req, res, next) => {
       },
       {
         $set: {
-          kycStatus: "pending",
+          kycStatus: "submitted",
         },
       },
       {
