@@ -3,7 +3,13 @@ const AdminWallet = require("./adminWallet");
 
 const adminSchema = new mongoose.Schema(
   {
-    name: { type: String, required: true, minlength: 3, maxlength: 50 },
+    name: {
+      type: String,
+      required: true,
+      minlength: 3,
+      maxlength: 50,
+      match: [/^[A-Za-z\s]+$/, "Name can only contain letters and spaces"],
+    },
 
     userName: {
       type: String,
@@ -47,7 +53,7 @@ const adminSchema = new mongoose.Schema(
         {
           type: mongoose.Schema.Types.ObjectId,
           ref: "Permission",
-        }
+        },
       ],
       default: [],
     },

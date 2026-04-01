@@ -10,6 +10,7 @@ const Operator = require("../../models/operatorModel.js");
 const {
   generateUniqueRefernceId,
 } = require("../../utils/generateUniqueReferenceId.js");
+const { rupeeToPaise } = require("../../utils/money.js");
 
 exports.getAllOperatorCodeList = async (req, res, next) => {
   try {
@@ -163,6 +164,7 @@ exports.doMobilePrepaidRecharge = async (req, res, next) => {
     billerMode = billerMode?.trim();
 
     const userId = req.user.id; //user Id
+    const amountInPaise = rupeeToPaise(amount);
 
     const requiredFields = ["amount", "operatorCode", "number", "billerMode"];
 
@@ -189,7 +191,8 @@ exports.doMobilePrepaidRecharge = async (req, res, next) => {
       throw err;
     }
 
-    if (amount < 10) {
+    //paise
+    if (amountInPaise < 1000) {
       const err = new Error("Amount must be equal to or greater than 10");
       err.statusCode = 400;
       throw err;
@@ -219,14 +222,26 @@ exports.doMobilePrepaidRecharge = async (req, res, next) => {
       throw err;
     }
 
-    const response = await doRechargeService(
+    // return res.status(200).json({
+    //   success: true,
+    //   message: "Dummy Recharge Successful",
+    //   data: {
+    //     status: "SUCCESS",
+    //     txn_ref: "RCHG202603201533425337",
+    //     utr: null,
+    //     message: "Transaction Successful",
+    //   },
+    // });
+
+    const response = await doRechargeService({
       userId,
-      operatorId,
-      amount,
+      operatorId: operatorId._id,
+      amount: amountInPaise,
       operatorCode,
+      operatorName: operatorId.name,
       number,
       billerMode,
-    );
+    });
 
     if (response.status === "FAILED") {
       return res.status(400).json({

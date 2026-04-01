@@ -6,57 +6,53 @@ const kycSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
       required: true,
-      unique: true,
-      index: true,
     },
 
     firstName: {
       type: String,
-      required: true,
+      required: [true, "First name is required"],
       lowercase: true,
       trim: true,
-      minLength: 3,
-      maxLength: 30,
+      minLength: [3, "First name must be at least 3 characters"],
+      maxLength: [30, "First name cannot exceed 30 characters"],
     },
 
     lastName: {
       type: String,
-      required: true,
+      required: [true, "Last name is required"],
       lowercase: true,
       trim: true,
-      minLength: 3,
-      maxLength: 30,
+      minLength: [3, "Last name must be at least 3 characters"],
+      maxLength: [30, "Last name cannot exceed 30 characters"],
     },
 
     fatherName: {
       type: String,
-      required: true,
+      required: [true, "Father name is required"],
       lowercase: true,
       trim: true,
-      minLength: 3,
-      maxLength: 50,
+      minLength: [3, "Father's name must be at least 3 characters"],
+      maxLength: [100, "Father's name cannot exceed 100 characters"],
     },
 
     email: {
       type: String,
-      required: true,
+      required: [true, "Email is required"],
       lowercase: true,
       trim: true,
-      unique: true,
-      index: true,
       match: [/^\S+@\S+\.\S+$/, "Invalid email format"],
     },
 
     phone: {
       type: String,
-      required: true,
+      required: [true, "Mobile Number is required"],
       trim: true,
       match: [/^[6-9]\d{9}$/, "Invalid Indian phone number"],
     },
 
     dob: {
       type: Date,
-      required: true,
+      required: [true, "Date of Birth is required"],
       validate: {
         validator: function (value) {
           const today = new Date();
@@ -73,7 +69,8 @@ const kycSchema = new mongoose.Schema(
 
           return age >= 18;
         },
-        message: "User must be at least 18 years old and DOB cannot be in the future",
+        message:
+          "User must be at least 18 years old and DOB cannot be in the future",
       },
     },
 
@@ -82,7 +79,7 @@ const kycSchema = new mongoose.Schema(
       lowercase: true,
       trim: true,
       enum: ["male", "female", "other"],
-      required: true,
+      required: [true, "Gender is required"],
     },
 
     personalAddress: {
@@ -102,11 +99,9 @@ const kycSchema = new mongoose.Schema(
       default: "pending",
     },
 
-
     // ---------------------------------------------------
 
-
-    shopName: { type: String, required: true },
+    shopName: { type: String, required: [true, "Bussiness name is required"] },
     shopImageUrl: { type: String, required: true },
 
     businessAddress: {
@@ -123,7 +118,7 @@ const kycSchema = new mongoose.Schema(
     businessPanNumber: {
       type: String,
       match: [/^[A-Z]{5}[0-9]{4}[A-Z]{1}$/, "Invalid Business PAN"],
-      default: null
+      default: null,
     },
 
     gstNumber: {
@@ -132,7 +127,7 @@ const kycSchema = new mongoose.Schema(
         /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/,
         "Invalid GST number",
       ],
-      default: null
+      default: null,
     },
 
     businessDetailStatus: {
@@ -143,20 +138,20 @@ const kycSchema = new mongoose.Schema(
 
     accountHolderName: {
       type: String,
-      required: true,
+      required: [true, "Account Holder name is required"],
       trim: true,
-      minlength: 2,
-      maxlength: 60,
-      match: [/^[A-Za-z\s.]+$/, "Account holder name can contain only letters"]
+      minlength: [3, "Account holder name must be at least 3 characters"],
+      maxlength: [60, "Account holder name cannot exceed 30 characters"],
+      match: [/^[A-Za-z\s.]+$/, "Account holder name can contain only letters"],
     },
 
     bankName: {
       type: String,
-      required: true,
+      required: [true, "Bank is required"],
       trim: true,
       minlength: 2,
       maxlength: 80,
-      match: [/^[A-Za-z\s.&]+$/, "Invalid bank name"]
+      match: [/^[A-Za-z\s.&]+$/, "Invalid bank name"],
     },
 
     branchName: {
@@ -165,28 +160,27 @@ const kycSchema = new mongoose.Schema(
       trim: true,
       minlength: 2,
       maxlength: 80,
-      match: [/^[A-Za-z0-9\s().-]+$/, "Invalid branch name"]
+      match: [/^[A-Za-z0-9\s().-]+$/, "Invalid branch name"],
     },
 
     accountNumber: {
       type: String,
-      required: true,
+      required: [true, "Account Number is required"],
       trim: true,
-      match: [/^[0-9]{9,20}$/, "Account number must be 9–20 digits"]
+      match: [/^[0-9]{9,20}$/, "Account number must be 9-20 digits"],
     },
-
 
     ifscCode: {
       type: String,
-      required: true,
+      required: [true, "Ifsc code required"],
       uppercase: true,
       trim: true,
       validate: {
         validator: function (v) {
           return /^[A-Z]{4}0[A-Z0-9]{6}$/.test(v);
         },
-        message: props => `${props.value} is not a valid IFSC code`
-      }
+        message: (props) => `${props.value} is not a valid IFSC code`,
+      },
     },
 
     bankDetailStatus: {
@@ -197,7 +191,7 @@ const kycSchema = new mongoose.Schema(
 
     aadharNumber: {
       type: String,
-      required: true,
+      required: [true, "Aadhar number is required"],
       match: [/^\d{12}$/, "Invalid Aadhaar number"],
     },
 
@@ -205,7 +199,7 @@ const kycSchema = new mongoose.Schema(
 
     panNumber: {
       type: String,
-      required: true,
+      required: [true, "Pan number is required"],
       match: [/^[A-Z]{5}[0-9]{4}[A-Z]{1}$/, "Invalid PAN number"],
     },
 
@@ -219,7 +213,7 @@ const kycSchema = new mongoose.Schema(
 
     status: {
       type: String,
-      enum: ["pending", "approved", "rejected"],
+      enum: ["pending", "approved", "rejected", "rekyc"],
       default: "pending",
     },
 
@@ -231,6 +225,7 @@ const kycSchema = new mongoose.Schema(
       default: null,
     },
 
+    //for approve and reject time
     reviewedAt: {
       type: Date,
       default: null,

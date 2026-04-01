@@ -6,7 +6,7 @@ exports.mobileVerify = async ({ mobile, client_referenceId }) => {
   const requestId = generateRequestId();
   const timestamp = new Date().toISOString();
 
-  console.log(mobile, "mobile")
+  console.log(mobile, "mobile");
 
   try {
     const response = await csplClient.post(
@@ -29,5 +29,6 @@ exports.mobileVerify = async ({ mobile, client_referenceId }) => {
     return response?.data;
   } catch (error) {
     console.log("API Error Response:", error.response?.data || error.message);
+    throw error;
   }
 };

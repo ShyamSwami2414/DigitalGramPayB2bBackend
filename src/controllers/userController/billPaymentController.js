@@ -126,7 +126,8 @@ exports.fetchBbpsBill = async (req, res, next) => {
     return res.status(200).json({
       success: true,
       message: "Bill Fetched",
-      data: { ...response?.data?.billerResponse, refid: response?.refid },
+      data: response,
+      // data: { ...response?.data?.billerResponse, refid: response?.refid },
     });
   } catch (error) {
     next(error);
@@ -183,13 +184,16 @@ exports.payBbpsBill = async (req, res, next) => {
       customerName,
       customerMobile,
       dueDate,
-      billAmount,
+      billAmount, //paise
       billDate,
       billPeriod,
       billNumber,
       placeholderValue,
       paramValue,
+      inputParams,
     } = req.body;
+
+    console.log(req.body, "req.body");
 
     refid = refid?.trim();
     billerId = billerId?.trim();
@@ -203,8 +207,6 @@ exports.payBbpsBill = async (req, res, next) => {
     placeholderValue = placeholderValue?.trim();
     paramValue = paramValue?.trim();
 
-    // billAmount = paiseToRupee(billAmount);
-
     console.log(userId, "userId");
     console.log(req.body, "body");
     console.log(billAmount, "amount from body");
@@ -215,13 +217,7 @@ exports.payBbpsBill = async (req, res, next) => {
       "billerId",
       "customerName",
       "customerMobile",
-      "dueDate",
       "billAmount",
-      "billDate",
-      "billPeriod",
-      "billNumber",
-      "placeholderValue",
-      "paramValue",
     ];
 
     let missingFields = [];
@@ -237,6 +233,75 @@ exports.payBbpsBill = async (req, res, next) => {
         success: false,
         message: `${missingFields.join(", ")} are required`,
       });
+    }
+
+    const hasSingle = placeholderValue || paramValue;
+    const hasMultiple = Array.isArray(inputParams) && inputParams.length > 0;
+
+    //  BOTH PROVIDED
+    if (hasSingle && hasMultiple) {
+      return res.status(400).json({
+        success: false,
+        message: "Provide either single param or inputParams array, not both",
+      });
+    }
+
+    //  NONE PROVIDED
+    if (!hasSingle && !hasMultiple) {
+      return res.status(400).json({
+        success: false,
+        message: "At least one parameter input is required",
+      });
+    }
+
+    //  SINGLE PARAM VALIDATION
+    if (hasSingle) {
+      if (!placeholderValue || !paramValue) {
+        return res.status(400).json({
+          success: false,
+          message: "Both placeholderValue and paramValue are required",
+        });
+      }
+
+      if (typeof placeholderValue !== "string" || !placeholderValue.trim()) {
+        return res.status(400).json({
+          success: false,
+          message: "Invalid placeholderValue",
+        });
+      }
+
+      if (typeof paramValue !== "string" || !paramValue.trim()) {
+        return res.status(400).json({
+          success: false,
+          message: "Invalid paramValue",
+        });
+      }
+    }
+
+    // MULTIPLE PARAM VALIDATION
+    if (hasMultiple) {
+      for (let i = 0; i < inputParams.length; i++) {
+        const param = inputParams[i];
+
+        if (!param.paramName || !param.paramValue) {
+          return res.status(400).json({
+            success: false,
+            message: `inputParams[${i}] must have paramName and paramValue`,
+          });
+        }
+
+        if (
+          typeof param.paramName !== "string" ||
+          !param.paramName.trim() ||
+          typeof param.paramValue !== "string" ||
+          !param.paramValue.trim()
+        ) {
+          return res.status(400).json({
+            success: false,
+            message: `Invalid input in inputParams[${i}]`,
+          });
+        }
+      }
     }
 
     if (!/^[6-9]\d{9}$/.test(customerMobile)) {
@@ -258,12 +323,13 @@ exports.payBbpsBill = async (req, res, next) => {
       customerName,
       customerMobile,
       dueDate,
-      billamount: billAmount,
+      billamount: billAmount, //paise
       billDate,
       billPeriod,
       billNumber,
       placeholderValue,
       paramValue,
+      inputParams,
     });
 
     console.log(response, "controller response");

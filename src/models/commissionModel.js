@@ -1,4 +1,5 @@
 const mongoose = require("mongoose");
+const round2 = (num) => Math.round(num * 100) / 100;
 
 const commissionSchema = new mongoose.Schema(
   {
@@ -32,16 +33,19 @@ const commissionSchema = new mongoose.Schema(
         from: {
           type: Number,
           required: true,
+          set: round2,
         },
 
         to: {
           type: Number,
           required: true,
+          set: round2,
         },
 
         commission: {
           type: Number,
           required: true,
+          set: round2,
         },
 
         type: {

@@ -1,11 +1,12 @@
 exports.calculateTds = (amount) => {
-  const tdsPercent = 5;
+  //in paise tds
+  const tdsPercent = 2;
   if (!amount) {
     return 0;
   }
 
-  const tdsAmount = Number(((amount * tdsPercent) / 100).toFixed(2));
-  const netAmount = Number((amount - tdsAmount).toFixed(2));
+  const tdsAmount = Math.round((amount * tdsPercent) / 100);
+  const netAmount = amount - tdsAmount;
   console.log(netAmount, "netAmount of commission");
 
   return tdsAmount;

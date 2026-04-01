@@ -1,18 +1,24 @@
 const express = require("express");
 const { authenticateUser } = require("../../middleware/authMiddleware");
-const { getProductList, getProductById } = require("../../controllers/userController/ecommerceController");
+const checkUserPaymentAndKYC = require("../../middleware/kycPaymentCheckMiddleware");
+const {
+  getProductList,
+  getProductById,
+} = require("../../controllers/userController/ecommerceController");
 const router = express.Router();
 
 router.get(
-    "/product/:id",
-    authenticateUser,
-    getProductById
+  "/product/:id",
+  authenticateUser,
+  checkUserPaymentAndKYC,
+  getProductById,
 );
 
 router.get(
-    "/product-list",
-    authenticateUser,
-    getProductList
+  "/product-list",
+  authenticateUser,
+  checkUserPaymentAndKYC,
+  getProductList,
 );
 
 module.exports = router;

@@ -4,6 +4,7 @@ const User = require("../models/userModel");
 const BbpsReport = require("../models/bbpsReportModel");
 const BbpsBiller = require("../models/bbpsBillersModel");
 const BbpsCategory = require("../models/bbpsCategoryModel");
+const Transaction = require("../models/transactionModel");
 const mongoose = require("mongoose");
 const {
   generateUniqueRefernceId,
@@ -29,6 +30,7 @@ exports.payBbpsBillService = async ({
   billNumber,
   placeholderValue,
   paramValue,
+  inputParams,
 }) => {
   const session = await mongoose.startSession();
   try {
@@ -37,8 +39,6 @@ exports.payBbpsBillService = async ({
     const referenceId = generateUniqueRefernceId();
 
     let packageId, serviceId;
-    const amountInRupee = paiseToRupee(billamount);
-    console.log(amountInRupee, "amountInRupee");
 
     console.log(billerId, "billerId");
 
@@ -75,7 +75,7 @@ exports.payBbpsBillService = async ({
         userId: userId,
         serviceName: "bbps",
         categoryId: billerCategory?._id,
-        amount: amountInRupee, //rupee
+        amount: billamount, //paise
       }));
     } catch (err) {
       console.warn("Service validation failed:", err.message);
@@ -85,7 +85,6 @@ exports.payBbpsBillService = async ({
     const { openingBalance, closingBalance } = await debitWallet({
       userId: userId,
       amount: billamount, //paise
-      amountInRupee: amountInRupee,
       serviceType: "BBPS",
       referenceId: referenceId,
       description: "BBPS Bill Payment",
@@ -97,8 +96,45 @@ exports.payBbpsBillService = async ({
         {
           userId: userId,
           mobileNumber: customerMobile, //customer mobile number not users
-          amount: amountInRupee, //rupee
+          amount: billamount, //paise
           referenceId: referenceId,
+        },
+      ],
+      { session },
+    );
+
+    await Transaction.create(
+      [
+        {
+          userId: userId,
+          referenceId: referenceId,
+          serviceType: "BBPS",
+          amount: amount,
+          wallet: "main",
+          type: "debit",
+          status: "PENDING",
+          meta: {
+            request: {
+              ...(refId?.trim() && { refId: refId.trim() }),
+              ...(billerId !== undefined && billerId !== null && { billerId }),
+              ...(customerName?.trim() && {
+                customerName: customerName.trim(),
+              }),
+              ...(customerMobile?.trim() && {
+                customerMobile: customerMobile.trim(),
+              }),
+              ...(dueDate && { dueDate }),
+              ...(billamount !== undefined &&
+                billamount !== null && { billamount }),
+              ...(billDate && { billDate }),
+              ...(billPeriod && { billPeriod }),
+              ...(billNumber && { billNumber }),
+              ...(placeholderValue && { placeholderValue }),
+              ...(paramValue && { paramValue }),
+              ...(Array.isArray(inputParams) &&
+                inputParams.length > 0 && { inputParams }),
+            },
+          },
         },
       ],
       { session },
@@ -122,6 +158,7 @@ exports.payBbpsBillService = async ({
         billNumber,
         placeholderValue,
         paramValue,
+        inputParams,
       });
     } catch (error) {
       result = {
@@ -148,23 +185,26 @@ exports.payBbpsBillService = async ({
     if (result.status === "SUCCESS") {
       const { commission, tdsAmount, netCommission } = await processCommission({
         userId: userId,
-        amount: amountInRupee, //rupee
+        amount: billamount, //paise
         packageId: packageId,
         serviceId: serviceId,
         referenceId: referenceId,
-        reportModel: RechargeReport,
+        providerTxnId: result?.billerstatus?.txnRefId,
+        reportModel: BbpsReport,
         description: "BBPS Commission",
+        apiResponse: result,
       });
     }
 
-    if (result.status === "FAILED") {
+    if (result?.status === "FAILED") {
       console.log("Entered");
       const { openingBalance, closingBalance } = await processRefund({
         userId: userId,
-        amount: amountInRupee, //rupee
+        amount: billamount, //paise
         referenceId: referenceId,
         reportModel: BbpsReport,
         description: "Bbps Bill Failed Refund",
+        apiResponse: result,
       });
     }
 

@@ -1,9 +1,18 @@
-const paiseToRupee = (paise) => {
-  return (paise / 100).toFixed(2);
+const rupeeToPaise = (rupees) => {
+  console.log("rupees", rupees);
+  if (rupees == null || isNaN(rupees)) {
+    throw new Error("Invalid amount");
+  }
+  return Math.round(Number(rupees) * 100);
 };
 
-const rupeeToPaise = (rupees) => {
-  return Math.round(Number(rupees) * 100);
+const paiseToRupee = (paise) => {
+  console.log("paise", paise);
+  if (paise == null || isNaN(paise)) {
+    throw new Error("Invalid amount");
+  }
+
+  return Number((Number(paise) / 100).toFixed(2)); // return NUMBER instead of string
 };
 
 const formatRupee = (value) => {

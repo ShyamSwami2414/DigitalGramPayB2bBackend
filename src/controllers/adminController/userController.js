@@ -11,6 +11,293 @@ const {
   generateWelcomeEmail,
 } = require("../../templates/emailTemplates/welcomeEmail");
 const { sendEmail } = require("../../utils/email");
+const { paiseToRupee } = require("../../utils/money");
+const userWallet = require("../../models/userWallet");
+
+exports.getParticularUserDetail = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+
+    if (!id) {
+      return res
+        .status(400)
+        .json({ success: false, message: "User ID is required" });
+    }
+
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Invalid User Id Provided" });
+    }
+
+    const existingUser = await User.aggregate([
+      {
+        $match: {
+          _id: new mongoose.Types.ObjectId(id),
+          isDeleted: false,
+        },
+      },
+
+      //  ROLE
+      {
+        $lookup: {
+          from: "roles",
+          localField: "roleId",
+          foreignField: "_id",
+          as: "role",
+        },
+      },
+      { $unwind: { path: "$role", preserveNullAndEmptyArrays: true } },
+      {
+        $addFields: {
+          roleName: "$role.name",
+          onBoardCharge: "$role.onBoardCharge",
+        },
+      },
+
+      //  WALLET
+      {
+        $lookup: {
+          from: "userwallets",
+          localField: "_id",
+          foreignField: "userId",
+          as: "userWallet",
+        },
+      },
+      { $unwind: { path: "$userWallet", preserveNullAndEmptyArrays: true } },
+      {
+        $addFields: {
+          mainWallet: "$userWallet.mainWallet",
+          aepsWallet: "$userWallet.aepsWallet",
+          mainHoldAmount: "$userWallet.mainHoldAmount",
+          aepsHoldAmount: "$userWallet.aepsHoldAmount",
+        },
+      },
+
+      //  PACKAGE
+      {
+        $lookup: {
+          from: "packages",
+          localField: "packageId",
+          foreignField: "_id",
+          as: "package",
+        },
+      },
+      { $unwind: { path: "$package", preserveNullAndEmptyArrays: true } },
+      {
+        $addFields: {
+          packageName: "$package.name",
+        },
+      },
+
+      //  COMMISSION
+      {
+        $lookup: {
+          from: "commissions",
+          let: {
+            pkgId: "$packageId",
+            assignedServices: "$assignedServices",
+          },
+          pipeline: [
+            {
+              $match: {
+                $expr: {
+                  $and: [
+                    { $eq: ["$packageId", "$$pkgId"] },
+                    { $in: ["$serviceId", "$$assignedServices"] },
+                  ],
+                },
+              },
+            },
+
+            // SERVICE
+            {
+              $lookup: {
+                from: "services",
+                localField: "serviceId",
+                foreignField: "_id",
+                as: "service",
+              },
+            },
+            { $unwind: { path: "$service", preserveNullAndEmptyArrays: true } },
+
+            //  OPERATOR
+            {
+              $lookup: {
+                from: "operators",
+                localField: "operatorId",
+                foreignField: "_id",
+                as: "operator",
+              },
+            },
+            {
+              $unwind: { path: "$operator", preserveNullAndEmptyArrays: true },
+            },
+
+            //  CATEGORY
+            {
+              $lookup: {
+                from: "bbpscategories",
+                localField: "categoryId",
+                foreignField: "_id",
+                as: "category",
+              },
+            },
+            {
+              $unwind: { path: "$category", preserveNullAndEmptyArrays: true },
+            },
+
+            //  FIX NAME , CLEAN PLAN
+            {
+              $project: {
+                serviceId: 1,
+                serviceName: "$service.name",
+
+                //  NEVER NULL NAME
+                name: {
+                  $ifNull: [
+                    "$operator.name",
+                    {
+                      $ifNull: ["$category.name", "UNKNOWN"],
+                    },
+                  ],
+                },
+
+                plan: {
+                  $map: {
+                    input: {
+                      $filter: {
+                        input: "$plan",
+                        as: "p",
+                        cond: { $eq: ["$$p.isDeleted", false] },
+                      },
+                    },
+                    as: "p",
+                    in: {
+                      from: "$$p.from",
+                      to: "$$p.to",
+                      commission: "$$p.commission",
+                      type: "$$p.type",
+                    },
+                  },
+                },
+              },
+            },
+
+            //  MERGE SAME NAME (operator/category)
+            {
+              $group: {
+                _id: {
+                  serviceId: "$serviceId",
+                  name: "$name",
+                },
+                serviceName: { $first: "$serviceName" },
+                plans: { $push: "$plan" },
+              },
+            },
+
+            //  FLATTEN PLANS
+            {
+              $project: {
+                serviceId: "$_id.serviceId",
+                serviceName: 1,
+                name: "$_id.name",
+                plans: {
+                  $reduce: {
+                    input: "$plans",
+                    initialValue: [],
+                    in: { $concatArrays: ["$$value", "$$this"] },
+                  },
+                },
+              },
+            },
+
+            //   GROUP BY SERVICE
+            {
+              $group: {
+                _id: "$serviceId",
+                serviceName: { $first: "$serviceName" },
+                data: {
+                  $push: {
+                    name: "$name",
+                    plans: "$plans",
+                  },
+                },
+              },
+            },
+
+            {
+              $project: {
+                _id: 0,
+                serviceId: "$_id",
+                serviceName: 1,
+                data: 1,
+              },
+            },
+          ],
+          as: "commission",
+        },
+      },
+
+      //  FINAL CLEANUP
+      {
+        $project: {
+          password: 0,
+          isDeleted: 0,
+          isDeletedAt: 0,
+          createdAt: 0,
+          updatedAt: 0,
+          role: 0,
+          package: 0,
+          userWallet: 0,
+        },
+      },
+    ]);
+
+    const formatUserData = (user) => {
+      if (!user) return null;
+
+      return {
+        ...user,
+
+        onBoardCharge: paiseToRupee(user?.onBoardCharge),
+        aepsWallet: paiseToRupee(user?.aepsWallet),
+        mainWallet: paiseToRupee(user?.mainWallet),
+        mainHoldAmount: paiseToRupee(user?.mainHoldAmount),
+        aepsHoldAmount: paiseToRupee(user?.aepsHoldAmount),
+
+        commission: user.commission?.map((service) => ({
+          ...service,
+          data: service.data?.map((item) => ({
+            ...item,
+            plans: item.plans?.map((plan) => ({
+              ...plan,
+
+              //  ALWAYS convert range
+              from: paiseToRupee(plan.from),
+              to: paiseToRupee(plan.to),
+
+              //  ONLY convert commission if flat
+              commission:
+                plan.type === "flat"
+                  ? paiseToRupee(plan.commission)
+                  : plan.commission,
+            })),
+          })),
+        })),
+      };
+    };
+    const formattedData = existingUser.map((user) => formatUserData(user));
+
+    return res.status(200).json({
+      success: true,
+      message: "User Fetched",
+      data: formattedData[0],
+    });
+  } catch (error) {
+    next(error);
+  }
+};
 
 exports.getAllUserList = async (req, res, next) => {
   try {
@@ -56,10 +343,18 @@ exports.getAllUserList = async (req, res, next) => {
       },
     ]);
 
+    const formattedData = users.map((item) => ({
+      ...item,
+      aepsWallet: paiseToRupee(item?.aepsWallet),
+      mainWallet: paiseToRupee(item?.mainWallet),
+      aepsHold: paiseToRupee(item?.aepsHold),
+      mainHold: paiseToRupee(item?.mainHold),
+    }));
+
     return res.status(200).json({
       success: true,
       message: "Users fetched successfully",
-      data: users,
+      data: formattedData,
     });
   } catch (error) {
     next(error);
@@ -339,7 +634,7 @@ exports.createUser = async (req, res, next) => {
     const password = generateUserPassword();
     const hashedPassword = await hashPassword(password);
 
-    const userName = await generateUsername();
+    const userName = await generateUsername({ role: isRoleValid?.name });
     const pin = await generateUniquePin();
 
     const newUser = new User({
@@ -382,6 +677,12 @@ exports.createUser = async (req, res, next) => {
 exports.updateUserStatus = async (req, res, next) => {
   try {
     const { id } = req.params;
+
+    if (!id) {
+      return res
+        .status(400)
+        .json({ success: false, message: "User ID is required" });
+    }
 
     if (!mongoose.Types.ObjectId.isValid(id)) {
       return res
@@ -435,12 +736,10 @@ exports.assignPackageToUser = async (req, res, next) => {
       !mongoose.Types.ObjectId.isValid(userId) ||
       !mongoose.Types.ObjectId.isValid(packageId)
     ) {
-      return res
-        .status(400)
-        .json({
-          success: false,
-          message: "Invalid User Id or Package Id Provided",
-        });
+      return res.status(400).json({
+        success: false,
+        message: "Invalid User Id or Package Id Provided",
+      });
     }
 
     const existingPackage = await Package.findOne({

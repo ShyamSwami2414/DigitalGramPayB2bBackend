@@ -2,45 +2,52 @@ const mongoose = require("mongoose");
 
 const transactionSchema = new mongoose.Schema(
   {
-    txnId: {
-      type: String,
-      required: true,
-      unique: true,
-    },
-
     userId: {
       type: mongoose.Schema.Types.ObjectId,
       required: true,
       index: true,
     },
 
+    referenceId: {
+      type: String,
+      required: true,
+      index: true,
+      unique: true,
+    },
+
     serviceType: {
       type: String,
       required: true,
-      enum: ["recharge", "bbps", "dmt", "payout", "walletTransfer"],
+      enum: ["RECHARGE", "BBPS", "DMT", "AEPS", "PAYOUT", "WALLETTRANSFER"],
     },
 
     amount: {
       type: Number,
+      required: true,
       default: 0,
     },
 
     wallet: {
       type: String,
       enum: ["main", "aeps"],
-      default: "none",
+      default: null,
     },
 
     type: {
       type: String,
-      enum: ["debit", "credit", "none"],
-      default: "none",
+      enum: ["debit", "credit"],
+      default: null,
     },
 
     status: {
       type: String,
-      enum: ["success", "failed", "pending"],
-      default: "success",
+      enum: ["SUCCESS", "FAILED", "PENDING", "REFUNDED"],
+      default: "PENDING",
+    },
+
+    isRefunded: {
+      type: Boolean,
+      default: false,
     },
 
     remark: {
@@ -50,13 +57,8 @@ const transactionSchema = new mongoose.Schema(
 
     providerTxnId: {
       type: String,
-      default: "",
-    },
-
-    referenceId: {
-      type: mongoose.Schema.Types.ObjectId,
-      required: true,
-      index: true,
+      unique: true,
+      sparse: true,
     },
 
     meta: {
@@ -66,6 +68,7 @@ const transactionSchema = new mongoose.Schema(
   },
   {
     timestamps: true,
+    versionKey: false,
   },
 );
 

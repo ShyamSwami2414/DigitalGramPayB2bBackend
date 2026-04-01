@@ -3,16 +3,19 @@ const UserWallet = require("../../models/userWallet");
 const WalletLedger = require("../../models/walletLedgerModel");
 const { calculateCommission } = require("../../helpers/calculateCommission");
 const { calculateTds } = require("../../helpers/calculateTds");
+const Transaction = require("../../models/transactionModel");
 
 const processCommission = async ({
   userId,
-  amount,
+  amount, //paise
   packageId,
   serviceId,
   operatorId = null,
   referenceId,
+  providerTxnId = null,
   reportModel, //dynamic (RechargeReport, BBPSReport, etc.)
   description,
+  apiResponse = null,
 }) => {
   const session = await mongoose.startSession();
   session.startTransaction();
@@ -20,7 +23,7 @@ const processCommission = async ({
   let closingBalance = 0;
   try {
     const commission = await calculateCommission({
-      amount,
+      amount, //paise
       packageId,
       serviceId,
       operatorId,
@@ -28,7 +31,7 @@ const processCommission = async ({
 
     console.log("commission", commission);
 
-    const tdsAmount = calculateTds(commission);
+    const tdsAmount = calculateTds(commission); //paise
     const netCommission = commission - tdsAmount;
 
     const wallet = await UserWallet.findOneAndUpdate(
@@ -64,6 +67,22 @@ const processCommission = async ({
         commission,
         tds: tdsAmount,
         netCommission,
+        providerTxnId: providerTxnId,
+      },
+      { session },
+    );
+
+    await Transaction.updateOne(
+      {
+        referenceId: referenceId,
+      },
+      {
+        $set: {
+          status: "SUCCESS",
+          providerTxnId: providerTxnId,
+          remark: apiResponse ? apiResponse?.message : "",
+          "meta.response": apiResponse,
+        },
       },
       { session },
     );

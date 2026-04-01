@@ -1,7 +1,7 @@
 const Commission = require("../models/commissionModel");
 
 exports.calculateCommission = async ({
-  amount,
+  amount, //paise
   packageId,
   serviceId,
   operatorId = null,
@@ -32,10 +32,8 @@ exports.calculateCommission = async ({
     }
 
     if (validPlan.type === "percent") {
-      commissionAmount = (amount * validPlan.commission) / 100;
+      commissionAmount = Math.round((amount * validPlan.commission) / 100);
     }
-
-    commissionAmount = Number(commissionAmount.toFixed(2));
 
     return commissionAmount;
   } catch (error) {

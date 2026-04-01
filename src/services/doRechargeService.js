@@ -18,15 +18,17 @@ const {
 const { debitWallet } = require("./common/walletService");
 const { processCommission } = require("./common/commissionService");
 const { processRefund } = require("./common/refundService");
+const Transaction = require("../models/transactionModel");
 
-exports.doRechargeService = async (
+exports.doRechargeService = async ({
   userId,
   operatorId,
-  amount,
+  amount, //paise
   operatorCode,
+  operatorName,
   number,
   billerMode,
-) => {
+}) => {
   const session = await mongoose.startSession();
   try {
     session.startTransaction();
@@ -37,7 +39,7 @@ exports.doRechargeService = async (
       userId: userId,
       serviceName: "recharge",
       operatorId: operatorId,
-      amount : amount
+      amount: amount, //paise
     });
 
     const { openingBalance, closingBalance } = await debitWallet({
@@ -97,9 +99,33 @@ exports.doRechargeService = async (
       [
         {
           userId: userId,
+          operatorId: operatorId,
+          operatorName: operatorName,
           mobileNumber: number,
           amount: amount,
           referenceId: referenceId,
+        },
+      ],
+      { session },
+    );
+
+    await Transaction.create(
+      [
+        {
+          userId: userId,
+          referenceId: referenceId,
+          serviceType: "RECHARGE",
+          amount: amount,
+          wallet: "main",
+          type: "debit",
+          status: "PENDING",
+          meta: {
+            request: {
+              operatorId: operatorId,
+              operatorName: operatorName,
+              mobileNumber: number,
+            },
+          },
         },
       ],
       { session },
@@ -136,13 +162,15 @@ exports.doRechargeService = async (
         const { commission, tdsAmount, netCommission } =
           await processCommission({
             userId: userId,
-            amount: amount,
+            amount: amount, //paise
             packageId: packageId,
             serviceId: serviceId,
             operatorId: operatorId,
             referenceId: referenceId,
+            providerTxnId: result?.txn_ref,
             reportModel: RechargeReport,
             description: "Recharge Commission",
+            apiResponse: result,
           });
         // const commission = await calculateCommission({
         //   amount,
@@ -206,11 +234,13 @@ exports.doRechargeService = async (
       try {
         const { openingBalance, closingBalance } = await processRefund({
           userId: userId,
-          amount: amount,
+          amount: amount, //paise
           referenceId: referenceId,
           reportModel: RechargeReport,
           description: "Recharge Failed Refund",
+          apiResponse: result,
         });
+
         // const wallet = await UserWallet.findOneAndUpdate(
         //   { userId, isActive: true, isDeleted: false },
         //   { $inc: { mainWallet: amount } },

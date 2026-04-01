@@ -1,6 +1,7 @@
 const WalletLedger = require("../../models/walletLedgerModel");
 const mongoose = require("mongoose");
 const User = require("../../models/userModel");
+const { paiseToRupee } = require("../../utils/money");
 
 exports.aepsToEwalletHistory = async (req, res, next) => {
   try {
@@ -101,12 +102,19 @@ exports.aepsToEwalletHistory = async (req, res, next) => {
       },
     ]);
 
+    const formattedData = walletTransferHistory.map((item) => ({
+      ...item,
+      amount: paiseToRupee(item?.amount),
+      openingBalance: paiseToRupee(item?.openingBalance),
+      closingBalance: paiseToRupee(item?.closingBalance),
+    }));
+
     const total = await WalletLedger.countDocuments(filter);
 
     return res.status(200).json({
       success: true,
       message: "Wallet transfer history fetched successfully",
-      data: walletTransferHistory,
+      data: formattedData,
       pagination: {
         page,
         limit,
@@ -276,10 +284,17 @@ exports.getAllLedgetEntryList = async (req, res, next) => {
 
     const total = await WalletLedger.countDocuments(filter);
 
+    const formattedData = walletLedger.map((item) => ({
+      ...item,
+      amount: paiseToRupee(item?.amount),
+      openingBalance: paiseToRupee(item?.openingBalance),
+      closingBalance: paiseToRupee(item?.closingBalance),
+    }));
+
     return res.status(200).json({
       success: true,
       message: "Wallet Ledger fetched successfully",
-      data: walletLedger,
+      data: formattedData,
       pagination: {
         page,
         limit,

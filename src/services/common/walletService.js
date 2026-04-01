@@ -4,7 +4,6 @@ const WalletLedger = require("../../models/walletLedgerModel");
 const debitWallet = async ({
   userId,
   amount, //paise
-  amountInRupee, //rupee
   serviceType,
   referenceId,
   description,
@@ -21,22 +20,12 @@ const debitWallet = async ({
       isActive: true,
       isDeleted: false,
       $expr: {
-        // convert wallet balance and hold to paise for atomic comparison
-        $gte: [
-          {
-            $subtract: [
-              { $multiply: ["$mainWallet", 100] }, // rupees → paise
-              { $multiply: ["$mainHoldAmount", 100] }, // rupees → paise
-            ],
-          },
-          amount,
-        ],
+        $gte: [{ $subtract: ["$mainWallet", "$mainHoldAmount"] }, amount],
       },
     },
     {
-      // decrement in rupees (atomic)
       $inc: {
-        mainWallet: -(amount / 100),
+        mainWallet: -amount,
       },
     },
     {
@@ -61,7 +50,7 @@ const debitWallet = async ({
         serviceType,
         wallet: "main",
         type: "debit",
-        amount: amountInRupee, //rupee
+        amount: amount,
         openingBalance,
         closingBalance,
         referenceId,

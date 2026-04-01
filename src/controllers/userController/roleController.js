@@ -1,5 +1,7 @@
 const Role = require("../../models/roleModel");
+const { paiseToRupee } = require("../../utils/money");
 
+//for signup menu
 exports.getRoleListForSignUp = async (req, res, next) => {
   try {
     const roles = await Role.find({
@@ -30,12 +32,17 @@ exports.getUserRoles = async (req, res, next) => {
       isActive: true,
       isDeleted: false,
       level: { $gt: role.level },
-    });
+    }).lean();
+
+    const formattedData = roles.map((role) => ({
+      ...role,
+      onBoardCharge: paiseToRupee(role?.onBoardCharge),
+    }));
 
     return res.status(200).json({
       success: true,
       message: "Roles fetched successfully",
-      data: roles,
+      data: formattedData,
     });
   } catch (error) {
     next(error);

@@ -16,6 +16,7 @@ const Setting = require("../../models/settingModel");
 const UserRequest = require("../../models/userRequestModel");
 const { generateOTP } = require("../../utils/generateOTP");
 const Otp = require("../../models/otpModel");
+const { paiseToRupee } = require("../../utils/money");
 
 exports.userRegister = async (req, res, next) => {
   try {
@@ -35,9 +36,10 @@ exports.userRegister = async (req, res, next) => {
 
     const user = await User.findOne({ email });
     if (user) {
-      return res
-        .status(400)
-        .json({ success: false, message: "User already exists" });
+      return res.status(400).json({
+        success: false,
+        message: "User already exists with this email",
+      });
     }
 
     const isRoleValid = await Role.findOne({
@@ -76,7 +78,7 @@ exports.userRegister = async (req, res, next) => {
     }
 
     const pin = generateUniquePin();
-    const userName = await generateUsername();
+    const userName = await generateUsername({ role: isRoleValid?.name });
     const password = await generateUserPassword();
 
     const hashedPassword = await bcrypt.hashPassword(password);
@@ -191,6 +193,104 @@ exports.userLogin = async (req, res, next) => {
   }
 };
 
+exports.resendOtp = async (req, res, next) => {
+  try {
+    const { email, userName } = req.body;
+
+    if (!email || !userName) {
+      return res.status(400).json({
+        success: false,
+        message: "Email and Username are required",
+      });
+    }
+
+    const user = await User.findOne({ email, userName });
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    await Otp.deleteMany({ userId: user._id });
+
+    const newOtp = await generateOTP();
+
+    const otp = new Otp({
+      userId: user._id,
+      otp: newOtp,
+      expiresAt: new Date(Date.now() + 2 * 60 * 1000), // 2 min
+    });
+
+    await otp.save();
+
+    await sendEmail(
+      user.email,
+      [],
+      [],
+      "Your OTP for User Login",
+      `Your OTP is: ${newOtp}. It is valid for 2 minutes.`,
+    );
+
+    return res.status(200).json({
+      success: true,
+      message: "OTP resent successfully",
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+exports.forgotPassword = async (req, res, next) => {
+  try {
+    const { email } = req.body;
+
+    if (!email) {
+      return res.status(400).json({
+        success: false,
+        message: "Email required",
+      });
+    }
+
+    const user = await User.findOne({ email: email });
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    await Otp.deleteMany({ userId: user._id });
+
+    const newOtp = await generateOTP();
+
+    const otp = new Otp({
+      userId: user._id,
+      otp: newOtp,
+      expiresAt: new Date(Date.now() + 2 * 60 * 1000), // 5 min
+    });
+
+    await otp.save();
+
+    await sendEmail(
+      user.email,
+      [],
+      [],
+      "OTP to reset passowrd",
+      `Your OTP is: ${newOtp}. It is valid for 2 minutes.`,
+    );
+
+    return res.status(200).json({
+      success: true,
+      message: "OTP sent for password reset",
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 exports.verifyUserOtp = async (req, res, next) => {
   const session = await mongoose.startSession();
   try {
@@ -210,6 +310,15 @@ exports.verifyUserOtp = async (req, res, next) => {
     if (!user) {
       const err = new Error("User not found");
       err.statusCode = 404;
+      throw err;
+    }
+
+    const role = await Role.findOne({ _id: user.roleId }).lean();
+
+    if (!role) {
+      const err = new Error("Role not assigned yet");
+      err.statusCode = 404;
+      err.stack = "Verify OTP";
       throw err;
     }
 
@@ -275,11 +384,15 @@ exports.verifyUserOtp = async (req, res, next) => {
 
     console.log(setting, "setting");
 
+    console.log(role, "role");
+
     const token = generateToken({
       id: user._id,
       role: user.roleId,
       kycStatus: user.kycStatus,
-      isPaymentRequired: user.isPaymentRequired,
+      isPaymentRequired: role?.isPaymentRequired,
+      onBoardCharge: role?.onBoardCharge,
+      isPaymentDone: user.isPaymentDone,
     });
 
     savedOtp.isUsed = true;
@@ -296,11 +409,17 @@ exports.verifyUserOtp = async (req, res, next) => {
       user,
       token,
       isKycOnline: setting?.isKycOnline,
+      isPaymentRequired: role?.isPaymentRequired,
+      onBoardCharge: paiseToRupee(role?.onBoardCharge),
     });
   } catch (error) {
-    await session.abortTransaction();
-    session.endSession();
+    if (session.inTransaction) {
+      await session.abortTransaction();
+    }
+
     next(error);
+  } finally {
+    session.endSession();
   }
 };
 
@@ -353,11 +472,23 @@ exports.changePassword = async (req, res, next) => {
     next(error);
   }
 };
+
 exports.fetchProfile = async (req, res, next) => {
   try {
     const userId = req.user.id;
 
-    const user = await User.aggregate([
+    const setting = await Setting.findOne();
+
+    if (!setting) {
+      return res.status(404).json({
+        success: false,
+        message: "Setting not found",
+      });
+    }
+
+    const isKycOnline = setting.isKycOnline;
+
+    const [user] = await User.aggregate([
       {
         $match: {
           _id: new mongoose.Types.ObjectId(userId),
@@ -373,7 +504,11 @@ exports.fetchProfile = async (req, res, next) => {
           foreignField: "_id",
           pipeline: [
             {
-              $project: { name: 1 },
+              $project: {
+                name: 1,
+                onBoardCharge: 1,
+                isPaymentRequired: 1,
+              },
             },
           ],
           as: "roleId",
@@ -383,6 +518,14 @@ exports.fetchProfile = async (req, res, next) => {
         $unwind: {
           path: "$roleId",
           preserveNullAndEmptyArrays: true,
+        },
+      },
+      {
+        $addFields: {
+          roleId: "$roleId._id",
+          roleName: "$roleId.name",
+          onBoardCharge: "$roleId.onBoardCharge",
+          isPaymentRequired: "$roleId.isPaymentRequired",
         },
       },
 
@@ -422,17 +565,26 @@ exports.fetchProfile = async (req, res, next) => {
         },
       },
     ]);
-    if (!user.length) {
+
+    if (!user) {
       return res.status(404).json({
         success: false,
         message: "User not found",
       });
     }
 
-    return res.status(201).json({
+    const formattedData = user
+      ? {
+          ...user,
+          onBoardCharge: paiseToRupee(user?.onBoardCharge),
+          isKycOnline: isKycOnline,
+        }
+      : null;
+
+    return res.status(200).json({
       success: true,
-      message: "user fetched successfully",
-      data: user[0],
+      message: "User fetched successfully",
+      data: formattedData,
     });
   } catch (error) {
     next(error);

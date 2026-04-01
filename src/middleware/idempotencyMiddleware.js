@@ -24,7 +24,7 @@ module.exports = async (req, res, next) => {
     }
 
     // Look for existing key for this user
-    const existing = await Idempotency.findOne({ key, userId });
+    let existing = await Idempotency.findOne({ key, userId });
 
     if (existing) {
       if (existing.status === "completed") {
@@ -41,10 +41,27 @@ module.exports = async (req, res, next) => {
       }
     }
 
-    // Create a lock for "processing" state
-    await Idempotency.create({ key, userId, status: "processing" });
+    try {
+      await Idempotency.create({ key, userId, status: "processing" });
+    } catch (err) {
+      if (err.code === 11000) {
+        existing = await Idempotency.findOne({ key, userId });
 
-    // Override res.json to capture response automatically
+        if (existing?.status === "completed") {
+          return res
+            .status(existing.responseCode || 200)
+            .json({ idempotent: true, ...existing.response });
+        }
+
+        return res.status(409).json({
+          success: false,
+          message: "Request already in progress",
+        });
+      }
+
+      throw err; // other errors
+    }
+
     const originalJson = res.json.bind(res);
     res.json = async (body) => {
       try {
@@ -59,15 +76,17 @@ module.exports = async (req, res, next) => {
       } catch (err) {
         console.error("Failed to save idempotency response", err);
       }
+
       return originalJson(body);
     };
 
     next();
   } catch (err) {
     console.error("Idempotency middleware error", err);
+
     return res.status(500).json({
       success: false,
-      message: "Internal server error (idempotency)",
+      message: err.message || "Internal server error (idempotency)",
     });
   }
 };

@@ -2,6 +2,21 @@ const Kyc = require("../../models/kycModel");
 const User = require("../../models/userModel");
 const Setting = require("../../models/settingModel");
 const { validateAadhar } = require("../../helpers/validateAadhar");
+const mongoose = require("mongoose");
+
+exports.getSubmittedKyc = async (req, res, next) => {
+  try {
+    const userId = req.user.id;
+
+    const kyc = await Kyc.findOne({ userId: userId }).lean();
+
+    return res
+      .status(200)
+      .json({ success: true, message: "KYC Fetched", data: kyc });
+  } catch (error) {
+    next(error);
+  }
+};
 
 exports.offlineKycSubmission = async (req, res, next) => {
   try {
@@ -27,6 +42,7 @@ exports.offlineKycSubmission = async (req, res, next) => {
       "and files:",
       req.files,
     );
+
     const aadharFile = req.files?.aadharFile?.[0];
     const panFile = req.files?.panFile?.[0];
     const shopImage = req.files?.shopImage?.[0];
@@ -133,29 +149,29 @@ exports.offlineKycSubmission = async (req, res, next) => {
     const kycData = new Kyc({
       userId: req.user.id,
 
-      firstName: firstName.trim(),
-      lastName: lastName.trim(),
-      fatherName: fatherName.trim(),
-      gender: gender.trim().toLowerCase(),
+      firstName: firstName?.trim(),
+      lastName: lastName?.trim(),
+      fatherName: fatherName?.trim(),
+      gender: gender?.trim().toLowerCase(),
 
-      email: email.trim(),
-      phone: phone.trim(),
+      email: email?.trim(),
+      phone: phone?.trim(),
       dob,
 
       personalAddress: {
-        address: personalAddress.address.trim(),
-        city: personalAddress.city.trim(),
-        state: personalAddress.state.trim(),
-        pincode: personalAddress.pincode.trim(),
+        address: personalAddress,
+        city: personalCity,
+        state: personalState,
+        pincode: personalPincode,
       },
 
-      shopName: shopName.trim(),
+      shopName: shopName?.trim(),
 
       businessAddress: {
-        address: businessAddress.address.trim(),
-        city: businessAddress.city.trim(),
-        state: businessAddress.state.trim(),
-        pincode: businessAddress.pincode.trim(),
+        address: businessAddress,
+        city: businessCity,
+        state: businessState,
+        pincode: businessPincode,
       },
 
       businessPanNumber,
@@ -164,11 +180,11 @@ exports.offlineKycSubmission = async (req, res, next) => {
       aadharNumber,
       panNumber,
 
-      accountHolderName: accountHolderName.trim(),
-      bankName: bankName.trim(),
-      branchName: branchName.trim(),
-      accountNumber: accountNumber.trim(),
-      ifscCode: ifscCode.trim(),
+      accountHolderName: accountHolderName?.trim(),
+      bankName: bankName?.trim(),
+      branchName: branchName?.trim(),
+      accountNumber: accountNumber?.trim(),
+      ifscCode: ifscCode?.trim(),
 
       aadharFileUrl: `/uploads/kyc/${aadharFile.filename}`,
       panFileUrl: `/uploads/kyc/${panFile.filename}`,
@@ -467,6 +483,155 @@ exports.onlineKycSubmission = async (req, res, next) => {
     return res.status(200).json({
       success: true,
       message: "KYC submitted successfully and is pending for review",
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+exports.reuploadKycSections = async (req, res, next) => {
+  try {
+    const userId = req.user.id;
+    let { sections } = req.body;
+
+    try {
+      sections = typeof sections === "string" ? JSON.parse(sections) : sections;
+    } catch (err) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid JSON format in sections",
+      });
+    }
+
+    console.log(sections, "sections");
+
+    if (!Array.isArray(sections) || sections.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: "Sections array is required",
+      });
+    }
+
+    if (!mongoose.Types.ObjectId.isValid(userId)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid User ID",
+      });
+    }
+
+    const kyc = await Kyc.findOne({
+      userId,
+      isDeleted: false,
+      status: { $ne: "approved" },
+    });
+
+    if (!kyc) {
+      return res.status(404).json({
+        success: false,
+        message: "KYC not found",
+      });
+    }
+
+    const files = req.files || {};
+
+    //  Section Config (NO switch-case needed)
+    const sectionConfig = {
+      personal: "personalDetailStatus",
+      business: "businessDetailStatus",
+      bank: "bankDetailStatus",
+      identity: "identityDetailStatus",
+    };
+
+    const updateFields = {};
+    const updatedSections = [];
+    const failedSections = [];
+
+    for (const item of sections) {
+      let { section, data } = item;
+
+      section = section?.trim()?.toLowerCase();
+
+      if (!section || !data || !sectionConfig[section]) {
+        failedSections.push(section || "unknown");
+        continue;
+      }
+
+      const statusField = sectionConfig[section];
+
+      //  allow only rejected sections
+      if (kyc[statusField] !== "rejected") {
+        failedSections.push(section);
+        continue;
+      }
+
+      //  FILE HANDLING PER SECTION
+      let sectionFiles = {};
+
+      if (section === "identity") {
+        sectionFiles = {
+          ...(files.aadharFile && {
+            aadharFileUrl: files.aadharFile[0].path,
+          }),
+          ...(files.panFile && {
+            panFileUrl: files.panFile[0].path,
+          }),
+        };
+
+        // optional validation
+        if (!sectionFiles.aadharFileUrl && !sectionFiles.panFileUrl) {
+          failedSections.push("identity (file missing)");
+          continue;
+        }
+      }
+
+      if (section === "business") {
+        sectionFiles = {
+          ...(files.shopImage && {
+            shopImageUrl: files.shopImage[0].path,
+          }),
+        };
+
+        if (!sectionFiles.shopImageUrl) {
+          failedSections.push("business (shop image missing)");
+          continue;
+        }
+      }
+
+      //  MERGE DATA
+      Object.assign(updateFields, {
+        ...data,
+        ...sectionFiles,
+        [statusField]: "pending",
+      });
+
+      updatedSections.push(section);
+    }
+
+    if (updatedSections.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: "No valid sections updated",
+        updatedSections,
+        failedSections,
+      });
+    }
+
+    //  RESET OVERALL KYC
+    updateFields.status = "pending";
+    updateFields.rejectionReason = "";
+
+    const updatedKyc = await Kyc.findByIdAndUpdate(
+      kyc._id,
+      { $set: updateFields },
+      { new: true },
+    );
+
+    return res.status(200).json({
+      success: true,
+      message: "KYC reuploaded successfully",
+      updatedSections,
+      failedSections,
+      data: updatedKyc,
     });
   } catch (error) {
     next(error);

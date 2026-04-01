@@ -1,13 +1,15 @@
 const UserWallet = require("../../models/userWallet");
 const WalletLedger = require("../../models/walletLedgerModel");
+const Transaction = require("../../models/transactionModel");
 const mongoose = require("mongoose");
 
 const processRefund = async ({
   userId,
-  amount,
+  amount, //paise
   referenceId,
   reportModel,
   description,
+  apiResponse = null,
 }) => {
   const session = await mongoose.startSession();
   session.startTransaction();
@@ -35,7 +37,7 @@ const processRefund = async ({
           serviceType: "REFUND",
           wallet: "main",
           type: "credit",
-          amount,
+          amount, //paise
           referenceId,
           openingBalance,
           closingBalance,
@@ -47,8 +49,20 @@ const processRefund = async ({
 
     await reportModel.updateOne(
       { referenceId },
-      { status: "FAILED" },
+      { $set: { status: "FAILED", isRefunded: true } },
       { session },
+    );
+
+    await Transaction.updateOne(
+      { referenceId: referenceId },
+      {
+        $set: {
+          status: "FAILED",
+          isRefunded: true,
+          remark: apiResponse ? apiResponse?.message : "",
+          "meta.response": apiResponse,
+        },
+      },
     );
 
     await session.commitTransaction();

@@ -9,6 +9,10 @@ const userSchema = new mongoose.Schema(
       trim: true,
       minlength: 3,
       maxlength: 50,
+      match: [
+        /^[A-Za-z\s]+$/,
+        "First name can only contain letters and spaces",
+      ],
     },
 
     lastName: {
@@ -17,13 +21,14 @@ const userSchema = new mongoose.Schema(
       trim: true,
       minlength: 3,
       maxlength: 50,
+      match: [/^[A-Za-z\s]+$/, "Last name can only contain letters and spaces"],
     },
 
     userName: {
       type: String,
       required: true,
-      trim: true,
       unique: true,
+      index: true,
       uppercase: true,
       trim: true,
     },
@@ -32,6 +37,7 @@ const userSchema = new mongoose.Schema(
       type: String,
       required: true,
       unique: true,
+      index: true,
       lowercase: true,
       match: [/^\S+@\S+\.\S+$/, "Invalid email format"],
     },
@@ -64,7 +70,7 @@ const userSchema = new mongoose.Schema(
 
     kycStatus: {
       type: String,
-      enum: ["pending", "submitted", "approved", "rejected"],
+      enum: ["pending", "submitted", "approved", "rejected", "rekyc"],
       default: "pending",
     },
 
@@ -74,19 +80,16 @@ const userSchema = new mongoose.Schema(
       default: null,
     },
 
-    assignedServices: [{
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Service",
-    }],
-
-    isPaymentRequired: {
-      type: Boolean,
-      default: false
-    },
+    assignedServices: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Service",
+      },
+    ],
 
     isPaymentDone: {
       type: Boolean,
-      default: false
+      default: false,
     },
 
     pin: { type: Number, required: true },
@@ -97,6 +100,8 @@ const userSchema = new mongoose.Schema(
   },
   { timestamps: true, versionKey: false },
 );
+
+userSchema.index({ parentUserId: 1 });
 
 userSchema.post("save", async function (doc, next) {
   try {

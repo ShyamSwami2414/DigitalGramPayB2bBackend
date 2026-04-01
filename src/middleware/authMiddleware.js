@@ -15,6 +15,8 @@ const authenticateUser = async (req, res, next) => {
 
     const verifiedToken = await verifyToken(token);
 
+    console.log(verifiedToken, "verifiedToken");
+
     if (!verifiedToken) {
       console.log("Invalid Token");
       return res.status(401).json({ success: false, message: "Invalid Token" });
@@ -23,13 +25,13 @@ const authenticateUser = async (req, res, next) => {
     const [user, admin] = await Promise.all([
       User.findById(verifiedToken.id),
       Admin.findById(verifiedToken.id),
-    ])
+    ]);
 
     if (!user && !admin) {
       console.log("User not found");
       return res.status(401).json({
         success: false,
-        message: "User not found , Provide Valid Token"
+        message: "User not found , Provide Valid Token",
       });
     }
 
