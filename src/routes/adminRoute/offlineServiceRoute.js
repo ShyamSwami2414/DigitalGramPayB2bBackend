@@ -13,7 +13,7 @@ const createUploader = require("../../middleware/uploadMiddleware");
 const multerErrorHandler = require("../../middleware/multerErrorHandler");
 const router = express.Router();
 
-const upload = createUploader("offlineServices", /jpeg|jpg|png|pdf/, 15)
+const upload = createUploader("offlineServices", /jpeg|jpg|png|pdf/, 2048)
 
 
 router.get(

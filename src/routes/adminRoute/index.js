@@ -47,4 +47,8 @@ module.exports = (app) => {
   app.use(`${apiPrefix}/notification`, require("./notificationRoute"));
   app.use(`${apiPrefix}/banner`, require("./bannerRoute"));
   app.use(`${apiPrefix}/dashboard`, require("./dashboardRoute"));
+  app.use(
+    `${apiPrefix}/holdReleaseHistory`,
+    require("./holdReleaseHistoryRoute"),
+  );
 };

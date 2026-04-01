@@ -34,7 +34,7 @@ const roleSchema = new mongoose.Schema(
 
     isPaymentRequired: {
       type: Boolean,
-      default: false,
+      default: true,
     },
 
     isActive: {

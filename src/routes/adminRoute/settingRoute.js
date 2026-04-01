@@ -6,7 +6,7 @@ const { authorizeRoles } = require("../../middleware/roleMiddleware");
 const createUploader = require("../../middleware/uploadMiddleware");
 const multerErrorHandler = require("../../middleware/multerErrorHandler");
 
-const settingUpload = createUploader("settings", /jpeg|jpg|png|pdf/, 15);
+const settingUpload = createUploader("settings", /jpeg|jpg|png|pdf/, 2048);
 
 router.get(
     "/get-setting",

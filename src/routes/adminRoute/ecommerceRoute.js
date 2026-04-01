@@ -6,7 +6,7 @@ const createUploader = require("../../middleware/uploadMiddleware");
 const multerErrorHandler = require("../../middleware/multerErrorHandler");
 const router = express.Router();
 
-const upload = createUploader("products", /jpeg|jpg|png/, 5);
+const upload = createUploader("products", /jpeg|jpg|png/, 2048);
 
 router.get(
     "/product/:id",

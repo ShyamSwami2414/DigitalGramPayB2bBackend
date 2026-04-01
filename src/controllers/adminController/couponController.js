@@ -17,13 +17,54 @@ exports.getCouponList = async (req, res, next) => {
     const skip = (page - 1) * limit;
 
     // Fetch coupons
-    const coupons = await Coupon.find(filter)
-      .sort({ createdAt: -1 })
-      .skip(skip)
-      .limit(limit)
-      .lean();
+    const result = await Coupon.aggregate([
+      {
+        $match: filter,
+      },
+      {
+        $lookup: {
+          from: "users",
+          localField: "usedBy",
+          foreignField: "_id",
+          as: "user",
+        },
+      },
+      {
+        $unwind: {
+          path: "$user",
+          preserveNullAndEmptyArrays: true,
+        },
+      },
+      {
+        $addFields: {
+          usedByDetail: {
+            name: {
+              $concat: [
+                { $ifNull: ["$user.firstName", ""] },
+                " ",
+                { $ifNull: ["$user.lastName", ""] },
+              ],
+            },
+            userName: "$user.userName",
+          },
+        },
+      },
+      {
+        $project: { user: 0 },
+      },
+      {
+        $sort: { createdAt: -1 },
+      },
+      {
+        $facet: {
+          data: [{ $skip: skip }, { $limit: limit }],
+          totalCount: [{ $count: "count" }],
+        },
+      },
+    ]);
 
-    const total = await Coupon.countDocuments(filter);
+    const coupons = result[0].data;
+    const total = result[0].totalCount[0]?.count || 0;
 
     const formattedData = coupons.map((item) => ({
       ...item,

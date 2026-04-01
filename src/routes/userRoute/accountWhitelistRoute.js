@@ -9,7 +9,7 @@ const multerErrorHandler = require("../../middleware/multerErrorHandler");
 const checkUserPaymentAndKYC = require("../../middleware/kycPaymentCheckMiddleware");
 const router = express.Router();
 
-const upload = createUploader("accountWhitelist", /jpeg|jpg|png|pdf/, 15);
+const upload = createUploader("accountWhitelist", /jpeg|jpg|png|pdf/, 2048);
 
 router.get(
   "/",

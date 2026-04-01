@@ -13,7 +13,7 @@ const { authorizeRoles } = require("../../middleware/roleMiddleware");
 const createUploader = require("../../middleware/uploadMiddleware");
 const multerErrorHandler = require("../../middleware/multerErrorHandler");
 
-const upload = createUploader("banner", /jpeg|jpg|png/, 10);
+const upload = createUploader("banner", /jpeg|jpg|png/, 2048);
 
 router.get(
   "/all-banners",

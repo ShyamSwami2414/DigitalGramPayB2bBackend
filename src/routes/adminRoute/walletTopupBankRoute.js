@@ -12,7 +12,7 @@ const createUploader = require("../../middleware/uploadMiddleware");
 const multerErrorHandler = require("../../middleware/multerErrorHandler");
 const router = express.Router();
 
-const upload = createUploader("qrCodeImages", /jpeg|jpg|png/, 10);
+const upload = createUploader("qrCodeImages", /jpeg|jpg|png/, 2048);
 
 router.get(
     "/get-all-bank",
