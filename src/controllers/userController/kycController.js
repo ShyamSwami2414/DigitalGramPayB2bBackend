@@ -99,6 +99,11 @@ exports.offlineKycSubmission = async (req, res, next) => {
 
       aadharNumber,
       panNumber,
+
+      accountHolderName,
+      bankName,
+      accountNumber,
+      ifscCode,
     };
 
     const missingFields = [];

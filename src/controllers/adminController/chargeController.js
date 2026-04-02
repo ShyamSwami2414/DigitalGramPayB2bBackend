@@ -5,6 +5,10 @@ const IdCharge = require("../../models/idChargeRequest");
 const User = require("../../models/userModel");
 const UserWallet = require("../../models/userWallet");
 const WalletLedger = require("../../models/walletLedgerModel");
+const {
+  generateIdChargeEmail,
+} = require("../../templates/emailTemplates/idChargRejectApproveTemplate");
+const { sendEmail } = require("../../utils/email");
 
 exports.getOnBoardCharges = async (req, res, next) => {
   try {
@@ -511,6 +515,20 @@ exports.approveIdChargeRequest = async (req, res, next) => {
 
     await session.commitTransaction();
 
+    const html = generateIdChargeEmail({
+      name: requestUser?.firstName,
+      status: "Approved",
+      amount: paiseToRupee(idChargeRequest?.amount),
+    });
+
+    await sendEmail(
+      requestUser.email,
+      "",
+      "",
+      "ID Charge Payment Request Approved",
+      html,
+    );
+
     const formattedData = idChargeRequest
       ? {
           ...idChargeRequest?._doc,
@@ -602,6 +620,21 @@ exports.rejectIdChargeRequest = async (req, res, next) => {
     }
 
     await session.commitTransaction();
+
+    const html = generateIdChargeEmail({
+      name: requestUser?.firstName,
+      status: "Rejected",
+      reason: rejectionReason,
+      amount: paiseToRupee(idChargeRequest?.amount),
+    });
+
+    await sendEmail(
+      requestUser.email,
+      "",
+      "",
+      `ID Charge Payment Request Rejected because ${rejectionReason}`,
+      html,
+    );
 
     const formattedData = idChargeRequest
       ? {

@@ -151,7 +151,6 @@ const kycSchema = new mongoose.Schema(
       trim: true,
       minlength: 2,
       maxlength: 80,
-      match: [/^[A-Za-z\s.&]+$/, "Invalid bank name"],
     },
 
     branchName: {

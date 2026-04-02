@@ -1,4 +1,5 @@
 const Role = require("../models/roleModel"); // Your Role model
+const User = require("../models/userModel"); // Your Role model
 
 const checkUserPaymentAndKYC = async (req, res, next) => {
   try {
@@ -9,7 +10,24 @@ const checkUserPaymentAndKYC = async (req, res, next) => {
         message: "Unauthorized: No user info found KPCM",
       });
     }
-    const { role: roleId, isPaymentDone, kycStatus } = req.user;
+
+    const loggedUser = await User.findOne({
+      _id: req.user.id,
+      isActive: true,
+      isDeleted: false,
+    }).lean();
+
+    if (!loggedUser) {
+      return res.status(401).json({
+        success: false,
+        message: "No Active User Exist KPCM",
+      });
+    }
+
+    const { role: roleId } = req.user;
+
+    console.log(loggedUser.kycStatus, "kycStatus");
+    console.log(loggedUser.isPaymentDone, "isPaymentDone");
 
     const role = await Role.findById(roleId).lean();
 
@@ -20,25 +38,28 @@ const checkUserPaymentAndKYC = async (req, res, next) => {
         .json({ success: false, message: "Role not found " });
     }
 
+    const isPaymentRequired = role.isPaymentRequired;
+    const kycStatus = loggedUser.kycStatus;
+    const isPaymentDone = loggedUser.isPaymentDone;
+    console.log(isPaymentRequired, "isPaymentRequired");
+
     if (kycStatus !== "approved") {
       return res
         .status(403)
         .json({ success: false, message: "KYC not approved" });
     }
 
-    // console.log(isPaymentDone, "isPaymentDone KPCM");
+    if (isPaymentRequired) {
+      console.log("entered");
 
-    // if (role.isPaymentRequired === true) {
-    //   console.log("entered");
-
-    //   if (isPaymentDone !== true) {
-    //     console.log("entered 2");
-    //     return res.status(403).json({
-    //       success: false,
-    //       message: "Payment Pending",
-    //     });
-    //   }
-    // }
+      if (isPaymentDone !== true) {
+        console.log("entered 2");
+        return res.status(403).json({
+          success: false,
+          message: "Payment Pending",
+        });
+      }
+    }
 
     next();
   } catch (error) {

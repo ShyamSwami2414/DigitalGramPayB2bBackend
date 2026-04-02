@@ -17,7 +17,7 @@ exports.payBbpsBill = async ({
   paramValue,
   inputParams,
 }) => {
-  console.log(billamount, "billamount  in paise");
+  return console.log(billamount, "billamount  in paise");
   const timestamp = new Date().toISOString();
   const startTime = Date.now();
   try {
