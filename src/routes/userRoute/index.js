@@ -36,4 +36,5 @@ module.exports = (app) => {
   app.use(`${apiPrefix}/dmtReport`, require("./dmtReportRoute"));
   app.use(`${apiPrefix}/search`, require("./transactionSearchRoute"));
   app.use(`${apiPrefix}/charge`, require("./idChargeRequest"));
+  app.use(`${apiPrefix}/policy`, require("./policyRoute"));
 };

@@ -126,6 +126,7 @@ exports.getSupportRequestById = async (req, res, next) => {
           status: 1,
           createdAt: 1,
           updatedAt: 1,
+          adminRemark: 1,
         },
       },
     ]);
