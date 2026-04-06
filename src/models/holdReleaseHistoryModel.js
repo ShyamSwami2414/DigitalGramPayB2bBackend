@@ -27,7 +27,6 @@ const holdReleaseHistorySchema = new mongoose.Schema(
 
     holdReason: {
       type: String,
-      required: true,
       default: "",
     },
 

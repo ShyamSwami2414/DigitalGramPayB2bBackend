@@ -37,4 +37,6 @@ module.exports = (app) => {
   app.use(`${apiPrefix}/search`, require("./transactionSearchRoute"));
   app.use(`${apiPrefix}/charge`, require("./idChargeRequest"));
   app.use(`${apiPrefix}/policy`, require("./policyRoute"));
+  app.use(`${apiPrefix}/aepsbank`, require("./instantAepsBankRoute"));
+  app.use(`${apiPrefix}/aepsInstant`, require("./instantAepsRoute"));
 };

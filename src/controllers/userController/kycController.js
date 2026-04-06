@@ -78,6 +78,16 @@ exports.offlineKycSubmission = async (req, res, next) => {
       ifscCode,
     } = req.body;
 
+    const trimFields = (obj) => {
+      Object.keys(obj).forEach((key) => {
+        if (typeof obj[key] === "string") {
+          obj[key] = obj[key].trim();
+        }
+      });
+    };
+
+    trimFields(req.body);
+
     const requiredFields = {
       firstName,
       lastName,

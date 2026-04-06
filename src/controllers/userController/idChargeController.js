@@ -12,6 +12,7 @@ exports.addIdChargeRequest = async (req, res, next) => {
   try {
     session.startTransaction();
     console.log(req.body, "body");
+    console.log(req.file, "file");
     let { amount, mode, receiverBank, utrNumber, paymentDate } = req.body;
     amount = Number(amount);
 
@@ -22,7 +23,8 @@ exports.addIdChargeRequest = async (req, res, next) => {
 
     const amountInPaise = rupeeToPaise(amount);
 
-    const paymentProof = req.file?.filename;
+    const paymentProof = req?.file?.filename;
+
     const requiredFields = [
       "amount",
       "mode",
@@ -33,7 +35,9 @@ exports.addIdChargeRequest = async (req, res, next) => {
 
     const missingFields = [];
 
-    if (!paymentProof) {
+    console.log(paymentProof);
+
+    if (!req.file) {
       missingFields.push("paymentProof");
     }
 

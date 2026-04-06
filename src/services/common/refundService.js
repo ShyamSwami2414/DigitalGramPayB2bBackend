@@ -7,7 +7,7 @@ const processRefund = async ({
   userId,
   amount, //paise
   referenceId,
-  reportModel,
+  reportModel = null,
   description,
   apiResponse = null,
 }) => {
@@ -47,23 +47,25 @@ const processRefund = async ({
       { session },
     );
 
-    await reportModel.updateOne(
-      { referenceId },
-      { $set: { status: "FAILED", isRefunded: true } },
-      { session },
-    );
+    if (reportModel) {
+      await reportModel.updateOne(
+        { referenceId },
+        { $set: { status: "FAILED", isRefunded: true } },
+        { session },
+      );
 
-    await Transaction.updateOne(
-      { referenceId: referenceId },
-      {
-        $set: {
-          status: "FAILED",
-          isRefunded: true,
-          remark: apiResponse ? apiResponse?.message : "",
-          "meta.response": apiResponse,
+      await Transaction.updateOne(
+        { referenceId: referenceId },
+        {
+          $set: {
+            status: "FAILED",
+            isRefunded: true,
+            remark: apiResponse ? apiResponse?.message : "",
+            "meta.response": apiResponse,
+          },
         },
-      },
-    );
+      );
+    }
 
     await session.commitTransaction();
 
