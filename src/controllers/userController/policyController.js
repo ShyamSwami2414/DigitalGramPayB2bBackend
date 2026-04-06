@@ -24,7 +24,7 @@ exports.getPolicyByType = async (req, res, next) => {
     const policy = await Policy.findOne({
       type: type,
       isDeleted: false,
-    }).select("type siteTitle content");
+    }).select("type siteTitle content policyHeading");
 
     if (!policy) {
       return res.status(404).json({

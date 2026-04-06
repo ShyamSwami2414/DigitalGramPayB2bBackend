@@ -6,6 +6,6 @@ const {
   getPolicyByType,
 } = require("../../controllers/userController/policyController");
 
-router.get("/policy-by-type", authenticateUser, getPolicyByType);
+router.get("/policy-by-type",  getPolicyByType);
 
 module.exports = router;

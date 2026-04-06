@@ -26,7 +26,7 @@ exports.getPolicyByType = async (req, res, next) => {
     const policy = await Policy.findOne({
       type: type,
       isDeleted: false,
-    }).select("type siteTitle content isActive createdAt");
+    }).select("type siteTitle content isActive createdAt policyHeading ");
 
     if (!policy) {
       return res.status(404).json({
@@ -44,6 +44,7 @@ exports.getPolicyByType = async (req, res, next) => {
     next(error);
   }
 };
+
 
 exports.addPolicy = async (req, res, next) => {
   try {
