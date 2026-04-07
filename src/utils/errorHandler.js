@@ -1,5 +1,5 @@
 exports.handleError = (error) => {
-  console.error("❌ Error:", error);
+  console.error("❌ Error occured:", error);
 
   // Mongoose validation error
   if (error.name === "ValidationError") {

@@ -71,7 +71,6 @@ exports.outletRegister = async ({
       endPoint: "aeps/outletRegister",
       method: "POST",
       request: {
-        requestId: requestId,
         name: name,
         email: email,
         mobile: mobile,
@@ -102,7 +101,6 @@ exports.outletRegister = async ({
       endPoint: "aeps/outletRegister",
       method: "POST",
       request: {
-        requestId: requestId,
         name: name,
         email: email,
         mobile: mobile,

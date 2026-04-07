@@ -6,7 +6,7 @@ exports.generateIdChargeEmail = ({
   supportEmail = "support@camlenio.com",
   companyName = "Camlenio Software",
 }) => {
-  const isApproved = status === "approved";
+  const isApproved = status === "Approved";
 
   return `
   <!DOCTYPE html>

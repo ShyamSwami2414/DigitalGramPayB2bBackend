@@ -1,22 +1,29 @@
 const csplClient = require("../../../cspl.client");
 const InstantAepsLogs = require("../../../../../models/instantAepsLogsModel");
 
-exports.biometricKycStatus = async ({
-  client_referenceId,
+exports.biometricKyc = async ({
   userId,
-  requestId, //which is sent in idempotency
-  spKey,
-  mcode, //mercahnt code
+  requestId, //idempotency key
+  client_referenceId,
+  referenceKey,
+  mcode,
+  latitude,
+  longitude,
+  captureType,
+  biometricData,
 }) => {
-  console.log(mcode, "mcode");
   const timestamp = new Date().toISOString();
   const startTime = Date.now();
   try {
     const response = await csplClient.post(
-      "aeps/biometric-kyc-status",
+      "aeps/BiometricKyc",
       {
-        spKey: spKey,
-        txnRef: client_referenceId, //which is sent in idempotency
+        externalRef: client_referenceId,
+        referenceKey: referenceKey, //temporary for biometric get from kyc check data
+        latitude: latitude,
+        longitude: longitude,
+        captureType: captureType,
+        biometricData: biometricData,
       },
       {
         headers: {
@@ -52,14 +59,18 @@ exports.biometricKycStatus = async ({
       providerTxnId: response?.data?.txn_ref || undefined,
       userId: userId,
       referenceId: client_referenceId,
-      type: "AEPS-KYC-STATUS",
+      type: "AEPS-BIOMETRIC-KYC",
       providerName: "INSTANT_PAY",
-      endPoint: "aeps/biometric-kyc-status",
+      endPoint: "aeps/BiometricKyc",
       method: "POST",
       request: {
-        spKey: spKey,
-        txnRef: client_referenceId,
-        headers: {
+        externalRef: client_referenceId,
+        referenceKey: referenceKey, //temporary for biometric get from kyc check data
+        latitude: latitude,
+        longitude: longitude,
+        captureType: captureType,
+        biometricData: biometricData,
+        header: {
           mcode: mcode,
         },
       },
@@ -77,13 +88,20 @@ exports.biometricKycStatus = async ({
       providerTxnId: error?.response?.data?.txn_ref || undefined,
       userId: userId,
       referenceId: client_referenceId,
-      type: "AEPS-KYC-STATUS",
+      type: "AEPS-BIOMETRIC-KYC",
       providerName: "INSTANT_PAY",
-      endPoint: "aeps/biometric-kyc-status",
+      endPoint: "aeps/BiometricKyc",
       method: "POST",
       request: {
-        spKey: spKey,
-        txnRef: client_referenceId,
+        externalRef: client_referenceId,
+        referenceKey: referenceKey, //temporary for biometric get from kyc check data
+        latitude: latitude,
+        longitude: longitude,
+        captureType: captureType,
+        biometricData: biometricData,
+        header: {
+          mcode: mcode,
+        },
       },
       response: error.response?.data || { message: error.message },
       providerStatus: "FAILED",

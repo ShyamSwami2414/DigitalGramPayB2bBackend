@@ -7,7 +7,15 @@ const instantAepsOutletSchema = new mongoose.Schema(
       required: true,
       trim: true,
       index: true,
-      unique: [true, "User Registration already exist"],
+      unique: [true, "User already registered for aeps"],
+    },
+
+    outletId: {
+      type: String,
+      required: true,
+      trim: true,
+      index: true,
+      unique: true,
     },
 
     name: {
@@ -68,8 +76,10 @@ const instantAepsOutletSchema = new mongoose.Schema(
       required: true,
     },
 
+    profilePic: { type: String, default: null },
+
     address: {
-      full: {
+      address: {
         type: String,
         required: true,
         trim: true,
@@ -85,11 +95,33 @@ const instantAepsOutletSchema = new mongoose.Schema(
         required: true,
         match: [/^\d{6}$/, "Invalid pincode"],
       },
+      state: {
+        type: String,
+        required: true,
+        trim: true,
+        index: true,
+      },
     },
 
     isActive: {
       type: Boolean,
       default: true,
+    },
+
+    status: {
+      type: String,
+      enum: ["PENDING", "SUCCESS", "VERIFIED", "APPROVED"],
+      default: "PENDING",
+    },
+
+    action: {
+      type: String,
+      default: "",
+    },
+
+    temp_ref: {
+      type: String,
+      default: "",
     },
   },
   {

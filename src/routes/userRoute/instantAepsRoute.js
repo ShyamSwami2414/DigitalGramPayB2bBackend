@@ -5,6 +5,9 @@ const {
   registerOutlet,
   getBiometricKycStatus,
   completetBiometricKyc,
+  dailyAepsLogin,
+  balanceEnquiry,
+  miniStatement,
 } = require("../../controllers/userController/instantAepsController");
 const idempotencyMiddleware = require("../../middleware/idempotencyMiddleware");
 const apiLogger = require("../../middleware/apiLogger");
@@ -36,6 +39,33 @@ router.post(
   idempotencyMiddleware,
   apiLogger,
   completetBiometricKyc,
+);
+
+router.post(
+  "/daily-login",
+  authenticateUser,
+  checkUserPaymentAndKYC,
+  idempotencyMiddleware,
+  apiLogger,
+  dailyAepsLogin,
+);
+
+router.post(
+  "/balance-enquiry",
+  authenticateUser,
+  checkUserPaymentAndKYC,
+  idempotencyMiddleware,
+  apiLogger,
+  balanceEnquiry,
+);
+
+router.post(
+  "/mini-statement",
+  authenticateUser,
+  checkUserPaymentAndKYC,
+  idempotencyMiddleware,
+  apiLogger,
+  miniStatement,
 );
 
 module.exports = router;
