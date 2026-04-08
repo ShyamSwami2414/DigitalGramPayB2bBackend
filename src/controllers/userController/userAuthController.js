@@ -564,6 +564,42 @@ exports.fetchProfile = async (req, res, next) => {
           as: "assignedServices",
         },
       },
+
+      {
+        $lookup: {
+          from: "instantaepsoutlets",
+          localField: "_id",
+          foreignField: "userId",
+          pipeline: [
+            {
+              $project: {
+                isAepsEnabled: 1,
+                isLoginRequired: 1,
+                action: 1,
+              },
+            },
+          ],
+          as: "merchant",
+        },
+      },
+      {
+        $unwind: {
+          path: "$merchant",
+          preserveNullAndEmptyArrays: true,
+        },
+      },
+      {
+        $addFields: {
+          isAepsEnabled: "$merchant.isAepsEnabled",
+          isLoginRequired: "$merchant.isLoginRequired",
+          action: "$merchant.action",
+        },
+      },
+      {
+        $project: {
+          merchant: 0,
+        },
+      },
     ]);
 
     if (!user) {

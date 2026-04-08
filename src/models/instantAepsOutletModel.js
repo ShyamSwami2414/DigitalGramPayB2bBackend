@@ -108,9 +108,24 @@ const instantAepsOutletSchema = new mongoose.Schema(
       default: true,
     },
 
+    isAepsEnabled: {
+      type: Boolean,
+      default: false,
+    },
+
+    lastLoginAt: {
+      type: Date,
+      default: null,
+    },
+
+    isLoginRequired: {
+      type: Boolean,
+      default: true,
+    },
+
     status: {
       type: String,
-      enum: ["PENDING", "SUCCESS", "VERIFIED", "APPROVED"],
+      enum: ["PENDING", "APPROVAL-PENDING", "SUCCESS", "VERIFIED", "APPROVED"],
       default: "PENDING",
     },
 

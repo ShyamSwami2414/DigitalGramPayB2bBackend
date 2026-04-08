@@ -10,9 +10,17 @@ const processRefund = async ({
   reportModel = null,
   description,
   apiResponse = null,
+  session: providedSession = null,
 }) => {
-  const session = await mongoose.startSession();
-  session.startTransaction();
+  let session = providedSession;
+  let isInternalSession = false;
+
+  if (!session) {
+    session = await mongoose.startSession();
+    session.startTransaction();
+    isInternalSession = true;
+  }
+
   let openingBalance = 0;
   let closingBalance = 0;
 
@@ -64,20 +72,25 @@ const processRefund = async ({
             "meta.response": apiResponse,
           },
         },
+        { session },
       );
     }
 
-    await session.commitTransaction();
+    if (isInternalSession) {
+      await session.commitTransaction();
+    }
 
     return { openingBalance, closingBalance };
   } catch (error) {
-    if (session.inTransaction()) {
+    if (isInternalSession && session.inTransaction()) {
       await session.abortTransaction();
     }
 
     throw error;
   } finally {
-    session.endSession();
+    if (isInternalSession) {
+      session.endSession();
+    }
   }
 };
 

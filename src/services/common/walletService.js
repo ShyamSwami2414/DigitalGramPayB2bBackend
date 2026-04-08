@@ -63,6 +63,72 @@ const debitWallet = async ({
   return { openingBalance, closingBalance };
 };
 
+const creditWallet = async ({
+  userId,
+  amount, // paise
+  walletType,
+  serviceType,
+  referenceId,
+  description,
+  session,
+}) => {
+  let openingBalance = 0;
+  let closingBalance = 0;
+
+  console.log(amount, "credit wallet amount value");
+
+  const fieldName =
+    walletType && walletType.toLowerCase() === "aeps"
+      ? "aepsWallet"
+      : "mainWallet";
+
+  const wallet = await UserWallet.findOneAndUpdate(
+    {
+      userId,
+      isActive: true,
+      isDeleted: false,
+    },
+    {
+      $inc: {
+        [fieldName]: amount,
+      },
+    },
+    {
+      new: true,
+      session,
+    },
+  );
+
+  console.log("wallet from db after credit", wallet);
+
+  if (!wallet) {
+    throw new Error("Wallet not found or account is inactive");
+  }
+
+  closingBalance = wallet[fieldName];
+  openingBalance = closingBalance - amount;
+
+  await WalletLedger.create(
+    [
+      {
+        userId,
+        serviceType,
+        wallet: walletType,
+        type: "credit", // Type is credit
+        amount: amount,
+        openingBalance,
+        closingBalance,
+        referenceId,
+        description,
+      },
+    ],
+    { session },
+  );
+
+  return { openingBalance, closingBalance };
+};
+
 module.exports = {
   debitWallet,
+  creditWallet,
 };

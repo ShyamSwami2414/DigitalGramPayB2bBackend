@@ -13,6 +13,7 @@ exports.balanceEnquiry = async ({
   captureType,
   biometricData,
 }) => {
+  console.log(captureType, "captureType");
   const timestamp = new Date().toISOString();
   const startTime = Date.now();
   try {

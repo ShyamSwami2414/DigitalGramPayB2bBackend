@@ -8,9 +8,11 @@ const {
   dailyAepsLogin,
   balanceEnquiry,
   miniStatement,
+  cashWithdraw,
 } = require("../../controllers/userController/instantAepsController");
 const idempotencyMiddleware = require("../../middleware/idempotencyMiddleware");
 const apiLogger = require("../../middleware/apiLogger");
+const checkAepsSession = require("../../middleware/instantAepsOutletAuth");
 const router = express.Router();
 
 // get all list whether approved or not
@@ -55,6 +57,7 @@ router.post(
   authenticateUser,
   checkUserPaymentAndKYC,
   idempotencyMiddleware,
+  checkAepsSession,
   apiLogger,
   balanceEnquiry,
 );
@@ -64,8 +67,19 @@ router.post(
   authenticateUser,
   checkUserPaymentAndKYC,
   idempotencyMiddleware,
+  checkAepsSession,
   apiLogger,
   miniStatement,
+);
+
+router.post(
+  "/cash-withdraw",
+  authenticateUser,
+  checkUserPaymentAndKYC,
+  idempotencyMiddleware,
+  checkAepsSession,
+  apiLogger,
+  cashWithdraw,
 );
 
 module.exports = router;

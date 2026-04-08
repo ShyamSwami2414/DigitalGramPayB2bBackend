@@ -1,5 +1,6 @@
 const csplClient = require("../../../cspl.client");
 const InstantAepsLogs = require("../../../../../models/instantAepsLogsModel");
+const { paiseToRupee } = require("../../../../../utils/money");
 
 exports.cashWithdraw = async ({
   userId,
@@ -16,6 +17,9 @@ exports.cashWithdraw = async ({
 }) => {
   const timestamp = new Date().toISOString();
   const startTime = Date.now();
+  const amountInRupee = paiseToRupee(amount);
+  console.log(amountInRupee, "amountInRupee");
+
   try {
     const response = await csplClient.post(
       "aeps/CashWithdrawal",
@@ -26,6 +30,7 @@ exports.cashWithdraw = async ({
         latitude: latitude,
         longitude: longitude,
         captureType: captureType,
+        amount: amountInRupee,
         biometricData: biometricData,
       },
       {
@@ -47,7 +52,7 @@ exports.cashWithdraw = async ({
     const responseTime = Date.now() - startTime;
 
     const isSuccess =
-      response.data.status === "TXN" || response.data.status_code === "TXN";
+      response?.data?.status === "TXN" || response?.data?.status_code === "TXN";
 
     let providerStatus = isSuccess ? "SUCCESS" : "FAILED";
 
@@ -73,6 +78,7 @@ exports.cashWithdraw = async ({
         latitude: latitude,
         longitude: longitude,
         captureType: captureType,
+        amount: amount,
         biometricData: biometricData,
         header: {
           mcode: mcode,
@@ -103,6 +109,7 @@ exports.cashWithdraw = async ({
         latitude: latitude,
         longitude: longitude,
         captureType: captureType,
+        amount: amount,
         biometricData: biometricData,
         header: {
           mcode: mcode,

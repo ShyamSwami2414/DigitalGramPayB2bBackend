@@ -9,12 +9,14 @@ const {
   dailyLogin,
   doBalanceEnquiry,
   doMiniStatement,
+  doCashWithdraw,
 } = require("../../services/instantAepsService");
 const { parseMantraXml } = require("../../helpers/formatMantraBiometricData");
 const { encryptAadhaar } = require("../../helpers/encryptDecryptAadhar");
 const {
   validateBiometricSchema,
 } = require("../../validators/biometricDataValidator");
+const { rupeeToPaise } = require("../../utils/money");
 
 const registerOutlet = async (req, res, next) => {
   try {
@@ -237,22 +239,6 @@ const getBiometricKycStatus = async (req, res, next) => {
       const data = response?.data?.data;
 
       console.log(data, "data");
-
-      const update = await Merchant.findOneAndUpdate(
-        { userId: new mongoose.Types.ObjectId(userId) },
-        {
-          $set: {
-            status: data?.status,
-            action: data?.action,
-            temp_ref: data?.referenceKey,
-          },
-        },
-        { new: true, runValidators: true },
-      );
-
-      if (!update) {
-        throw Error("Merchant not exist");
-      }
     }
 
     return res.status(200).json({
@@ -273,13 +259,13 @@ const completetBiometricKyc = async (req, res, next) => {
     let {
       latitude,
       longitude,
-      captureType = "finger",
+      captureType = "FINGER",
       biometricData,
     } = req.body;
 
     latitude = Number(latitude);
     longitude = Number(longitude);
-    captureType = captureType?.trim().toLowerCase();
+    captureType = captureType?.trim().toUpperCase();
 
     const userId = req.user.id;
     const idempotency = req.headers["idempotency-key"];
@@ -335,7 +321,7 @@ const completetBiometricKyc = async (req, res, next) => {
       });
     }
 
-    if (!["finger", "face"].includes(captureType)) {
+    if (!["FINGER", "FACE", "IRIS"].includes(captureType)) {
       return res.status(400).json({
         success: false,
         message: "Invalid Capture type",
@@ -375,7 +361,7 @@ const completetBiometricKyc = async (req, res, next) => {
       });
     }
 
-    // 3. Device-Level Error Validation
+    //  Device-Level Error Validation
     // errCode "0" means success in Mantra/UIDAI standards.
     if (finalBiometricJson.errCode !== "0") {
       return res.status(422).json({
@@ -385,7 +371,7 @@ const completetBiometricKyc = async (req, res, next) => {
       });
     }
 
-    console.log(finalBiometricJson, "finalBiometricJson");
+    // console.log(finalBiometricJson, "finalBiometricJson");
 
     const response = await biometricKyc({
       userId,
@@ -436,13 +422,13 @@ const dailyAepsLogin = async (req, res, next) => {
       aadhaar,
       latitude,
       longitude,
-      captureType = "finger",
+      captureType = "FINGER",
       biometricData,
     } = req.body;
 
     latitude = Number(latitude);
     longitude = Number(longitude);
-    captureType = captureType?.trim().toLowerCase();
+    captureType = captureType?.trim().toUpperCase();
     aadhaar = aadhaar?.trim();
 
     const userId = req.user.id;
@@ -500,7 +486,7 @@ const dailyAepsLogin = async (req, res, next) => {
       });
     }
 
-    if (!["finger", "face"].includes(captureType)) {
+    if (!["FINGER", "FACE", "IRIS"].includes(captureType)) {
       return res.status(400).json({
         success: false,
         message: "Invalid Capture type",
@@ -579,7 +565,7 @@ const dailyAepsLogin = async (req, res, next) => {
 
     console.log(response, "response");
 
-    return res.status(201).json({
+    return res.status(200).json({
       success: true,
       data: response,
     });
@@ -596,7 +582,7 @@ const balanceEnquiry = async (req, res, next) => {
       bankId,
       latitude,
       longitude,
-      captureType = "finger",
+      captureType = "FINGER",
       biometricData,
     } = req.body;
 
@@ -605,7 +591,7 @@ const balanceEnquiry = async (req, res, next) => {
     bankId = bankId?.trim();
     latitude = Number(latitude);
     longitude = Number(longitude);
-    captureType = captureType?.trim().toLowerCase();
+    captureType = captureType?.trim().toUpperCase();
 
     const userId = req.user.id;
     const idempotency = req.headers["idempotency-key"];
@@ -686,7 +672,7 @@ const balanceEnquiry = async (req, res, next) => {
       });
     }
 
-    if (!["finger", "face"].includes(captureType)) {
+    if (!["FINGER", "FACE", "IRIS"].includes(captureType)) {
       return res.status(400).json({
         success: false,
         message: "Invalid Capture type",
@@ -709,6 +695,9 @@ const balanceEnquiry = async (req, res, next) => {
         message: "Bank not found",
       });
     }
+
+    console.log("Bank iin", isValidBank?.iin);
+    console.log("Bank iin type", typeof isValidBank?.iin);
 
     let finalBiometricJson;
 
@@ -749,14 +738,7 @@ const balanceEnquiry = async (req, res, next) => {
 
     console.log(finalBiometricJson, "finalBiometricJson");
 
-    const finalPayload = {
-      ...finalBiometricJson, // existing biometric data
-      encryptedAadhaar: encryptedAadhaar, // add encrypted aadhaar
-    };
-
-    console.log(finalPayload, "finalPayload");
-
-    const { error } = validateBiometricSchema(finalPayload);
+    const { error } = validateBiometricSchema(finalBiometricJson);
 
     if (error) {
       return res.status(400).json({
@@ -766,18 +748,25 @@ const balanceEnquiry = async (req, res, next) => {
       });
     }
 
-    if (parseInt(finalPayload.qScore) < 40) {
+    if (parseInt(finalBiometricJson.qScore) < 40) {
       return res.status(422).json({
         success: false,
         message: "Fingerprint quality too low. Please capture again.",
       });
     }
 
+    const finalPayload = {
+      ...finalBiometricJson, // existing biometric data
+      encryptedAadhaar: encryptedAadhaar, // add encrypted aadhaar
+    };
+
+    console.log(finalPayload, "finalPayload");
+
     const response = await doBalanceEnquiry({
       userId,
       requestId: idempotency,
       mobile,
-      iin: isValidBank?.iin,
+      iin: isValidBank?.iin?.toString(),
       latitude,
       longitude,
       captureType,
@@ -803,7 +792,7 @@ const miniStatement = async (req, res, next) => {
       bankId,
       latitude,
       longitude,
-      captureType = "finger",
+      captureType = "FINGER",
       biometricData,
     } = req.body;
 
@@ -812,7 +801,7 @@ const miniStatement = async (req, res, next) => {
     bankId = bankId?.trim();
     latitude = Number(latitude);
     longitude = Number(longitude);
-    captureType = captureType?.trim().toLowerCase();
+    captureType = captureType?.trim().toUpperCase();
 
     const userId = req.user.id;
     const idempotency = req.headers["idempotency-key"];
@@ -893,7 +882,7 @@ const miniStatement = async (req, res, next) => {
       });
     }
 
-    if (!["finger", "face"].includes(captureType)) {
+    if (!["FINGER", "FACE", "IRIS"].includes(captureType)) {
       return res.status(400).json({
         success: false,
         message: "Invalid Capture type",
@@ -916,6 +905,9 @@ const miniStatement = async (req, res, next) => {
         message: "Bank not found",
       });
     }
+
+    console.log("Bank iin", isValidBank?.iin);
+    console.log("Bank iin type", typeof isValidBank?.iin);
 
     let finalBiometricJson;
 
@@ -956,14 +948,7 @@ const miniStatement = async (req, res, next) => {
 
     console.log(finalBiometricJson, "finalBiometricJson");
 
-    const finalPayload = {
-      ...finalBiometricJson, // existing biometric data
-      encryptedAadhaar: encryptedAadhaar, // add encrypted aadhaar
-    };
-
-    console.log(finalPayload, "finalPayload");
-
-    const { error } = validateBiometricSchema(finalPayload);
+    const { error } = validateBiometricSchema(finalBiometricJson);
 
     if (error) {
       return res.status(400).json({
@@ -973,18 +958,25 @@ const miniStatement = async (req, res, next) => {
       });
     }
 
-    if (parseInt(finalPayload.qScore) < 40) {
+    if (parseInt(finalBiometricJson.qScore) < 40) {
       return res.status(422).json({
         success: false,
         message: "Fingerprint quality too low. Please capture again.",
       });
     }
 
+    const finalPayload = {
+      ...finalBiometricJson, // existing biometric data
+      encryptedAadhaar: encryptedAadhaar, // add encrypted aadhaar
+    };
+
+    console.log(finalPayload, "finalPayload");
+
     const response = await doMiniStatement({
       userId,
       requestId: idempotency,
       mobile,
-      iin: isValidBank?.iin,
+      iin: isValidBank?.iin?.toString(),
       latitude,
       longitude,
       captureType,
@@ -1002,6 +994,239 @@ const miniStatement = async (req, res, next) => {
   }
 };
 
+const cashWithdraw = async (req, res, next) => {
+  try {
+    let {
+      aadhaar,
+      mobile,
+      bankId,
+      amount,
+      latitude,
+      longitude,
+      captureType = "FINGER",
+      biometricData,
+    } = req.body;
+
+    aadhaar = aadhaar?.trim();
+    mobile = mobile?.trim();
+    bankId = bankId?.trim();
+    amount = Number(amount);
+    latitude = Number(latitude);
+    longitude = Number(longitude);
+    captureType = captureType?.trim().toUpperCase();
+
+    const userId = req.user.id;
+    const idempotency = req.headers["idempotency-key"];
+
+    const requiredFields = [
+      "aadhaar",
+      "mobile",
+      "bankId",
+      "amount",
+      "latitude",
+      "longitude",
+      "captureType",
+      "biometricData",
+    ];
+
+    const missingFields = [];
+
+    requiredFields.forEach((field) => {
+      if (!req.body[field]) {
+        missingFields.push(field);
+      }
+    });
+
+    if (missingFields.length > 0) {
+      return res.status(400).json({
+        success: false,
+        message: `${missingFields.join(", ")} is required`,
+      });
+    }
+
+    if (!mongoose.Types.ObjectId.isValid(bankId)) {
+      return res.status(400).json({
+        success: false,
+        message: "Bank ID invalid",
+      });
+    }
+
+    if (isNaN(latitude) || isNaN(longitude)) {
+      return res.status(400).json({
+        success: false,
+        message: "Latitude and Longitude must be valid numbers",
+      });
+    }
+
+    // Range validation
+    if (latitude < -90 || latitude > 90) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid latitude (must be between -90 and 90)",
+      });
+    }
+
+    if (longitude < -180 || longitude > 180) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid longitude (must be between -180 and 180)",
+      });
+    }
+
+    const aadhaarRegex = /^\d{12}$/;
+    if (!aadhaarRegex.test(aadhaar)) {
+      return res.status(400).json({
+        success: false,
+        message: "Aadhaar must be 12 digits valid aadhaar",
+      });
+    }
+
+    const mobileRegex = /^[6-9]\d{9}$/;
+    if (!mobileRegex.test(mobile)) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Invalid mobile number" });
+    }
+
+    if (!idempotency) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid Request ID",
+      });
+    }
+
+    if (!["FINGER", "FACE", "IRIS"].includes(captureType)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid Capture type",
+      });
+    }
+
+    if (isNaN(amount) || amount <= 0) {
+      return res.status(400).json({ message: "Invalid amount" });
+    }
+
+    if (amount % 50 !== 0) {
+      return res.status(400).json({
+        success: false,
+        message: "Amount must be in multiple of 50",
+      });
+    }
+
+    if (!biometricData) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Biometric data is required" });
+    }
+
+    const encryptedAadhaar = encryptAadhaar(aadhaar);
+    const amountInPaise = rupeeToPaise(amount);
+
+    if (amountInPaise < 10000) {
+      return res.status(400).json({
+        success: false,
+        message: "Minimum Withdrawal amount is 100 rupees ",
+      });
+    }
+
+    const isValidBank = await InstantBank.findById(bankId).select("iin").lean();
+
+    if (!isValidBank) {
+      return res.status(404).json({
+        success: false,
+        message: "Bank not found",
+      });
+    }
+
+    console.log("Bank iin", isValidBank?.iin);
+    console.log("Bank iin type", typeof isValidBank?.iin);
+
+    let finalBiometricJson;
+
+    if (
+      typeof biometricData === "string" &&
+      biometricData.trim().startsWith("<?xml")
+    ) {
+      // Input is XML string - Transform it
+      try {
+        finalBiometricJson = await parseMantraXml(biometricData);
+      } catch (error) {
+        return res.status(400).json({
+          success: false,
+          message: "Biometric XML is malformed.",
+          error: error.message,
+        });
+      }
+    } else if (typeof biometricData === "object" && biometricData !== null) {
+      // Input is already JSON - Use as is (assuming it matches your schema)
+      finalBiometricJson = biometricData;
+    } else {
+      return res.status(400).json({
+        success: false,
+        message:
+          "Invalid biometricData format. Expected XML string or JSON object.",
+      });
+    }
+
+    //  Device-Level Error Validation
+    // errCode "0" means success in Mantra/UIDAI standards.
+    if (finalBiometricJson.errCode !== "0") {
+      return res.status(422).json({
+        success: false,
+        message: `Capture Failed: ${finalBiometricJson.errInfo || "No error info provided"}`,
+        errorCode: finalBiometricJson.errCode,
+      });
+    }
+
+    console.log(finalBiometricJson, "finalBiometricJson");
+
+    const { error } = validateBiometricSchema(finalBiometricJson);
+
+    if (error) {
+      return res.status(400).json({
+        success: false,
+        message: "Biometric data integrity check failed",
+        details: error.details[0].message, // Tells exactly which field is wrong
+      });
+    }
+
+    if (parseInt(finalBiometricJson.qScore) < 40) {
+      return res.status(422).json({
+        success: false,
+        message: "Fingerprint quality too low. Please capture again.",
+      });
+    }
+
+    const finalPayload = {
+      ...finalBiometricJson, // existing biometric data
+      encryptedAadhaar: encryptedAadhaar, // add encrypted aadhaar
+    };
+
+    console.log(finalPayload, "finalPayload");
+
+    const response = await doCashWithdraw({
+      userId,
+      requestId: idempotency,
+      mobile,
+      iin: isValidBank?.iin?.toString(),
+      amount: amountInPaise, //paise
+      latitude,
+      longitude,
+      captureType,
+      biometricData: finalPayload,
+    });
+
+    console.log(response, "response");
+
+    return res.status(200).json({
+      success: true,
+      data: response,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports = {
   registerOutlet,
   getBiometricKycStatus,
@@ -1009,4 +1234,5 @@ module.exports = {
   dailyAepsLogin,
   balanceEnquiry,
   miniStatement,
+  cashWithdraw,
 };

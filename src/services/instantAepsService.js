@@ -1,10 +1,12 @@
 const mongoose = require("mongoose");
 const Merchant = require("../models/instantAepsOutletModel");
+const User = require("../models/userModel");
+const DailyAepsLogin = require("../models/dailyAepsLoginModel");
 const {
   generateUniqueRefernceId,
 } = require("../utils/generateUniqueReferenceId");
 
-const { debitWallet } = require("./common/walletService");
+const { debitWallet, creditWallet } = require("./common/walletService");
 const { processRefund } = require("./common/refundService");
 const { rupeeToPaise, paiseToRupee } = require("../utils/money");
 const {
@@ -29,6 +31,9 @@ const {
 const {
   miniStatement,
 } = require("../client/cspl/apis/aeps/instant/miniStatement");
+const {
+  cashWithdraw,
+} = require("../client/cspl/apis/aeps/instant/cashWithdrawal");
 
 exports.instantAepsOutletRegister = async ({
   userId,
@@ -176,7 +181,68 @@ exports.checkBiometricKycStatus = async ({ userId, requestId }) => {
 
     console.log("Status", result?.status_code || result?.status);
 
-    if (
+    if (result?.status_code === "TXN" || result?.statuscode === "TXN") {
+      const successSession = await mongoose.startSession();
+      try {
+        successSession.startTransaction();
+        const data = result?.data?.data;
+        console.log(data, "data");
+        console.log(data.status, "status");
+        console.log(data.action, "action");
+
+        const isKycStatusApproved =
+          data?.status === "APPROVED" && data?.action === "NO-ACTION-REQUIRED";
+
+        console.log(isKycStatusApproved, "isKycStatusApproved");
+
+        const merchantUpdate = await Merchant.findOneAndUpdate(
+          { userId: new mongoose.Types.ObjectId(userId) },
+          {
+            $set: {
+              status: data?.status,
+              action: data?.action,
+              temp_ref: data?.referenceKey,
+              isAepsEnabled: isKycStatusApproved ? true : false,
+            },
+          },
+          { new: true, runValidators: true, session: successSession },
+        );
+
+        if (!merchantUpdate) {
+          const err = new Error("Merchant not exist");
+          err.statusCode = 404;
+
+          throw err;
+        }
+
+        const userUpdate = await User.findOneAndUpdate(
+          { _id: new mongoose.Types.ObjectId(userId) },
+          {
+            $set: {
+              isAepsEnabled: isKycStatusApproved ? true : false,
+            },
+          },
+          { new: true, runValidators: true, session: successSession },
+        );
+
+        if (!userUpdate) {
+          const err = new Error("User not exist");
+          err.statusCode = 404;
+
+          throw err;
+        }
+
+        await successSession.commitTransaction();
+      } catch (error) {
+        console.log(error, "check biometric sttau updation error in session");
+
+        if (successSession.inTransaction()) {
+          await successSession.abortTransaction();
+        }
+      } finally {
+        successSession.endSession();
+      }
+    } else if (
       result?.status === "FAILED" ||
       result?.status_code === "ERR" ||
       result?.status === "ERROR" ||
@@ -256,9 +322,9 @@ exports.biometricKyc = async ({
       result?.status === "ERROR" ||
       result?.status_code !== "TXN"
     ) {
-      const err = new Error(result.message || "API Failed");
+      const err = new Error(result?.message || "API Failed");
       err.statusCode = 400;
-      err.data = result.data;
+      err.data = result?.data;
       throw err;
     }
 
@@ -282,6 +348,16 @@ exports.dailyLogin = async ({
     session.startTransaction();
 
     const referenceId = generateUniqueRefernceId(); //backend unique
+    const dailyAepsLoginCharge = 100;
+
+    const { openingBalance, closingBalance } = await debitWallet({
+      userId: userId,
+      amount: dailyAepsLoginCharge, //paise
+      serviceType: "AEPS",
+      referenceId: referenceId,
+      description: "Aeps Daily Login Charges",
+      session: session,
+    });
 
     const merchantExist = await Merchant.findOne({ userId: userId })
       .select("_id outletId")
@@ -295,6 +371,19 @@ exports.dailyLogin = async ({
     }
 
     console.log(merchantExist, "merchantExist");
+
+    await DailyAepsLogin.create(
+      [
+        {
+          referenceId: referenceId,
+          userId: userId,
+          outletId: merchantExist?.outletId,
+          loginDate: Date.now(),
+          status: "PENDING",
+        },
+      ],
+      { session: session },
+    );
 
     await session.commitTransaction();
 
@@ -326,19 +415,68 @@ exports.dailyLogin = async ({
 
     console.log("Status", result?.status_code || result?.status);
 
-    if (
+    if (result?.status_code === "TXN" || result?.statuscode === "TXN") {
+      await DailyAepsLogin.updateOne(
+        { referenceId },
+        {
+          $set: {
+            status: "SUCCESS",
+            lastLoginAt: Date.now(),
+          },
+        },
+      );
+
+      await Merchant.updateOne(
+        { userId },
+        {
+          $set: {
+            lastLoginAt: new Date(),
+            isLoginRequired: false,
+          },
+        },
+      );
+    } else if (
       result?.status === "FAILED" ||
       result?.status_code === "ERR" ||
       result?.status === "ERROR" ||
       result?.status_code !== "TXN"
     ) {
-      const err = new Error(result.message || "API Failed");
+      const refundSession = await mongoose.startSession();
+      try {
+        refundSession.startTransaction();
+
+        await processRefund({
+          userId: userId,
+          amount: dailyAepsLoginCharge,
+          referenceId: referenceId,
+          description: `Refund: Daily Login Failed - ${apiError.message}`,
+          session: refundSession,
+        });
+
+        await DailyAepsLogin.updateOne(
+          { referenceId },
+          { $set: { status: "REFUNDED" } },
+          { session: refundSession },
+        );
+
+        await refundSession.commitTransaction();
+      } catch (refundError) {
+        if (refundSession.inTransaction()) {
+          await refundSession.abortTransaction();
+        }
+        console.error("CRITICAL: Refund Sync Failed", refundError);
+      } finally {
+        refundSession.endSession();
+      }
+
+      const err = new Error(result?.message || "API Failed");
       err.statusCode = 400;
-      err.data = result.data;
+      err.data = result?.data;
       throw err;
     }
 
     console.log(result, "result");
+
     return result;
   } catch (error) {
     throw error;
@@ -412,9 +550,9 @@ exports.doBalanceEnquiry = async ({
       result?.status === "ERROR" ||
       result?.status_code !== "TXN"
     ) {
-      const err = new Error(result.message || "API Failed");
+      const err = new Error(result?.message || "API Failed");
       err.statusCode = 400;
-      err.data = result.data;
+      err.data = result?.data;
       throw err;
     }
 
@@ -492,9 +630,116 @@ exports.doMiniStatement = async ({
       result?.status === "ERROR" ||
       result?.status_code !== "TXN"
     ) {
-      const err = new Error(result.message || "API Failed");
+      const err = new Error(result?.message || "API Failed");
       err.statusCode = 400;
-      err.data = result.data;
+      err.data = result?.data;
+      throw err;
+    }
+
+    console.log(result, "result");
+    return result;
+  } catch (error) {
+    throw error;
+  }
+};
+
+exports.doCashWithdraw = async ({
+  userId,
+  requestId,
+  mobile,
+  iin,
+  amount, //paise
+  latitude,
+  longitude,
+  captureType,
+  biometricData,
+}) => {
+  const session = await mongoose.startSession();
+  try {
+    session.startTransaction();
+
+    const referenceId = generateUniqueRefernceId(); //backend unique
+
+    const merchantExist = await Merchant.findOne({ userId: userId })
+      .select("_id outletId")
+      .lean()
+      .session(session);
+
+    if (!merchantExist) {
+      const err = new Error("Merchant not registered, first register yourself");
+      err.statusCode = 404;
+      throw err;
+    }
+
+    console.log(merchantExist, "merchantExist");
+
+    await session.commitTransaction();
+
+    let result;
+
+    try {
+      result = await cashWithdraw({
+        userId,
+        requestId, //client send idempotency
+        client_referenceId: referenceId, //auto genertae
+        mcode: merchantExist?.outletId,
+        mobile,
+        bankiin: iin,
+        amount, //paise
+        latitude,
+        longitude,
+        captureType,
+        biometricData,
+      });
+    } catch (error) {
+      result = {
+        status: "FAILED",
+        message:
+          error?.response?.data?.message ||
+          error.message ||
+          "Something went wrong",
+        data: error?.response?.data || null,
+      };
+    }
+
+    console.log("Cash withdraw Service", JSON.stringify(result, null, 2));
+
+    console.log("Status", result?.status_code || result?.status);
+
+    if (result?.status_code === "TXN" || result?.statuscode === "TXN") {
+      const withdrawSession = await mongoose.startSession();
+
+      try {
+        withdrawSession.startTransaction();
+
+        const { openingBalance, closingBalance } = creditWallet({
+          userId: userId,
+          amount: amount, // paise
+          walletType: "aeps",
+          serviceType: "AEPS",
+          referenceId: referenceId,
+          description: "Aeps Cash Withdrawal",
+          session: withdrawSession,
+        });
+
+        await withdrawSession.commitTransaction();
+      } catch (error) {
+        console.log(error, "Error in aeps wallet credit session");
+        if (withdrawSession.inTransaction()) {
+          await withdrawSession.abortTransaction();
+        }
+      } finally {
+        withdrawSession.endSession();
+      }
+    } else if (
+      result?.status === "FAILED" ||
+      result?.status_code === "ERR" ||
+      result?.status === "ERROR" ||
+      result?.status_code !== "TXN"
+    ) {
+      const err = new Error(result?.message || "API Failed");
+      err.statusCode = 400;
+      err.data = result?.data;
       throw err;
     }
 
