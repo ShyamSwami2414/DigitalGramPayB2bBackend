@@ -1,6 +1,7 @@
 const apiPrefix = "/user";
 module.exports = (app) => {
   app.use(`/`, require("./userAuthRoute"));
+
   app.use(`${apiPrefix}/role`, require("./roleRoute"));
   app.use(`${apiPrefix}/kyc`, require("./kycRoute"));
   app.use(`${apiPrefix}/user`, require("./userRoute"));
@@ -14,6 +15,9 @@ module.exports = (app) => {
   app.use(`${apiPrefix}/service`, require("./serviceRoute"));
   app.use(`${apiPrefix}/accountWhitelist`, require("./accountWhitelistRoute"));
   app.use(`${apiPrefix}/order`, require("./orderRoute"));
+  app.use(`${apiPrefix}/aeps`, require("./ekoAepsRoute"));
+  app.use(`${apiPrefix}/state`, require("./ekoStateRoute"));
+  app.use(`${apiPrefix}/ebank`, require("./ekoBankList"));
   app.use(`${apiPrefix}/shopping`, require("./ecommerceRoute"));
   app.use(`${apiPrefix}/offlineService`, require("./offlineServiceRoute"));
   app.use(

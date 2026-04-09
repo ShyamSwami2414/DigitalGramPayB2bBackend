@@ -1,4 +1,4 @@
-const { default: mongoose } = require("mongoose");
+const mongoose  = require("mongoose");
 const InstantAepsOutlet = require("../../models/instantAepsOutletModel");
 const Merchant = require("../../models/instantAepsOutletModel");
 const InstantBank = require("../../models/instantAepsBank");

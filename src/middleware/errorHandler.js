@@ -30,6 +30,16 @@ const errorHandler = (err, req, res, next) => {
     });
   }
 
+  // if (err.code === 112 || err.name === "WriteConflict") {
+  //   // This happens when the DB is busy.
+  //   // If it reaches here, your retry logic failed.
+  //   return res.status(429).json({
+  //     success: false,
+  //     message:
+  //       "System is busy processing your request. Please check your balance in a moment.",
+  //   });
+  // }
+
   return res.status(err.statusCode || 500).json({
     success: false,
     message: err.message || "Internal Server Error",
