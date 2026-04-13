@@ -22,7 +22,6 @@ const instantAepsOutletSchema = new mongoose.Schema(
       type: String,
       required: true,
       trim: true,
-      index: true,
     },
 
     email: {
@@ -37,13 +36,12 @@ const instantAepsOutletSchema = new mongoose.Schema(
     mobile: {
       type: String,
       required: true,
-      unique: true,
       match: [/^[6-9]\d{9}$/, "Invalid Indian mobile number"],
     },
 
     aadhaar: {
       type: String,
-      required: true,
+      sparse: true,
       unique: true,
       match: [/^\d{12}$/, "Aadhaar must be 12 digits"],
     },
@@ -88,7 +86,6 @@ const instantAepsOutletSchema = new mongoose.Schema(
         type: String,
         required: true,
         trim: true,
-        index: true,
       },
       pincode: {
         type: String,
@@ -99,7 +96,6 @@ const instantAepsOutletSchema = new mongoose.Schema(
         type: String,
         required: true,
         trim: true,
-        index: true,
       },
     },
 

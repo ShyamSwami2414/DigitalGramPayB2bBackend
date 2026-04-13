@@ -28,14 +28,12 @@ const ekoOnboardAepsUserSchema = new mongoose.Schema(
       type: String,
       required: true,
       trim: true,
-      index: true,
     },
 
     lastName: {
       type: String,
       required: true,
       trim: true,
-      index: true,
     },
 
     email: {
@@ -50,7 +48,6 @@ const ekoOnboardAepsUserSchema = new mongoose.Schema(
     mobile: {
       type: String,
       required: true,
-      unique: true,
       match: [/^[6-9]\d{9}$/, "Invalid Indian mobile number"],
     },
 
@@ -66,6 +63,16 @@ const ekoOnboardAepsUserSchema = new mongoose.Schema(
       required: true,
     },
 
+    latitude: {
+      type: Number,
+      required: true,
+    },
+
+    longitude: {
+      type: Number,
+      required: true,
+    },
+
     address: {
       line: {
         type: String,
@@ -77,14 +84,12 @@ const ekoOnboardAepsUserSchema = new mongoose.Schema(
         type: String,
         required: true,
         trim: true,
-        index: true,
       },
 
       state: {
         type: String,
         required: true,
         trim: true,
-        index: true,
       },
 
       pincode: {
@@ -97,18 +102,73 @@ const ekoOnboardAepsUserSchema = new mongoose.Schema(
         type: String,
         required: true,
         trim: true,
-        index: true,
       },
 
       area: {
         type: String,
         required: true,
         trim: true,
-        index: true,
       },
     },
 
-    isActive: {
+    officeAddress: {
+      line: {
+        type: String,
+
+        trim: true,
+      },
+
+      city: {
+        type: String,
+        trim: true,
+      },
+
+      state: {
+        type: String,
+        trim: true,
+      },
+
+      pincode: {
+        type: String,
+        match: [/^\d{6}$/, "Invalid pincode"],
+      },
+
+      district: {
+        type: String,
+        trim: true,
+      },
+
+      area: {
+        type: String,
+        trim: true,
+      },
+    },
+
+    bank: { type: String, default: "" },
+
+    ifsc: {
+      type: String,
+      uppercase: true,
+      trim: true,
+      match: [/^[A-Z]{4}0[A-Z0-9]{6}$/, "Invalid IFSC code"],
+    },
+
+    aadhaar: {
+      type: String,
+      sparse: true,
+      unique: true,
+      match: [/^\d{12}$/, "Aadhaar must be 12 digits"],
+      index: true,
+    },
+
+    deviceNumber: {
+      type: String,
+      default: "",
+    },
+
+    modelName: { type: String, default: "" },
+
+    isActivated: {
       type: Boolean,
       default: false,
     },

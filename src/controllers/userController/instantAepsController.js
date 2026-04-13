@@ -1,4 +1,4 @@
-const mongoose  = require("mongoose");
+const mongoose = require("mongoose");
 const InstantAepsOutlet = require("../../models/instantAepsOutletModel");
 const Merchant = require("../../models/instantAepsOutletModel");
 const InstantBank = require("../../models/instantAepsBank");
@@ -154,7 +154,10 @@ const registerOutlet = async (req, res, next) => {
       });
     }
 
-    const isMerchantExist = await Merchant.findOne({ userId: userId });
+    const isMerchantExist = await Merchant.findOne({
+      userId: userId,
+      email: email,
+    });
 
     if (isMerchantExist) {
       return res.status(200).json({
@@ -182,6 +185,18 @@ const registerOutlet = async (req, res, next) => {
 
     if (response && response.status_code === "TXN") {
       const data = response?.data?.data;
+
+      const outletAlreadyExist = await InstantAepsOutlet.findOne({
+        outletId: data?.outletId,
+      });
+
+      if (outletAlreadyExist) {
+        return res.status(400).json({
+          success: false,
+          message: "User already registered with another email",
+        });
+      }
+
       const outletRegister = new InstantAepsOutlet({
         userId: userId,
         outletId: data?.outletId,

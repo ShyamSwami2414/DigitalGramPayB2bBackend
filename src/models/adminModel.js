@@ -27,7 +27,6 @@ const adminSchema = new mongoose.Schema(
     email: {
       type: String,
       required: true,
-      unique: true,
       lowercase: true,
       trim: true,
       match: [/^\S+@\S+\.\S+$/, "Invalid email format"],
@@ -66,6 +65,14 @@ const adminSchema = new mongoose.Schema(
     deletedAt: { type: Date, default: null },
   },
   { timestamps: true, versionKey: false },
+);
+
+adminSchema.index(
+  { email: 1 },
+  {
+    unique: true,
+    partialFilterExpression: { isDeleted: false },
+  },
 );
 
 adminSchema.post("save", async function (doc, next) {

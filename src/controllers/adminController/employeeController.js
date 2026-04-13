@@ -89,7 +89,7 @@ exports.getEmployeeList = async (req, res, next) => {
     let { page = 1, limit = 10 } = req.query;
     const skip = (page - 1) * limit;
 
-    const employees = await Admin.find({ type: "employee" })
+    const employees = await Admin.find({ type: "employee", isDeleted: false })
       .select("name email phone type level userName")
       .sort({ createdAt: -1 });
 
@@ -160,7 +160,7 @@ exports.addEmployee = async (req, res, next) => {
       });
     }
 
-    const isEmployeeExists = await Admin.findOne({ email });
+    const isEmployeeExists = await Admin.findOne({ email, isDeleted: false });
 
     if (isEmployeeExists) {
       return res.status(409).json({
@@ -278,9 +278,17 @@ exports.updateEmployee = async (req, res, next) => {
       permissionIds: permissions,
     };
 
-    const employee = await Admin.findOneAndUpdate({ _id: id }, updateData, {
-      new: true,
-    });
+    const employee = await Admin.findOneAndUpdate(
+      {
+        _id: id,
+        type: "employee",
+        isDeleted: false,
+      },
+      updateData,
+      {
+        new: true,
+      },
+    );
 
     if (!employee) {
       return res.status(404).json({
@@ -320,6 +328,7 @@ exports.deleteEmployee = async (req, res, next) => {
     const employee = await Admin.findOneAndUpdate(
       {
         _id: id,
+        isDeleted: false,
         type: "employee",
       },
       {

@@ -61,6 +61,7 @@ exports.doRecharge = async ({
 
     await ProviderLogs.create({
       providerTxnId: response?.data?.txn_ref,
+      serviceCategory: "RECHARGE",
       referenceId: client_referenceId,
       providerName: "CSPL",
       endPoint: "mobile-prepaid-Recharge",
@@ -85,6 +86,7 @@ exports.doRecharge = async ({
 
     await ProviderLogs.create({
       providerTxnId: error.response?.data?.txn_ref || null,
+      serviceCategory: "RECHARGE",
       referenceId: client_referenceId,
       providerName: "CSPL",
       endPoint: "mobile-prepaid-Recharge",

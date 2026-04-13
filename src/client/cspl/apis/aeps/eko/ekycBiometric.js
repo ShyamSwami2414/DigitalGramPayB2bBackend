@@ -2,34 +2,33 @@ const csplClient = require("../../../cspl.client");
 
 const EkoAepsLogs = require("../../../../../models/ekoAepsLogsModel");
 
-exports.aepsOnboard = async ({
+exports.ekycBiometric = async ({
   client_referenceId,
   userId,
   requestId, //idempotency key
   mobile,
-  panNumber,
-  firstName,
-  lastName,
-  email,
-  dateOfBirth,
-  shopName,
-  address,
+  aadhaar,
+  latitude,
+  longitude,
+  bankCode,
+  referenceTid,
+  otpRefId,
+  pidData,
 }) => {
   const timestamp = new Date().toISOString();
   const startTime = Date.now();
   try {
     const response = await csplClient.post(
-      "e1/aeps/AepsOnboard",
+      "e1/aeps/ekyc-biometric",
       {
         client_ref_id: client_referenceId,
-        mobile: mobile,
-        pan_number: panNumber,
-        first_name: firstName,
-        last_name: lastName,
-        email: email,
-        dob: dateOfBirth,
-        shop_name: shopName,
-        address: address,
+        customer_id: mobile, //customer mobile number
+        aadhar: aadhaar,
+        latlong: `${latitude}, ${longitude}`,
+        bank_code: bankCode,
+        reference_tid: referenceTid,
+        otp_ref_id: otpRefId,
+        piddata: pidData,
       },
       {
         headers: {
@@ -63,20 +62,19 @@ exports.aepsOnboard = async ({
       providerTxnId: response?.data?.txn_ref || undefined,
       userId: userId,
       referenceId: client_referenceId,
-      type: "AEPS-USER-ONBOARD",
+      type: "KYC-OTP-VERIFY",
       providerName: "EKO",
-      endPoint: "e1/aeps/AepsOnboard",
+      endPoint: "e1/aeps/ekyc-biometric",
       method: "POST",
       request: {
         client_ref_id: client_referenceId,
-        mobile: mobile,
-        pan_number: panNumber,
-        first_name: firstName,
-        last_name: lastName,
-        email: email,
-        dob: dateOfBirth,
-        shop_name: shopName,
-        address: address,
+        customer_id: mobile, //customer mobile number
+        aadhar: aadhaar,
+        latlong: `${latitude}, ${longitude}`,
+        bank_code: bankCode,
+        reference_tid: referenceTid,
+        otp_ref_id: otpRefId,
+        piddata: pidData,
       },
 
       response: response.data,
@@ -92,20 +90,19 @@ exports.aepsOnboard = async ({
       providerTxnId: error?.response?.data?.txn_ref || undefined,
       userId: userId,
       referenceId: client_referenceId,
-      type: "AEPS-USER-ONBOARD",
+      type: "KYC-OTP-VERIFY",
       providerName: "EKO",
-      endPoint: "e1/aeps/AepsOnboard",
+      endPoint: "e1/aeps/ekyc-biometric",
       method: "POST",
       request: {
         client_ref_id: client_referenceId,
-        mobile: mobile,
-        pan_number: panNumber,
-        first_name: firstName,
-        last_name: lastName,
-        email: email,
-        dob: dateOfBirth,
-        shop_name: shopName,
-        address: address,
+        customer_id: mobile, //customer mobile number
+        aadhar: aadhaar,
+        latlong: `${latitude}, ${longitude}`,
+        bank_code: bankCode,
+        reference_tid: referenceTid,
+        otp_ref_id: otpRefId,
+        piddata: pidData,
       },
       response: error.response?.data || { message: error.message },
       providerStatus: "FAILED",

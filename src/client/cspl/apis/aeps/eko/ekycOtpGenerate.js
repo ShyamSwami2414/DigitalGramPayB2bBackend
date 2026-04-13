@@ -2,34 +2,27 @@ const csplClient = require("../../../cspl.client");
 
 const EkoAepsLogs = require("../../../../../models/ekoAepsLogsModel");
 
-exports.aepsOnboard = async ({
+exports.ekycOtpGenerate = async ({
   client_referenceId,
   userId,
   requestId, //idempotency key
+  userCode,
   mobile,
-  panNumber,
-  firstName,
-  lastName,
-  email,
-  dateOfBirth,
-  shopName,
-  address,
+  aadhaar,
+  latitude,
+  longitude,
 }) => {
   const timestamp = new Date().toISOString();
   const startTime = Date.now();
   try {
     const response = await csplClient.post(
-      "e1/aeps/AepsOnboard",
+      "e1/aeps/ekyc-otp",
       {
         client_ref_id: client_referenceId,
-        mobile: mobile,
-        pan_number: panNumber,
-        first_name: firstName,
-        last_name: lastName,
-        email: email,
-        dob: dateOfBirth,
-        shop_name: shopName,
-        address: address,
+        user_code: userCode,
+        customer_id: mobile, //customer mobile number
+        aadhar: aadhaar,
+        latlong: `${latitude}, ${longitude}`,
       },
       {
         headers: {
@@ -63,20 +56,16 @@ exports.aepsOnboard = async ({
       providerTxnId: response?.data?.txn_ref || undefined,
       userId: userId,
       referenceId: client_referenceId,
-      type: "AEPS-USER-ONBOARD",
+      type: "AEPS-KYC-OTP",
       providerName: "EKO",
-      endPoint: "e1/aeps/AepsOnboard",
+      endPoint: "e1/aeps/ekyc-otp",
       method: "POST",
       request: {
         client_ref_id: client_referenceId,
-        mobile: mobile,
-        pan_number: panNumber,
-        first_name: firstName,
-        last_name: lastName,
-        email: email,
-        dob: dateOfBirth,
-        shop_name: shopName,
-        address: address,
+        user_code: userCode,
+        customer_id: mobile, //customer mobile number
+        aadhar: aadhaar,
+        latlong: ``,
       },
 
       response: response.data,
@@ -92,20 +81,16 @@ exports.aepsOnboard = async ({
       providerTxnId: error?.response?.data?.txn_ref || undefined,
       userId: userId,
       referenceId: client_referenceId,
-      type: "AEPS-USER-ONBOARD",
+      type: "AEPS-KYC-OTP",
       providerName: "EKO",
-      endPoint: "e1/aeps/AepsOnboard",
+      endPoint: "e1/aeps/ekyc-otp",
       method: "POST",
       request: {
         client_ref_id: client_referenceId,
-        mobile: mobile,
-        pan_number: panNumber,
-        first_name: firstName,
-        last_name: lastName,
-        email: email,
-        dob: dateOfBirth,
-        shop_name: shopName,
-        address: address,
+        user_code: userCode,
+        customer_id: mobile, //customer mobile number
+        aadhar: aadhaar,
+        latlong: ``,
       },
       response: error.response?.data || { message: error.message },
       providerStatus: "FAILED",

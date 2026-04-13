@@ -15,6 +15,10 @@ const { aepsOnboard } = require("../client/cspl/apis/aeps/eko/aepsOnboard");
 const {
   activateAepsService,
 } = require("../client/cspl/apis/aeps/eko/activateAepsService");
+const {
+  ekycOtpGenerate,
+} = require("../client/cspl/apis/aeps/eko/ekycOtpGenerate");
+const { ekycOtpVerify } = require("../client/cspl/apis/aeps/eko/verifyEkycOtp");
 
 exports.onboardEkoAepsUser = async ({
   userId,
@@ -128,16 +132,6 @@ exports.activateService = async ({
     session.startTransaction();
 
     const referenceId = generateUniqueRefernceId();
-    const registrationCharges = 1000;
-
-    const { openingBalance, closingBalance } = await debitWallet({
-      userId: userId,
-      amount: registrationCharges, //paise
-      serviceType: "AEPS",
-      referenceId: referenceId,
-      description: "Aeps User Onboard Charges",
-      session: session,
-    });
 
     const onboardMerchant = await EkoOnboardAepsUser.findOne({
       userId: userId,
@@ -189,27 +183,153 @@ exports.activateService = async ({
     }
 
     console.log(
-      "aeps eko onboard user service",
+      "aeps eko activate user service",
       JSON.stringify(result, null, 2),
     );
 
     console.log("Status", result?.status);
 
-    if (result?.status === false || result?.data?.response_type_id !== 1290) {
-      console.log("Entered Error Dealing block");
-      const { openingBalance, closingBalance } = await processRefund({
-        userId: userId,
-        amount: registrationCharges, //paise
-        referenceId: referenceId,
-        description: "User Onboard Failed, Charges Refunded",
-        apiResponse: result,
-      });
+    if (
+      result?.status === "FAILED" ||
+      result?.status === false ||
+      result?.http_code !== 200
+    ) {
+      throw result;
     }
+
+    console.log(result);
+    return result;
+  } catch (error) {
+    throw error;
+  }
+};
+
+exports.kycOtp = async ({
+  userId,
+  requestId,
+  aadhaar,
+  latitude,
+  longitude,
+}) => {
+  const session = await mongoose.startSession();
+  try {
+    session.startTransaction();
+
+    const referenceId = generateUniqueRefernceId();
+
+    const onboardMerchant = await EkoOnboardAepsUser.findOne({
+      userId: userId,
+    })
+      .select("_id userCode initiatorId mobile")
+      .lean()
+      .session(session);
+
+    if (!onboardMerchant) {
+      const err = new Error("User not onboarded yet, first register yourself");
+      err.statusCode = 404;
+      throw err;
+    }
+
+    await session.commitTransaction();
+
+    let result;
+
+    try {
+      result = await ekycOtpGenerate({
+        client_referenceId: referenceId, //auto genertae
+        userId,
+        requestId, //client send idempotency
+        userCode: onboardMerchant?.userCode,
+        mobile: onboardMerchant?.mobile,
+        aadhaar,
+        latitude,
+        longitude,
+      });
+    } catch (error) {
+      result = {
+        status: false,
+        message:
+          error?.response?.data?.message ||
+          error.message ||
+          "Something went wrong",
+        data: error?.response?.data || null,
+      };
+    }
+
+    console.log("aeps eko ekyc otp service", JSON.stringify(result, null, 2));
+
+    console.log("Status", result?.status);
 
     if (
       result?.status === "FAILED" ||
       result?.status === false ||
-      result?.data?.response_type_id !== 1290
+      result?.http_code !== 200
+    ) {
+      throw result;
+    }
+
+    console.log(result);
+    return result;
+  } catch (error) {
+    throw error;
+  }
+};
+
+exports.verifyOtp = async ({ userId, requestId, otp, latitude, longitude }) => {
+  const session = await mongoose.startSession();
+  try {
+    session.startTransaction();
+
+    const referenceId = generateUniqueRefernceId();
+
+    const onboardMerchant = await EkoOnboardAepsUser.findOne({
+      userId: userId,
+    })
+      .select("_id userCode initiatorId mobile")
+      .lean()
+      .session(session);
+
+    if (!onboardMerchant) {
+      const err = new Error("User not onboarded yet, first register yourself");
+      err.statusCode = 404;
+      throw err;
+    }
+
+    await session.commitTransaction();
+
+    let result;
+
+    try {
+      result = await ekycOtpVerify({
+        client_referenceId: referenceId, //auto genertae
+        userId,
+        requestId, //client send idempotency
+        initiatorId: onboardMerchant?.initiatorId,
+        userCode: onboardMerchant?.userCode,
+        mobile: onboardMerchant?.mobile,
+        otp,
+        latitude,
+        longitude,
+      });
+    } catch (error) {
+      result = {
+        status: false,
+        message:
+          error?.response?.data?.message ||
+          error.message ||
+          "Something went wrong",
+        data: error?.response?.data || null,
+      };
+    }
+
+    console.log("aeps eko ekyc otp service", JSON.stringify(result, null, 2));
+
+    console.log("Status", result?.status);
+
+    if (
+      result?.status === "FAILED" ||
+      result?.status === false ||
+      result?.http_code !== 200
     ) {
       throw result;
     }

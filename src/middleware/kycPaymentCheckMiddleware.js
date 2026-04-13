@@ -40,13 +40,27 @@ const checkUserPaymentAndKYC = async (req, res, next) => {
 
     const isPaymentRequired = role.isPaymentRequired;
     const kycStatus = loggedUser.kycStatus;
+    
     const isPaymentDone = loggedUser.isPaymentDone;
+    const isPaymentApproved =
+      loggedUser.idPaymentStatus === "approved" ||
+      loggedUser?.idPaymentStatus === "coupon";
+
     console.log(isPaymentRequired, "isPaymentRequired");
 
     if (kycStatus !== "approved") {
       return res
         .status(403)
         .json({ success: false, message: "KYC not approved" });
+    }
+
+    console.log(isPaymentApproved, "isPaymentApproved");
+
+    if (!isPaymentApproved) {
+      return res.status(403).json({
+        success: false,
+        message: "Onboard Charges Payment Not received for ID",
+      });
     }
 
     if (isPaymentRequired) {

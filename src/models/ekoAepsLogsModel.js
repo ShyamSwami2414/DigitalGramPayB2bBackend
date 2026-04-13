@@ -10,7 +10,12 @@ const ekotAepsLogSchema = new mongoose.Schema(
     type: {
       type: String,
       required: [true, "Type of Transaction is required"],
-      enum: ["AEPS-USER_ONBOARD", "AEPS-SERVICE-ACTIVATION"],
+      enum: [
+        "AEPS-USER-ONBOARD",
+        "AEPS-SERVICE-ACTIVATION",
+        "AEPS-KYC-OTP",
+        "KYC-OTP-VERIFY",
+      ],
     },
 
     providerTxnId: {

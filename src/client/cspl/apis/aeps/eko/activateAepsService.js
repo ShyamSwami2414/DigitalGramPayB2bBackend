@@ -24,7 +24,7 @@ exports.activateAepsService = async ({
   panFile,
 }) => {
   const serviceCode = 43;
-  const shopType = 4300;
+  const shopType = 4900;
   const timestamp = new Date().toISOString();
   const startTime = Date.now();
 
@@ -95,14 +95,15 @@ exports.activateAepsService = async ({
 
     const responseTime = Date.now() - startTime;
 
-    const isSuccess = response?.data?.data?.response_type_id === 1290;
+    const isSuccess =
+      response?.data?.status === true || response?.data?.http_code === 200;
 
     let providerStatus = isSuccess ? "SUCCESS" : "FAILED";
 
     if (providerStatus !== "SUCCESS") {
       throw {
         providerStatus: providerStatus,
-        message: response?.data?.data?.message,
+        message: response?.data?.message,
       };
     }
 

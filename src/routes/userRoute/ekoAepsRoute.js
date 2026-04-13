@@ -4,6 +4,8 @@ const checkUserPaymentAndKYC = require("../../middleware/kycPaymentCheckMiddlewa
 const {
   onboardAepsUser,
   activateUser,
+  generateKycOtp,
+  verifyKycOtp,
 } = require("../../controllers/userController/ekoAepsController");
 const idempotencyMiddleware = require("../../middleware/idempotencyMiddleware");
 const apiLogger = require("../../middleware/apiLogger");
@@ -37,6 +39,24 @@ router.post(
   ),
   apiLogger,
   activateUser,
+);
+
+router.post(
+  "/generate-ekyc-otp",
+  authenticateUser,
+  checkUserPaymentAndKYC,
+  idempotencyMiddleware,
+  apiLogger,
+  generateKycOtp,
+);
+
+router.post(
+  "/verify-ekyc-otp",
+  authenticateUser,
+  checkUserPaymentAndKYC,
+  idempotencyMiddleware,
+  apiLogger,
+  verifyKycOtp,
 );
 
 module.exports = router;

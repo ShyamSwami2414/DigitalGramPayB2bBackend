@@ -14,6 +14,8 @@ const {
 const {
   onboardEkoAepsUser,
   activateService,
+  kycOtp,
+  verifyOtp,
 } = require("../../services/ekoAepsService");
 
 const validateAddress = (address, type = "address") => {
@@ -395,9 +397,9 @@ const activateUser = async (req, res, next) => {
       validateObjectId(bank, "Invalid Bank Id");
 
       [bankData, officeStateData, stateData] = await Promise.all([
-        EkoBank.findById(bank).select("bankCode").lean(),
-        EkoState.findById(officeAddress?.state).select("value").lean(),
-        EkoState.findById(address?.state).select("value").lean(),
+        EkoBank.findById(bank).select("bankCode bankName").lean(),
+        EkoState.findById(officeAddress?.state).select("value label").lean(),
+        EkoState.findById(address?.state).select("value label").lean(),
       ]);
 
       if (!bankData) {
@@ -433,11 +435,13 @@ const activateUser = async (req, res, next) => {
     address = {
       ...address,
       state_id: stateData.value,
+      state: stateData.label,
     };
 
     officeAddress = {
       ...officeAddress,
       state_id: officeStateData.value,
+      state: officeStateData.label,
     };
 
     console.log(address, "address after spread and update state");
@@ -463,26 +467,30 @@ const activateUser = async (req, res, next) => {
 
     console.log(response, "response");
 
-    if (response && response?.data?.response_type_id === 1290) {
+    if (response && response?.status === true) {
       const data = response?.data?.data;
-      const ekoUserOnboard = new EkoOnboardAepsUser({
-        userId: userId,
-        userCode: data?.user_code,
-        initiatorId: data?.initiator_id,
-        firstName: firstName,
-        lastName: lastName,
-        email: email,
-        mobile: mobile,
-        panNumber: panNumber,
-        dateOfBirth: dateOfBirth,
-        address: address,
-      });
 
-      await ekoUserOnboard.save();
+      await EkoOnboardAepsUser.findOneAndUpdate(
+        { userId: userId },
+        {
+          $set: {
+            bank: bankData.bankName,
+            officeAddress: officeAddress,
+            ifsc,
+            accountNumber,
+            aadhaar,
+            latitude,
+            longitude,
+            deviceNumber,
+            modelName,
+            isActivated: true,
+          },
+        },
+      );
       return res.status(201).json({
         success: true,
         data: {
-          message: response?.data?.message,
+          message: response?.message,
         },
       });
     } else {
@@ -493,4 +501,200 @@ const activateUser = async (req, res, next) => {
   }
 };
 
-module.exports = { onboardAepsUser, activateUser };
+const generateKycOtp = async (req, res, next) => {
+  try {
+    let { aadhaar, latitude, longitude } = req.body;
+
+    aadhaar = aadhaar?.trim();
+    latitude = Number(latitude);
+    longitude = Number(longitude);
+
+    const userId = req.user.id;
+    const idempotency = req.headers["idempotency-key"];
+
+    const requiredFields = ["aadhaar", "latitude", "longitude"];
+
+    const missingFields = [];
+
+    requiredFields.forEach((field) => {
+      if (!req.body[field]) {
+        missingFields.push(field);
+      }
+    });
+
+    if (missingFields.length > 0) {
+      return res.status(400).json({
+        success: false,
+        message: `${missingFields.join(", ")} is required`,
+      });
+    }
+
+    const aadhaarRegex = /^\d{12}$/;
+    if (!aadhaarRegex.test(aadhaar)) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Aadhaar must be 12 digits" });
+    }
+
+    // Check NaN
+    if (isNaN(latitude) || isNaN(longitude)) {
+      return res.status(400).json({
+        success: false,
+        message: "Latitude and Longitude must be valid numbers",
+      });
+    }
+
+    // Range validation
+    if (latitude < -90 || latitude > 90) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid latitude (must be between -90 and 90)",
+      });
+    }
+
+    if (longitude < -180 || longitude > 180) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid longitude (must be between -180 and 180)",
+      });
+    }
+
+    if (!idempotency) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid Request ID",
+      });
+    }
+
+    const response = await kycOtp({
+      userId,
+      requestId: idempotency,
+      aadhaar,
+      latitude,
+      longitude,
+    });
+
+    console.log(response, "response");
+
+    if (response && response?.status === true) {
+      const data = response?.data?.data;
+
+      await EkoOnboardAepsUser.findOneAndUpdate(
+        { userId: userId },
+        {
+          $set: { isActivated: true },
+        },
+      );
+
+      return res.status(201).json({
+        success: true,
+        data: {
+          message: response?.message,
+        },
+      });
+    } else {
+      throw Error(response?.message || response?.data?.message);
+    }
+  } catch (error) {
+    next(error);
+  }
+};
+
+const verifyKycOtp = async (req, res, next) => {
+  try {
+    let { otp, latitude, longitude } = req.body;
+
+    otp = otp?.trim();
+    latitude = Number(latitude);
+    longitude = Number(longitude);
+
+    const userId = req.user.id;
+    const idempotency = req.headers["idempotency-key"];
+
+    const requiredFields = ["otp", "latitude", "longitude"];
+
+    const missingFields = [];
+
+    requiredFields.forEach((field) => {
+      if (!req.body[field]) {
+        missingFields.push(field);
+      }
+    });
+
+    if (missingFields.length > 0) {
+      return res.status(400).json({
+        success: false,
+        message: `${missingFields.join(", ")} is required`,
+      });
+    }
+
+    // Check NaN
+    if (isNaN(latitude) || isNaN(longitude)) {
+      return res.status(400).json({
+        success: false,
+        message: "Latitude and Longitude must be valid numbers",
+      });
+    }
+
+    // Range validation
+    if (latitude < -90 || latitude > 90) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid latitude (must be between -90 and 90)",
+      });
+    }
+
+    if (longitude < -180 || longitude > 180) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid longitude (must be between -180 and 180)",
+      });
+    }
+
+    if (!idempotency) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid Request ID",
+      });
+    }
+
+    const response = await verifyOtp({
+      userId,
+      requestId: idempotency,
+      otp,
+      latitude,
+      longitude,
+    });
+
+    console.log(response, "response");
+
+    if (response && response?.status === true) {
+      const data = response?.data?.data;
+
+      await EkoOnboardAepsUser.findOneAndUpdate(
+        { userId: userId },
+        {
+          $set: { isActivated: true },
+        },
+      );
+
+      return res.status(201).json({
+        success: true,
+        data: {
+          message: response?.message,
+        },
+      });
+    } else {
+      throw Error(response?.message || response?.data?.message);
+    }
+  } catch (error) {
+    next(error);
+  }
+};
+
+module.exports = {
+  onboardAepsUser,
+  activateUser,
+  generateKycOtp,
+  verifyKycOtp,
+};

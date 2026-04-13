@@ -9,6 +9,14 @@ const providerLogsSchema = new mongoose.Schema(
       sparse: true,
     },
 
+    serviceCategory: {
+      type: String,
+      enum: ["RECHARGE", "DMT", "BBPS", "AEPS"],
+      required: true,
+      uppercase: true,
+      trim: true,
+    },
+
     //internal
     referenceId: {
       type: String,
