@@ -14,6 +14,7 @@ exports.ekycOtpVerify = async ({
   longitude,
   referenceTid,
   otpRefId,
+  aadhaar,
 }) => {
   const timestamp = new Date().toISOString();
   const startTime = Date.now();
@@ -48,14 +49,19 @@ exports.ekycOtpVerify = async ({
 
     const responseTime = Date.now() - startTime;
 
-    const isSuccess = response?.data?.data?.response_type_id === 1290;
+    const isSuccess =
+      (response?.data?.status === true || response?.data?.http_code === 200) &&
+      response?.data?.data?.status === 0 &&
+      response?.data?.data?.response_status_id === 0;
 
     let providerStatus = isSuccess ? "SUCCESS" : "FAILED";
 
     if (providerStatus !== "SUCCESS") {
       throw {
         providerStatus: providerStatus,
-        message: response?.data?.data?.message,
+        message: response?.data?.data?.data?.reason,
+        reason: response?.data?.data?.data?.reason,
+        fullResponse: response?.data,
       };
     }
 
@@ -107,7 +113,8 @@ exports.ekycOtpVerify = async ({
         otp: otp,
         otp_ref_id: otpRefId,
       },
-      response: error.response?.data || { message: error.message },
+      response: error.fullResponse ||
+        error.response?.data || { message: error.message },
       providerStatus: "FAILED",
       responseTime: Date.now() - startTime,
     });

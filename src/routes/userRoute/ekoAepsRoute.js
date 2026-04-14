@@ -6,6 +6,9 @@ const {
   activateUser,
   generateKycOtp,
   verifyKycOtp,
+  doEkycBiometric,
+  dailyAepsLogin,
+  doAepsTransaction,
 } = require("../../controllers/userController/ekoAepsController");
 const idempotencyMiddleware = require("../../middleware/idempotencyMiddleware");
 const apiLogger = require("../../middleware/apiLogger");
@@ -57,6 +60,33 @@ router.post(
   idempotencyMiddleware,
   apiLogger,
   verifyKycOtp,
+);
+
+router.post(
+  "/ekyc-biometric",
+  authenticateUser,
+  checkUserPaymentAndKYC,
+  idempotencyMiddleware,
+  apiLogger,
+  doEkycBiometric,
+);
+
+router.post(
+  "/daily-login",
+  authenticateUser,
+  checkUserPaymentAndKYC,
+  idempotencyMiddleware,
+  apiLogger,
+  dailyAepsLogin,
+);
+
+router.post(
+  "/initiate-transaction",
+  authenticateUser,
+  checkUserPaymentAndKYC,
+  idempotencyMiddleware,
+  apiLogger,
+  doAepsTransaction,
 );
 
 module.exports = router;

@@ -2,27 +2,31 @@ const csplClient = require("../../../cspl.client");
 
 const EkoAepsLogs = require("../../../../../models/ekoAepsLogsModel");
 
-exports.ekycOtpGenerate = async ({
+exports.dailyEkoLogin = async ({
   client_referenceId,
   userId,
   requestId, //idempotency key
-  userCode,
-  mobile,
+  mobile, //customer id
   aadhaar,
+  userCode,
   latitude,
   longitude,
+  bankCode,
+  pidData,
 }) => {
   const timestamp = new Date().toISOString();
   const startTime = Date.now();
   try {
     const response = await csplClient.post(
-      "e1/aeps/ekyc-otp",
+      "e1/aeps/daily-auth",
       {
         client_ref_id: client_referenceId,
-        user_code: userCode,
         customer_id: mobile, //customer mobile number
+        user_code: userCode,
         aadhar: aadhaar,
         latlong: `${latitude}, ${longitude}`,
+        bank_code: bankCode,
+        piddata: pidData,
       },
       {
         headers: {
@@ -61,16 +65,18 @@ exports.ekycOtpGenerate = async ({
       providerTxnId: response?.data?.txn_ref || undefined,
       userId: userId,
       referenceId: client_referenceId,
-      type: "AEPS-KYC-OTP",
+      type: "EKYC-BIOMETRIC",
       providerName: "EKO",
-      endPoint: "e1/aeps/ekyc-otp",
+      endPoint: "e1/aeps/daily-auth",
       method: "POST",
       request: {
         client_ref_id: client_referenceId,
-        user_code: userCode,
         customer_id: mobile, //customer mobile number
+        user_code: userCode,
         aadhar: aadhaar,
         latlong: `${latitude}, ${longitude}`,
+        bank_code: bankCode,
+        piddata: pidData,
       },
 
       response: response.data,
@@ -80,22 +86,27 @@ exports.ekycOtpGenerate = async ({
 
     return response?.data;
   } catch (error) {
-    console.log("API Error Response:", error.response?.data || error.message);
+    console.log(
+      "API Error Response:",
+      error.response?.data || error.reason || error.message,
+    );
 
     await EkoAepsLogs.create({
       providerTxnId: error?.response?.data?.txn_ref || undefined,
       userId: userId,
       referenceId: client_referenceId,
-      type: "AEPS-KYC-OTP",
+      type: "DAILY-LOGIN",
       providerName: "EKO",
-      endPoint: "e1/aeps/ekyc-otp",
+      endPoint: "e1/aeps/daily-auth",
       method: "POST",
       request: {
         client_ref_id: client_referenceId,
-        user_code: userCode,
         customer_id: mobile, //customer mobile number
+        user_code: userCode,
         aadhar: aadhaar,
         latlong: `${latitude}, ${longitude}`,
+        bank_code: bankCode,
+        piddata: pidData,
       },
       response: error.fullResponse ||
         error.response?.data || { message: error.message },

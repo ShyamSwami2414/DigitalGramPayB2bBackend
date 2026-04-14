@@ -260,11 +260,11 @@ exports.getParticularUserDetail = async (req, res, next) => {
       return {
         ...user,
 
-        onBoardCharge: paiseToRupee(user?.onBoardCharge),
-        aepsWallet: paiseToRupee(user?.aepsWallet),
-        mainWallet: paiseToRupee(user?.mainWallet),
-        mainHoldAmount: paiseToRupee(user?.mainHoldAmount),
-        aepsHoldAmount: paiseToRupee(user?.aepsHoldAmount),
+        onBoardCharge: paiseToRupee(user?.onBoardCharge ?? 0),
+        aepsWallet: paiseToRupee(user?.aepsWallet ?? 0),
+        mainWallet: paiseToRupee(user?.mainWallet ?? 0),
+        mainHoldAmount: paiseToRupee(user?.mainHoldAmount ?? 0),
+        aepsHoldAmount: paiseToRupee(user?.aepsHoldAmount ?? 0),
 
         commission: user.commission?.map((service) => ({
           ...service,
@@ -287,6 +287,7 @@ exports.getParticularUserDetail = async (req, res, next) => {
         })),
       };
     };
+
     const formattedData = existingUser.map((user) => formatUserData(user));
 
     return res.status(200).json({

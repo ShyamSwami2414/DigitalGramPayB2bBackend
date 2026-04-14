@@ -15,6 +15,11 @@ const ekotAepsLogSchema = new mongoose.Schema(
         "AEPS-SERVICE-ACTIVATION",
         "AEPS-KYC-OTP",
         "KYC-OTP-VERIFY",
+        "EKYC-BIOMETRIC",
+        "DAILY-LOGIN",
+        "WITHDRAW",
+        "STATEMENT",
+        "INQUIRY",
       ],
     },
 

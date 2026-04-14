@@ -2,27 +2,40 @@ const csplClient = require("../../../cspl.client");
 
 const EkoAepsLogs = require("../../../../../models/ekoAepsLogsModel");
 
-exports.ekycOtpGenerate = async ({
+exports.aepsTransaction = async ({
   client_referenceId,
   userId,
   requestId, //idempotency key
+  serviceType,
+  initiatorId,
   userCode,
   mobile,
   aadhaar,
   latitude,
   longitude,
+  sourceIp,
+  amount,
+  bankCode,
+  pidData,
+  serviceTypeName,
 }) => {
   const timestamp = new Date().toISOString();
   const startTime = Date.now();
   try {
     const response = await csplClient.post(
-      "e1/aeps/ekyc-otp",
+      "e1/aeps/apes-txn",
       {
         client_ref_id: client_referenceId,
+        initiator_id: initiatorId,
+        service_type: serviceType,
+        latlong: `${latitude}, ${longitude}`,
+        source_ip: sourceIp,
+        amount: amount,
         user_code: userCode,
         customer_id: mobile, //customer mobile number
         aadhar: aadhaar,
-        latlong: `${latitude}, ${longitude}`,
+        bank_code: bankCode,
+        piddata: pidData,
       },
       {
         headers: {
@@ -52,7 +65,7 @@ exports.ekycOtpGenerate = async ({
       throw {
         providerStatus: providerStatus,
         message: response?.data?.data?.message,
-        reason: response?.data?.data?.data?.reason,
+        reason: response?.data?.data?.data?.comment,
         fullResponse: response?.data,
       };
     }
@@ -61,16 +74,22 @@ exports.ekycOtpGenerate = async ({
       providerTxnId: response?.data?.txn_ref || undefined,
       userId: userId,
       referenceId: client_referenceId,
-      type: "AEPS-KYC-OTP",
+      type: `${serviceTypeName}`,
       providerName: "EKO",
-      endPoint: "e1/aeps/ekyc-otp",
+      endPoint: "e1/aeps/apes-txn",
       method: "POST",
       request: {
         client_ref_id: client_referenceId,
+        initiator_id: initiatorId,
+        service_type: serviceType,
+        latlong: `${latitude}, ${longitude}`,
+        source_ip: sourceIp,
+        amount: amount,
         user_code: userCode,
         customer_id: mobile, //customer mobile number
         aadhar: aadhaar,
-        latlong: `${latitude}, ${longitude}`,
+        bank_code: bankCode,
+        piddata: pidData,
       },
 
       response: response.data,
@@ -86,16 +105,22 @@ exports.ekycOtpGenerate = async ({
       providerTxnId: error?.response?.data?.txn_ref || undefined,
       userId: userId,
       referenceId: client_referenceId,
-      type: "AEPS-KYC-OTP",
+      type: `${serviceTypeName}`,
       providerName: "EKO",
-      endPoint: "e1/aeps/ekyc-otp",
+      endPoint: "e1/aeps/apes-txn",
       method: "POST",
       request: {
         client_ref_id: client_referenceId,
+        initiator_id: initiatorId,
+        service_type: serviceType,
+        latlong: `${latitude}, ${longitude}`,
+        source_ip: sourceIp,
+        amount: amount,
         user_code: userCode,
         customer_id: mobile, //customer mobile number
         aadhar: aadhaar,
-        latlong: `${latitude}, ${longitude}`,
+        bank_code: bankCode,
+        piddata: pidData,
       },
       response: error.fullResponse ||
         error.response?.data || { message: error.message },

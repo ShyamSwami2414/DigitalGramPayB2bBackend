@@ -104,6 +104,8 @@ exports.activateAepsService = async ({
       throw {
         providerStatus: providerStatus,
         message: response?.data?.message,
+        reason: response?.data?.data?.data?.reason,
+        fullResponse: response?.data,
       };
     }
 
@@ -162,7 +164,8 @@ exports.activateAepsService = async ({
         initiator_id: initiatorId,
       },
 
-      response: error.response?.data || { message: error.message },
+      response: error.fullResponse ||
+        error.response?.data || { message: error.message },
       providerStatus: "FAILED",
       responseTime: Date.now() - startTime,
     });

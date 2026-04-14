@@ -56,6 +56,8 @@ exports.aepsOnboard = async ({
       throw {
         providerStatus: providerStatus,
         message: response?.data?.data?.message,
+        reason: response?.data?.data?.data?.reason,
+         fullResponse: response?.data,
       };
     }
 
@@ -107,7 +109,8 @@ exports.aepsOnboard = async ({
         shop_name: shopName,
         address: address,
       },
-      response: error.response?.data || { message: error.message },
+      response: error.fullResponse ||
+        error.response?.data || { message: error.message },
       providerStatus: "FAILED",
       responseTime: Date.now() - startTime,
     });

@@ -8,6 +8,8 @@ exports.ekycBiometric = async ({
   requestId, //idempotency key
   mobile,
   aadhaar,
+  userCode,
+  initiatorId,
   latitude,
   longitude,
   bankCode,
@@ -23,6 +25,8 @@ exports.ekycBiometric = async ({
       {
         client_ref_id: client_referenceId,
         customer_id: mobile, //customer mobile number
+        user_code: userCode,
+        initiator_id: initiatorId,
         aadhar: aadhaar,
         latlong: `${latitude}, ${longitude}`,
         bank_code: bankCode,
@@ -47,7 +51,10 @@ exports.ekycBiometric = async ({
 
     const responseTime = Date.now() - startTime;
 
-    const isSuccess = response?.data?.data?.response_type_id === 1290;
+    const isSuccess =
+      (response?.data?.status === true || response?.data?.http_code === 200) &&
+      response?.data?.data?.status === 0 &&
+      response?.data?.data?.response_status_id === 0;
 
     let providerStatus = isSuccess ? "SUCCESS" : "FAILED";
 
@@ -55,6 +62,8 @@ exports.ekycBiometric = async ({
       throw {
         providerStatus: providerStatus,
         message: response?.data?.data?.message,
+        reason: response?.data?.data?.data?.reason,
+        fullResponse: response?.data,
       };
     }
 
@@ -62,13 +71,15 @@ exports.ekycBiometric = async ({
       providerTxnId: response?.data?.txn_ref || undefined,
       userId: userId,
       referenceId: client_referenceId,
-      type: "KYC-OTP-VERIFY",
+      type: "EKYC-BIOMETRIC",
       providerName: "EKO",
       endPoint: "e1/aeps/ekyc-biometric",
       method: "POST",
       request: {
         client_ref_id: client_referenceId,
         customer_id: mobile, //customer mobile number
+        user_code: userCode,
+        initiator_id: initiatorId,
         aadhar: aadhaar,
         latlong: `${latitude}, ${longitude}`,
         bank_code: bankCode,
@@ -84,19 +95,24 @@ exports.ekycBiometric = async ({
 
     return response?.data;
   } catch (error) {
-    console.log("API Error Response:", error.response?.data || error.message);
+    console.log(
+      "API Error Response:",
+      error.response?.data || error.reason || error.message,
+    );
 
     await EkoAepsLogs.create({
       providerTxnId: error?.response?.data?.txn_ref || undefined,
       userId: userId,
       referenceId: client_referenceId,
-      type: "KYC-OTP-VERIFY",
+      type: "EKYC-BIOMETRIC",
       providerName: "EKO",
       endPoint: "e1/aeps/ekyc-biometric",
       method: "POST",
       request: {
         client_ref_id: client_referenceId,
         customer_id: mobile, //customer mobile number
+        user_code: userCode,
+        initiator_id: initiatorId,
         aadhar: aadhaar,
         latlong: `${latitude}, ${longitude}`,
         bank_code: bankCode,
@@ -104,7 +120,8 @@ exports.ekycBiometric = async ({
         otp_ref_id: otpRefId,
         piddata: pidData,
       },
-      response: error.response?.data || { message: error.message },
+      response: error.fullResponse ||
+        error.response?.data || { message: error.message },
       providerStatus: "FAILED",
       responseTime: Date.now() - startTime,
     });

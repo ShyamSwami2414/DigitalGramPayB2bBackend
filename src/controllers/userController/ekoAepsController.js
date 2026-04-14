@@ -16,7 +16,11 @@ const {
   activateService,
   kycOtp,
   verifyOtp,
+  ekycBiometric,
+  initiateAepsTransaction,
+  dailyBiometricLogin,
 } = require("../../services/ekoAepsService");
+const { rupeeToPaise } = require("../../utils/money");
 
 const validateAddress = (address, type = "address") => {
   const errors = {};
@@ -65,6 +69,16 @@ const validateAddress = (address, type = "address") => {
     isValid: Object.keys(errors).length === 0,
     errors,
   };
+};
+
+const getServiceType = (serviceName) => {
+  const map = {
+    withdraw: 2,
+    inquiry: 3,
+    statement: 4,
+  };
+
+  return map[serviceName?.toLowerCase()] || null;
 };
 
 const onboardAepsUser = async (req, res, next) => {
@@ -474,10 +488,10 @@ const activateUser = async (req, res, next) => {
         { userId: userId },
         {
           $set: {
-            bank: bankData.bankName,
+            bank: bankData.bankCode,
             officeAddress: officeAddress,
             ifsc,
-            accountNumber,
+            accountNumber: accountNumber,
             aadhaar,
             latitude,
             longitude,
@@ -582,14 +596,17 @@ const generateKycOtp = async (req, res, next) => {
       await EkoOnboardAepsUser.findOneAndUpdate(
         { userId: userId },
         {
-          $set: { isActivated: true },
+          $set: {
+            temp_reference_tid: data?.reference_tid,
+            temp_otp_ref_id: data?.otp_ref_id,
+          },
         },
       );
 
-      return res.status(201).json({
+      return res.status(200).json({
         success: true,
         data: {
-          message: response?.message,
+          message: response?.data?.message,
         },
       });
     } else {
@@ -674,6 +691,357 @@ const verifyKycOtp = async (req, res, next) => {
       await EkoOnboardAepsUser.findOneAndUpdate(
         { userId: userId },
         {
+          $set: {
+            temp_reference_tid: data?.reference_tid,
+            temp_otp_ref_id: data?.otp_ref_id,
+          },
+        },
+      );
+
+      return res.status(200).json({
+        success: true,
+        data: {
+          message: `OTP ${response?.data?.message}`,
+        },
+      });
+    } else {
+      throw Error(response?.message || response?.data?.message);
+    }
+  } catch (error) {
+    next(error);
+  }
+};
+
+const doEkycBiometric = async (req, res, next) => {
+  try {
+    let { latitude, longitude, pidData } = req.body;
+
+    latitude = Number(latitude);
+    longitude = Number(longitude);
+
+    const requiredFields = ["latitude", "longitude", , "pidData"];
+
+    const missingFields = [];
+
+    requiredFields.forEach((field) => {
+      if (!req.body[field]) {
+        missingFields.push(field);
+      }
+    });
+
+    if (missingFields.length > 0) {
+      return res.status(400).json({
+        success: false,
+        message: `${missingFields.join(", ")} is required`,
+      });
+    }
+
+    if (isNaN(latitude) || isNaN(longitude)) {
+      return res.status(400).json({
+        success: false,
+        message: "Latitude and Longitude must be valid numbers",
+      });
+    }
+
+    // Range validation
+    if (latitude < -90 || latitude > 90) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid latitude (must be between -90 and 90)",
+      });
+    }
+
+    if (longitude < -180 || longitude > 180) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid longitude (must be between -180 and 180)",
+      });
+    }
+
+    const userId = req.user.id;
+    const idempotency = req.headers["idempotency-key"];
+
+    if (!idempotency) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid Request ID",
+      });
+    }
+
+    const response = await ekycBiometric({
+      userId,
+      requestId: idempotency,
+      latitude: latitude,
+      longitude: longitude,
+      pidData: pidData,
+    });
+
+    console.log(response, "response");
+
+    if (response && response?.status === true) {
+      const data = response?.data?.data;
+
+      await EkoOnboardAepsUser.findOneAndUpdate(
+        { userId: userId },
+        {
+          $set: { isActivated: true },
+        },
+      );
+
+      return res.status(201).json({
+        success: true,
+        data: {
+          message: response?.message,
+        },
+      });
+    } else {
+      throw Error(response?.message || response?.data?.message);
+    }
+  } catch (error) {
+    next(error);
+  }
+};
+
+const dailyAepsLogin = async (req, res, next) => {
+  try {
+    let { latitude, longitude, pidData } = req.body;
+
+    latitude = Number(latitude);
+    longitude = Number(longitude);
+
+    const requiredFields = ["latitude", "longitude", "pidData"];
+
+    const missingFields = [];
+
+    requiredFields.forEach((field) => {
+      if (!req.body[field]) {
+        missingFields.push(field);
+      }
+    });
+
+    if (missingFields.length > 0) {
+      return res.status(400).json({
+        success: false,
+        message: `${missingFields.join(", ")} is required`,
+      });
+    }
+
+    if (isNaN(latitude) || isNaN(longitude)) {
+      return res.status(400).json({
+        success: false,
+        message: "Latitude and Longitude must be valid numbers",
+      });
+    }
+
+    // Range validation
+    if (latitude < -90 || latitude > 90) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid latitude (must be between -90 and 90)",
+      });
+    }
+
+    if (longitude < -180 || longitude > 180) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid longitude (must be between -180 and 180)",
+      });
+    }
+
+    const userId = req.user.id;
+    const idempotency = req.headers["idempotency-key"];
+
+    if (!idempotency) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid Request ID",
+      });
+    }
+
+    const response = await dailyBiometricLogin({
+      userId,
+      requestId: idempotency,
+      latitude: latitude,
+      longitude: longitude,
+      pidData: pidData,
+    });
+
+    console.log(response, "response");
+
+    if (response && response?.status === true) {
+      const data = response?.data?.data;
+
+      await EkoOnboardAepsUser.findOneAndUpdate(
+        { userId: userId },
+        {
+          $set: { isActivated: true },
+        },
+      );
+
+      return res.status(201).json({
+        success: true,
+        data: {
+          message: response?.message,
+        },
+      });
+    } else {
+      throw Error(response?.message || response?.data?.message);
+    }
+  } catch (error) {
+    next(error);
+  }
+};
+
+const doAepsTransaction = async (req, res, next) => {
+  try {
+    let {
+      sourceIp,
+      serviceType,
+      bankId,
+      amount = 0,
+      latitude,
+      longitude,
+      pidData,
+    } = req.body;
+
+    console.log(req.body, "body");
+
+    latitude = Number(latitude);
+    longitude = Number(longitude);
+    sourceIp = sourceIp?.trim();
+    bankId = bankId?.trim();
+    serviceType = serviceType?.trim().toLowerCase();
+    amount = Number(amount);
+
+    const requiredFields = [
+      "sourceIp",
+      "serviceType",
+      "bankId",
+      "latitude",
+      "longitude",
+      "pidData",
+    ];
+
+    const missingFields = [];
+
+    requiredFields.forEach((field) => {
+      if (!req.body[field]) {
+        missingFields.push(field);
+      }
+    });
+
+    if (missingFields.length > 0) {
+      return res.status(400).json({
+        success: false,
+        message: `${missingFields.join(", ")} is required`,
+      });
+    }
+
+    if (!mongoose.Types.ObjectId.isValid(bankId)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid Bank ID",
+      });
+    }
+
+    const isBankExist = await EkoBank.findOne({ _id: bankId })
+      .select("bankCode")
+      .lean();
+
+    if (!isBankExist) {
+      return res.status(404).json({
+        success: false,
+        message: " Bank not found",
+      });
+    }
+
+    if (!["withdraw", "inquiry", "statement"].includes(serviceType)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid Service Name Selected",
+      });
+    }
+
+    // Check invalid number
+    if (isNaN(amount)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid amount",
+      });
+    }
+
+    const serviceCode = getServiceType(serviceType);
+    const amountInPaise = rupeeToPaise(amount);
+
+    //rupee comparison 100 rupee
+    if (serviceType === "withdraw" && amount < 100) {
+      return res.status(400).json({
+        success: false,
+        message: "Minimum withdrawal amount is 100",
+      });
+    }
+
+    //rupee comparison 0 rupee
+    if (["inquiry", "statement"].includes(serviceType) && amount !== 0) {
+      return res.status(400).json({
+        success: false,
+        message: "Amount must be 0 for inquiry and statement",
+      });
+    }
+
+    if (isNaN(latitude) || isNaN(longitude)) {
+      return res.status(400).json({
+        success: false,
+        message: "Latitude and Longitude must be valid numbers",
+      });
+    }
+
+    // Range validation
+    if (latitude < -90 || latitude > 90) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid latitude (must be between -90 and 90)",
+      });
+    }
+
+    if (longitude < -180 || longitude > 180) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid longitude (must be between -180 and 180)",
+      });
+    }
+
+    const userId = req.user.id;
+    const idempotency = req.headers["idempotency-key"];
+
+    if (!idempotency) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid Request ID",
+      });
+    }
+
+    const response = await initiateAepsTransaction({
+      userId,
+      requestId: idempotency,
+      latitude: latitude,
+      longitude: longitude,
+      pidData: pidData,
+      serviceType: serviceCode,
+      sourceIp: sourceIp,
+      amount: amountInPaise,
+      serviceTypeName: serviceType?.toUpperCase(), //just for logs type
+      bankCode: isBankExist?.bankCode,
+    });
+
+    console.log(response, "response");
+
+    if (response && response?.status === true) {
+      const data = response?.data?.data;
+
+      await EkoOnboardAepsUser.findOneAndUpdate(
+        { userId: userId },
+        {
           $set: { isActivated: true },
         },
       );
@@ -697,4 +1065,7 @@ module.exports = {
   activateUser,
   generateKycOtp,
   verifyKycOtp,
+  doEkycBiometric,
+  dailyAepsLogin,
+  doAepsTransaction,
 };

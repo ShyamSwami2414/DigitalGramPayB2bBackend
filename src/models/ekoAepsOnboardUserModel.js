@@ -144,6 +144,8 @@ const ekoOnboardAepsUserSchema = new mongoose.Schema(
       },
     },
 
+    accountNumber: { type: String, default: null },
+
     bank: { type: String, default: "" },
 
     ifsc: {
@@ -171,6 +173,26 @@ const ekoOnboardAepsUserSchema = new mongoose.Schema(
     isActivated: {
       type: Boolean,
       default: false,
+    },
+
+    temp_reference_tid: {
+      type: String,
+      default: null,
+    },
+
+    temp_otp_ref_id: {
+      type: String,
+      default: null,
+    },
+
+    lastLoginAt: {
+      type: Date,
+      default: null,
+    },
+
+    isLoginRequired: {
+      type: Boolean,
+      default: true,
     },
 
     // status: {
