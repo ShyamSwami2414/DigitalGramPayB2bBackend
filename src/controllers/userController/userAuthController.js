@@ -590,13 +590,43 @@ exports.fetchProfile = async (req, res, next) => {
       },
       {
         $addFields: {
-          isAepsEnabled: "$merchant.isAepsEnabled",
-          isLoginRequired: "$merchant.isLoginRequired",
-          action: "$merchant.action",
+          "aeps1.isAepsEnabled": "$merchant.isAepsEnabled",
+          "aeps1.isLoginRequired": "$merchant.isLoginRequired",
+          "aeps1.action": "$merchant.action",
+        },
+      },
+      {
+        $lookup: {
+          from: "ekoonboardaepsusers",
+          localField: "_id",
+          foreignField: "userId",
+          pipeline: [
+            {
+              $project: {
+                isActivated: 1,
+                isLoginRequired: 1,
+                action: 1,
+              },
+            },
+          ],
+          as: "onboardUser",
+        },
+      },
+      {
+        $unwind: {
+          path: "$onboardUser",
+          preserveNullAndEmptyArrays: true,
+        },
+      },
+      {
+        $addFields: {
+          "aeps2.isActivated": "$onboardUser.isActivated",
+          "aeps2.isLoginRequired": "$onboardUser.isLoginRequired",
         },
       },
       {
         $project: {
+          onboardUser: 0,
           merchant: 0,
         },
       },

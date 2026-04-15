@@ -175,20 +175,21 @@ exports.checkBiometricKycStatus = async ({ userId, requestId }) => {
     }
 
     console.log(
-      "aepsbiometric status service",
+      "aepsbiometric status cheeck service",
       JSON.stringify(result, null, 2),
     );
 
     console.log("Status", result?.status_code || result?.status);
 
-    if (result?.status_code === "TXN" || result?.statuscode === "TXN") {
+    if (result?.statuscode === "TXN" || result?.status_code === "TXN") {
       const successSession = await mongoose.startSession();
       try {
+        console.log("entered success data");
         successSession.startTransaction();
         const data = result?.data?.data;
         console.log(data, "data");
-        console.log(data.status, "status");
-        console.log(data.action, "action");
+        console.log(data?.status, "status");
+        console.log(data?.action, "action");
 
         const isKycStatusApproved =
           data?.status === "APPROVED" && data?.action === "NO-ACTION-REQUIRED";
@@ -215,22 +216,22 @@ exports.checkBiometricKycStatus = async ({ userId, requestId }) => {
           throw err;
         }
 
-        const userUpdate = await User.findOneAndUpdate(
-          { _id: new mongoose.Types.ObjectId(userId) },
-          {
-            $set: {
-              isAepsEnabled: isKycStatusApproved ? true : false,
-            },
-          },
-          { new: true, runValidators: true, session: successSession },
-        );
+        // const userUpdate = await User.findOneAndUpdate(
+        //   { _id: new mongoose.Types.ObjectId(userId) },
+        //   {
+        //     $set: {
+        //       isAepsEnabled: isKycStatusApproved ? true : false,
+        //     },
+        //   },
+        //   { new: true, runValidators: true, session: successSession },
+        // );
 
-        if (!userUpdate) {
-          const err = new Error("User not exist");
-          err.statusCode = 404;
+        // if (!userUpdate) {
+        //   const err = new Error("User not exist");
+        //   err.statusCode = 404;
 
-          throw err;
-        }
+        //   throw err;
+        // }
 
         await successSession.commitTransaction();
       } catch (error) {
@@ -449,7 +450,7 @@ exports.dailyLogin = async ({
           userId: userId,
           amount: dailyAepsLoginCharge,
           referenceId: referenceId,
-          description: `Refund: Daily Login Failed - ${apiError.message}`,
+          description: `Refund: Daily Login Failed `,
           session: refundSession,
         });
 

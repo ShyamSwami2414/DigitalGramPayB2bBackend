@@ -43,4 +43,5 @@ module.exports = (app) => {
   app.use(`${apiPrefix}/policy`, require("./policyRoute"));
   app.use(`${apiPrefix}/aepsbank`, require("./instantAepsBankRoute"));
   app.use(`${apiPrefix}/aepsInstant`, require("./instantAepsRoute"));
+  app.use(`${apiPrefix}/dmt`, require("./nobleFinoDmtRoute"));
 };

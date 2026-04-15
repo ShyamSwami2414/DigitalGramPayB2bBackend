@@ -1,36 +1,41 @@
 const appClient = require("../../../app.client");
-const ProviderLogs = require("../../../../../models/providerLogsModel");
+const NobleDmtLog = require("../../../../../models/nobleDmtLogModel");
 
-exports.getCustomer = async ({
+exports.customerEkyc = async ({
+  client_referenceId,
   userId,
   requestId, //idempotency key
-  client_referenceId,
-  mobile,
+  merchantMobileNumber,
+  mobileNumber,
+  aadharNumber,
+  pidData,
   latitude,
   longitude,
-  merchantMobileNumber,
+  publicIp,
 }) => {
-  console.log(captureType, "captureType");
   const timestamp = new Date().toISOString().slice(0, 19);
   const startTime = Date.now();
-  const token = process.env.APP_DMT_BEARER_TOKEN;
 
   try {
     const response = await appClient.post(
-      "get-customer",
+      "dmt/customer-ekyc",
       {
-        mobileNumber: mobile,
-        latitude: latitude,
-        longitude: longitude,
-        merchantMobileNumber: merchantMobileNumber,
+        merchantMobileNo: merchantMobileNumber,
+        customerMobileNo: mobileNumber,
+        aadharNo: aadharNumber,
+        pidData: pidData,
+        bioType: "0",
+        latitude: String(latitude),
+        longitude: String(longitude),
+        publicIp: publicIp,
       },
       {
         headers: {
-          Authorization: `Bearer ${token}`,
           ApiKey: process.env.APP_API_KEY,
           SecretKey: process.env.APP_SECRET_KEY,
           UserId: process.env.APP_USERID_NOBLE_DMT,
           "X-Timestamp": timestamp,
+          "Content-Type": "application/json",
         },
 
         // Accept any status code < 500 as "valid" so Axios doesn't throw
@@ -43,10 +48,8 @@ exports.getCustomer = async ({
     const responseTime = Date.now() - startTime;
 
     const isSuccess =
-      response?.data?.statusCode === "RS015" ||
-      response?.data?.status === 1 ||
-      response?.data?.statusCode === "SS0011";
-    response?.data?.statusCode === "DB0031";
+      response?.data?.data?.statusCode === "SS0011" ||
+      response?.data?.data?.status === 1;
 
     let providerStatus = isSuccess ? "SUCCESS" : "FAILED";
 
@@ -54,24 +57,30 @@ exports.getCustomer = async ({
       throw {
         providerStatus: providerStatus,
         message: response?.data.message,
+        reason: response?.data?.data?.description,
+        fullResponse: response?.data,
       };
     }
 
-    await ProviderLogs.create({
+    await NobleDmtLog.create({
       providerTxnId: response?.data?.txn_ref || undefined,
       serviceCategory: "DMT",
       userId: userId,
+      type: "CUSTOMER-EKYC",
       referenceId: client_referenceId,
-      providerName: "NOBLE_AIRTEL",
-      endPoint: "get-customer",
+      providerName: "NOBLE_FINO",
+      endPoint: "dmt/customer-ekyc",
       method: "POST",
       request: {
-        mobileNumber: mobile,
-        latitude: latitude,
-        longitude: longitude,
-        merchantMobileNumber: merchantMobileNumber,
+        merchantMobileNo: merchantMobileNumber,
+        customerMobileNo: mobileNumber,
+        aadharNo: aadharNumber,
+        pidData: pidData,
+        bioType: 0,
+        latitude: String(latitude),
+        longitude: String(longitude),
+        publicIp: publicIp,
       },
-
       response: response.data,
       providerStatus: providerStatus,
       responseTime,
@@ -81,21 +90,27 @@ exports.getCustomer = async ({
   } catch (error) {
     console.log("API Error Response:", error.response?.data || error.message);
 
-    await ProviderLogs.create({
+    await NobleDmtLog.create({
       providerTxnId: error?.response?.data?.txn_ref || undefined,
       serviceCategory: "DMT",
       userId: userId,
+      type: "CUSTOMER-EKYC",
       referenceId: client_referenceId,
-      providerName: "NOBLE_AIRTEL",
-      endPoint: "get-customer",
+      providerName: "NOBLE_FINO",
+      endPoint: "dmt/customer-ekyc",
       method: "POST",
       request: {
-        mobileNumber: mobile,
-        latitude: latitude,
-        longitude: longitude,
-        merchantMobileNumber: merchantMobileNumber,
+        merchantMobileNo: merchantMobileNumber,
+        customerMobileNo: mobileNumber,
+        aadharNo: aadharNumber,
+        pidData: pidData,
+        bioType: 0,
+        latitude: String(latitude),
+        longitude: String(longitude),
+        publicIp: publicIp,
       },
-      response: error.response?.data || { message: error.message },
+      response: error.fullResponse ||
+        error.response?.data || { message: error.message },
       providerStatus: "FAILED",
       responseTime: Date.now() - startTime,
     });

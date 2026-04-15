@@ -98,11 +98,6 @@ const userSchema = new mongoose.Schema(
       default: "pending",
     },
 
-    isAepsEnabled: {
-      type: Boolean,
-      default: false,
-    },
-
     pin: { type: Number, required: true },
 
     isActive: { type: Boolean, default: true },
