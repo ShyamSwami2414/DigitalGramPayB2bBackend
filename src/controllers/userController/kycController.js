@@ -78,6 +78,16 @@ exports.offlineKycSubmission = async (req, res, next) => {
       ifscCode,
     } = req.body;
 
+    const trimFields = (obj) => {
+      Object.keys(obj).forEach((key) => {
+        if (typeof obj[key] === "string") {
+          obj[key] = obj[key].trim();
+        }
+      });
+    };
+
+    trimFields(req.body);
+
     const requiredFields = {
       firstName,
       lastName,
@@ -99,6 +109,11 @@ exports.offlineKycSubmission = async (req, res, next) => {
 
       aadharNumber,
       panNumber,
+
+      accountHolderName,
+      bankName,
+      accountNumber,
+      ifscCode,
     };
 
     const missingFields = [];
@@ -494,14 +509,7 @@ exports.reuploadKycSections = async (req, res, next) => {
     const userId = req.user.id;
     let { sections } = req.body;
 
-    try {
-      sections = typeof sections === "string" ? JSON.parse(sections) : sections;
-    } catch (err) {
-      return res.status(400).json({
-        success: false,
-        message: "Invalid JSON format in sections",
-      });
-    }
+    sections = typeof sections === "string" ? JSON.parse(sections) : sections;
 
     console.log(sections, "sections");
 
@@ -509,13 +517,6 @@ exports.reuploadKycSections = async (req, res, next) => {
       return res.status(400).json({
         success: false,
         message: "Sections array is required",
-      });
-    }
-
-    if (!mongoose.Types.ObjectId.isValid(userId)) {
-      return res.status(400).json({
-        success: false,
-        message: "Invalid User ID",
       });
     }
 
@@ -534,13 +535,7 @@ exports.reuploadKycSections = async (req, res, next) => {
 
     const files = req.files || {};
 
-    //  Section Config (NO switch-case needed)
-    const sectionConfig = {
-      personal: "personalDetailStatus",
-      business: "businessDetailStatus",
-      bank: "bankDetailStatus",
-      identity: "identityDetailStatus",
-    };
+    console.log("files", files);
 
     const updateFields = {};
     const updatedSections = [];
@@ -549,82 +544,222 @@ exports.reuploadKycSections = async (req, res, next) => {
     for (const item of sections) {
       let { section, data } = item;
 
+      console.log(section, "section");
+      console.log(data, "data");
+
       section = section?.trim()?.toLowerCase();
 
-      if (!section || !data || !sectionConfig[section]) {
+      if (!section || !data) {
         failedSections.push(section || "unknown");
         continue;
       }
 
-      const statusField = sectionConfig[section];
+      console.log(failedSections, "failedSections");
 
-      //  allow only rejected sections
-      if (kyc[statusField] !== "rejected") {
-        failedSections.push(section);
-        continue;
-      }
+      // ================= PERSONAL =================
+      if (section === "personal") {
+        console.log("Personal Section Entered");
 
-      //  FILE HANDLING PER SECTION
-      let sectionFiles = {};
-
-      if (section === "identity") {
-        sectionFiles = {
-          ...(files.aadharFile && {
-            aadharFileUrl: files.aadharFile[0].path,
-          }),
-          ...(files.panFile && {
-            panFileUrl: files.panFile[0].path,
-          }),
-        };
-
-        // optional validation
-        if (!sectionFiles.aadharFileUrl && !sectionFiles.panFileUrl) {
-          failedSections.push("identity (file missing)");
+        if (kyc.personalDetailStatus !== "rejected") {
+          failedSections.push("personal");
           continue;
         }
+
+        //  required fields validation
+        const required = [
+          "firstName",
+          "lastName",
+          "fatherName",
+          "email",
+          "phone",
+          "dob",
+          "gender",
+        ];
+
+        let isInvalid = false;
+
+        for (let field of required) {
+          if (!data[field]) {
+            failedSections.push(`personal (${field} missing)`);
+            isInvalid = true;
+          }
+        }
+
+        //  normalize address (based on your frontend format)
+        const personalAddress = {
+          address: data.personalAddress,
+          city: data.personalCity,
+          state: data.personalState,
+          pincode: data.personalPincode,
+        };
+
+        if (
+          !personalAddress.address ||
+          !personalAddress.city ||
+          !personalAddress.state ||
+          !personalAddress.pincode
+        ) {
+          failedSections.push("personal (address incomplete)");
+          isInvalid = true;
+        }
+
+        if (isInvalid) continue;
+
+        //  correct mapping
+        Object.assign(updateFields, {
+          firstName: data.firstName,
+          lastName: data.lastName,
+          fatherName: data.fatherName,
+          email: data.email,
+          phone: data.phone,
+          dob: data.dob,
+          gender: data.gender,
+          personalAddress,
+          personalDetailStatus: "pending",
+        });
+
+        updatedSections.push("personal");
       }
 
+      // ================= BUSINESS =================
       if (section === "business") {
-        sectionFiles = {
-          ...(files.shopImage && {
-            shopImageUrl: files.shopImage[0].path,
-          }),
-        };
-
-        if (!sectionFiles.shopImageUrl) {
-          failedSections.push("business (shop image missing)");
+        if (kyc.businessDetailStatus !== "rejected") {
+          failedSections.push("business");
           continue;
         }
+
+        const shopImage = files.shopImage?.[0];
+
+        console.log("shopImage:", shopImage);
+
+        //  normalize incoming data
+        const businessAddress = {
+          address: data.businessAddress,
+          city: data.businessCity,
+          state: data.businessState,
+          pincode: data.businessPincode,
+        };
+
+        if (
+          !data.shopName ||
+          !businessAddress.address ||
+          !businessAddress.city ||
+          !businessAddress.state ||
+          !businessAddress.pincode
+        ) {
+          failedSections.push("business (missing fields)");
+          continue;
+        }
+
+        Object.assign(updateFields, {
+          shopName: data.shopName,
+          businessAddress,
+          businessPanNumber: data.businessPanNumber || null,
+          gstNumber: data.gstNumber || null,
+          shopImageUrl: `/uploads/kyc/${shopImage.filename}`,
+          businessDetailStatus: "pending",
+        });
+
+        updatedSections.push("business");
       }
 
-      //  MERGE DATA
-      Object.assign(updateFields, {
-        ...data,
-        ...sectionFiles,
-        [statusField]: "pending",
-      });
+      // ================= BANK =================
+      if (section === "bank") {
+        if (kyc.bankDetailStatus !== "rejected") {
+          failedSections.push("bank");
+          continue;
+        }
 
-      updatedSections.push(section);
+        const required = [
+          "accountHolderName",
+          "bankName",
+          "branchName",
+          "accountNumber",
+          "ifscCode",
+        ];
+
+        for (let field of required) {
+          if (!data[field]) {
+            failedSections.push(`bank (${field} missing)`);
+            continue;
+          }
+        }
+
+        Object.assign(updateFields, {
+          ...data,
+          bankDetailStatus: "pending",
+        });
+
+        updatedSections.push("bank");
+      }
+
+      // ================= IDENTITY =================
+      if (section === "identity") {
+        if (kyc.identityDetailStatus !== "rejected") {
+          failedSections.push("identity");
+          continue;
+        }
+
+        const aadharFile = files.aadharFile?.[0];
+        const panFile = files.panFile?.[0];
+
+        if (!data.aadharNumber || !data.panNumber || !aadharFile || !panFile) {
+          failedSections.push("identity (missing fields/files)");
+          continue;
+        }
+
+        Object.assign(updateFields, {
+          aadharNumber: data.aadharNumber,
+          panNumber: data.panNumber,
+          aadharFileUrl: `/uploads/kyc/${aadharFile.filename}`,
+          panFileUrl: `/uploads/kyc/${panFile.filename}`,
+          identityDetailStatus: "pending",
+        });
+
+        updatedSections.push("identity");
+      }
     }
+
+    console.log("updatedSections", updatedSections);
 
     if (updatedSections.length === 0) {
       return res.status(400).json({
         success: false,
         message: "No valid sections updated",
-        updatedSections,
         failedSections,
       });
     }
 
-    //  RESET OVERALL KYC
     updateFields.status = "pending";
     updateFields.rejectionReason = "";
 
     const updatedKyc = await Kyc.findByIdAndUpdate(
       kyc._id,
       { $set: updateFields },
-      { new: true },
+      { new: true, runValidators: true },
     );
+
+    const updatedUser = await User.findOneAndUpdate(
+      {
+        _id: userId,
+        isActive: true,
+      },
+      {
+        $set: {
+          kycStatus: "submitted",
+        },
+      },
+      {
+        new: true,
+      },
+    );
+
+    if (!updatedUser) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
 
     return res.status(200).json({
       success: true,

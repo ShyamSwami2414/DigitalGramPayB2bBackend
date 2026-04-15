@@ -89,6 +89,7 @@ const redeemCoupon = async (req, res, next) => {
       {
         $set: {
           isPaymentDone: true,
+          idPaymentStatus: "coupon",
         },
       },
       {
@@ -103,15 +104,11 @@ const redeemCoupon = async (req, res, next) => {
     return res.status(200).json({
       success: true,
       message: "Coupon redeemed successfully",
-      data: {
-        couponAppliedAmount: coupon.amount,
-      },
     });
   } catch (error) {
     if (session.inTransaction) {
       await session.abortTransaction();
     }
-
     next(error);
   } finally {
     session.endSession();

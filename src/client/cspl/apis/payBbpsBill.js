@@ -17,7 +17,7 @@ exports.payBbpsBill = async ({
   paramValue,
   inputParams,
 }) => {
-  console.log(billamount, "billamount  in paise");
+  return console.log(billamount, "billamount  in paise");
   const timestamp = new Date().toISOString();
   const startTime = Date.now();
   try {
@@ -59,6 +59,7 @@ exports.payBbpsBill = async ({
 
     await ProviderLogs.create({
       providerTxnId: response?.data?.billerstatus?.txnRefId || null,
+      serviceCategory: "BBPS",
       referenceId: client_referenceId,
       providerName: "CSPL",
       endPoint: "bbps/billpay",
@@ -90,6 +91,7 @@ exports.payBbpsBill = async ({
 
     await ProviderLogs.create({
       providerTxnId: error.response?.data?.txn_ref || null,
+      serviceCategory: "BBPS",
       referenceId: client_referenceId,
       providerName: "CSPL",
       endPoint: "bbps/billpay",

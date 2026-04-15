@@ -18,6 +18,7 @@ const walletLedgerSchema = new mongoose.Schema(
         "COMMISSION",
         "REFUND",
         "BBPS",
+        "AEPS",
         "DMT",
         "WALLET_REFILL",
         "AEPSTOMAIN",

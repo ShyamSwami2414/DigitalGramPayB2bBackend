@@ -22,6 +22,13 @@ const walletTopupBankSchema = new mongoose.Schema(
       maxlength: [100, "Bank name cannot exceed 100 characters"],
     },
 
+    upiId: {
+      type: String,
+      trim: true,
+      minlength: [5, "UPI Id must be at least 5 characters"],
+      maxlength: [100, "UPI Id name cannot exceed 100 characters"],
+    },
+
     accountHolderName: {
       type: String,
       required: [true, "Account holder name is required"],
@@ -68,7 +75,7 @@ const walletTopupBankSchema = new mongoose.Schema(
       default: null,
     },
   },
-  { timestamps: true, versionKey: false }
+  { timestamps: true, versionKey: false },
 );
 
 module.exports = mongoose.model("WalletTopupBank", walletTopupBankSchema);

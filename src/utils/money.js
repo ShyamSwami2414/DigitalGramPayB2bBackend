@@ -7,12 +7,12 @@ const rupeeToPaise = (rupees) => {
 };
 
 const paiseToRupee = (paise) => {
-  console.log("paise", paise);
-  if (paise == null || isNaN(paise)) {
-    throw new Error("Invalid amount");
+  if (paise == null || paise === "" || isNaN(paise)) {
+    console.warn("Invalid paise value:", paise);
+    return 0;
   }
 
-  return Number((Number(paise) / 100).toFixed(2)); // return NUMBER instead of string
+  return Number((Number(paise) / 100).toFixed(2));
 };
 
 const formatRupee = (value) => {

@@ -416,7 +416,7 @@ exports.getWalletStats = async (req, res, next) => {
       return res.status(400).json({ message: "To date in future" });
     }
 
-    // 📅 DATE LOGIC
+    //  DATE LOGIC
     if (range) {
       switch (range) {
         case "today":
@@ -477,7 +477,7 @@ exports.getWalletStats = async (req, res, next) => {
     let userIds = [];
 
     if (user) {
-      // 👉 ONLY selected user
+      //  ONLY selected user
       if (!mongoose.Types.ObjectId.isValid(user)) {
         return res.status(400).json({ message: "Invalid user ID" });
       }
@@ -497,7 +497,7 @@ exports.getWalletStats = async (req, res, next) => {
 
       userIds = [new mongoose.Types.ObjectId(user)];
     } else {
-      // 👉 SELF + DOWNLINE
+      // SELF + DOWNLINE
       const downline = await User.aggregate([
         { $match: { _id: new mongoose.Types.ObjectId(req.user.id) } },
         {
@@ -532,7 +532,7 @@ exports.getWalletStats = async (req, res, next) => {
       ];
     }
 
-    // 📌 BASE FILTER
+    //  BASE FILTER
     const baseFilter = {
       userId: { $in: userIds },
       ...(fromDate || toDate
@@ -559,7 +559,7 @@ exports.getWalletStats = async (req, res, next) => {
       ...baseFilter,
     };
 
-    // 🚀 AGGREGATION
+    //  AGGREGATION
     const [result] = await RechargeReport.aggregate([
       { $match: rechargeFilter },
       {
@@ -1179,29 +1179,85 @@ exports.getWalletReport = async (req, res, next) => {
       if (toDate) filter.createdAt.$lte = toDate;
     }
 
+    // if (user) {
+    //   if (!mongoose.Types.ObjectId.isValid(user)) {
+    //     return res
+    //       .status(400)
+    //       .json({ success: false, message: "Invalid user ID" });
+    //   }
+
+    //   const userExist = await User.findOne({ _id: user }).lean();
+
+    //   if (!userExist) {
+    //     return res
+    //       .status(404)
+    //       .json({ success: false, message: "User not found" });
+    //   }
+
+    //   if (
+    //     userExist._id.toString() !== req.user.id.toString() && // not self
+    //     userExist.parentUserId?.toString() !== req.user.id.toString() // not child
+    //   ) {
+    //     return res.status(403).json({
+    //       success: false,
+    //       message: "Not allowed to access this user",
+    //     });
+    //   }
+    // }
+
     if (user) {
       if (!mongoose.Types.ObjectId.isValid(user)) {
-        return res
-          .status(400)
-          .json({ success: false, message: "Invalid user ID" });
+        return res.status(400).json({
+          success: false,
+          message: "Invalid user ID",
+        });
       }
 
-      const userExist = await User.findOne({ _id: user }).lean();
+      const userObjectId = new mongoose.Types.ObjectId(user);
+      const currentUserId = new mongoose.Types.ObjectId(req.user.id);
+
+      const userExist = await User.findById(userObjectId).lean();
 
       if (!userExist) {
-        return res
-          .status(404)
-          .json({ success: false, message: "User not found" });
+        return res.status(404).json({
+          success: false,
+          message: "User not found",
+        });
       }
 
-      if (
-        userExist._id.toString() !== req.user.id.toString() && // not self
-        userExist.parentUserId?.toString() !== req.user.id.toString() // not child
-      ) {
-        return res.status(403).json({
-          success: false,
-          message: "Not allowed to access this user",
-        });
+      // ✅ ONLY check if NOT self
+      if (!userObjectId.equals(currentUserId)) {
+        const downlineData = await User.aggregate([
+          { $match: { _id: currentUserId } },
+          {
+            $graphLookup: {
+              from: "users",
+              startWith: "$_id",
+              connectFromField: "_id",
+              connectToField: "parentUserId",
+              as: "downline",
+              maxDepth: 10,
+            },
+          },
+          {
+            $project: {
+              allUserIds: {
+                $concatArrays: [["$_id"], "$downline._id"],
+              },
+            },
+          },
+        ]);
+
+        const allUserIds = downlineData?.[0]?.allUserIds || [];
+
+        const isAllowed = allUserIds.some((id) => id.equals(userObjectId));
+
+        if (!isAllowed) {
+          return res.status(403).json({
+            success: false,
+            message: "Not allowed to access this user",
+          });
+        }
       }
     }
 
@@ -1252,7 +1308,7 @@ exports.getWalletReport = async (req, res, next) => {
     }
 
     const walletReport = await WalletLedger.aggregate([
-      // 1️⃣ ACCESS CONTROL (SELF OR SELECTED USER TREE)
+      //  ACCESS CONTROL (SELF OR SELECTED USER TREE)
       {
         $lookup: {
           from: "users",
@@ -1305,7 +1361,7 @@ exports.getWalletReport = async (req, res, next) => {
         },
       },
 
-      // 2️⃣ FILTERS
+      //  FILTERS
       {
         $match: {
           ...(wallet && { wallet }),
@@ -1320,14 +1376,14 @@ exports.getWalletReport = async (req, res, next) => {
         },
       },
 
-      // 3️⃣ ❌ REMOVE COMMISSION ROWS
+      // REMOVE COMMISSION ROWS
       {
         $match: {
           serviceType: { $ne: "COMMISSION" },
         },
       },
 
-      // 4️⃣ 🔥 MERGE COMMISSION FROM LEDGER
+      //  MERGE COMMISSION FROM LEDGER
       {
         $lookup: {
           from: "walletledgers",
@@ -1357,7 +1413,7 @@ exports.getWalletReport = async (req, res, next) => {
         },
       },
 
-      // 5️⃣ FETCH SERVICE DATA
+      //  FETCH SERVICE DATA
       {
         $lookup: {
           from: "rechargereports",
@@ -1375,7 +1431,7 @@ exports.getWalletReport = async (req, res, next) => {
         },
       },
 
-      // 6️⃣ MERGE SERVICE DATA
+      // MERGE SERVICE DATA
       {
         $addFields: {
           serviceData: {
@@ -1388,7 +1444,7 @@ exports.getWalletReport = async (req, res, next) => {
         },
       },
 
-      // 7️⃣ 🔥 REFUND LOGIC (FROM REPORTS)
+      //  REFUND LOGIC (FROM REPORTS)
       {
         $addFields: {
           isRefunded: {
@@ -1397,7 +1453,7 @@ exports.getWalletReport = async (req, res, next) => {
         },
       },
 
-      // 8️⃣ JOIN USER
+      // JOIN USER
       {
         $lookup: {
           from: "users",
@@ -1408,7 +1464,7 @@ exports.getWalletReport = async (req, res, next) => {
       },
       { $unwind: "$user" },
 
-      // 9️⃣ FINAL OUTPUT
+      // FINAL OUTPUT
       {
         $project: {
           _id: 1,

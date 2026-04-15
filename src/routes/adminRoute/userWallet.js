@@ -2,33 +2,46 @@ const mongoose = require("mongoose");
 const express = require("express");
 const { authenticateUser } = require("../../middleware/authMiddleware");
 const { authorizeRoles } = require("../../middleware/roleMiddleware");
-const { getAllUserWallet, holdReleaseAmount, creditDebitAmount, getWalletBalances, aepsToEwalletHistory } = require("../../controllers/adminController/userWalletController");
+const {
+  getAllUserWallet,
+  holdReleaseAmount,
+  creditDebitAmount,
+  getWalletBalances,
+  aepsToEwalletHistory,
+} = require("../../controllers/adminController/userWalletController");
+const checkAllowedPermission = require("../../middleware/adminPermissionCheck");
 const router = express.Router();
 
 router.get(
-    "/get-wallet-balances",
-    authenticateUser,
-    authorizeRoles("admin"),
-    getWalletBalances
-)
-
-router.get(
-    "/get-all-user-wallet",
-    authenticateUser,
-    authorizeRoles("admin"),
-    getAllUserWallet
+  "/get-wallet-balances",
+  authenticateUser,
+  authorizeRoles("admin"),
+  checkAllowedPermission("WALLET"),
+  getWalletBalances,
 );
 
-router.patch("/hold-release-amount",
-    authenticateUser,
-    authorizeRoles("admin"),
-    holdReleaseAmount
-)
+router.get(
+  "/get-all-user-wallet",
+  authenticateUser,
+  authorizeRoles("admin"),
+  checkAllowedPermission("WALLET"),
+  getAllUserWallet,
+);
 
-router.patch("/credit-debit-amount",
-    authenticateUser,
-    authorizeRoles("admin"),
-    creditDebitAmount
+router.patch(
+  "/hold-release-amount",
+  authenticateUser,
+  authorizeRoles("admin"),
+  checkAllowedPermission("WALLET"),
+  holdReleaseAmount,
+);
+
+router.patch(
+  "/credit-debit-amount",
+  authenticateUser,
+  authorizeRoles("admin"),
+  checkAllowedPermission("WALLET"),
+  creditDebitAmount,
 );
 
 module.exports = router;

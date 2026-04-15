@@ -1,15 +1,19 @@
 const express = require("express");
-const router = express.Router()
+const router = express.Router();
 
 const { authenticateUser } = require("../../middleware/authMiddleware");
 const { authorizeRoles } = require("../../middleware/roleMiddleware");
-const { getPermissionList } = require("../../controllers/adminController/permissionController");
+const {
+  getPermissionList,
+} = require("../../controllers/adminController/permissionController");
+const checkAllowedPermission = require("../../middleware/adminPermissionCheck");
 
-router.get("/permission-list",
-    authenticateUser,
-    authorizeRoles("admin"),
-    getPermissionList
+router.get(
+  "/permission-list",
+  authenticateUser,
+  authorizeRoles("admin"),
+  checkAllowedPermission("EMPLOYEE"),
+  getPermissionList,
 );
-
 
 module.exports = router;

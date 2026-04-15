@@ -92,6 +92,17 @@ const userSchema = new mongoose.Schema(
       default: false,
     },
 
+    idPaymentStatus: {
+      type: String,
+      enum: ["pending", "complete", "approved", "rejected", "coupon"],
+      default: "pending",
+    },
+
+    isAepsEnabled: {
+      type: Boolean,
+      default: false,
+    },
+
     pin: { type: Number, required: true },
 
     isActive: { type: Boolean, default: true },

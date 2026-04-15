@@ -225,29 +225,85 @@ const getRechargeStats = async (req, res, next) => {
       if (toDate) filter.createdAt.$lte = toDate;
     }
 
+    //  if (user) {
+    //   if (!mongoose.Types.ObjectId.isValid(user)) {
+    //     return res
+    //       .status(400)
+    //       .json({ success: false, message: "Invalid user ID" });
+    //   }
+
+    //   const userExist = await User.findOne({ _id: user }).lean();
+
+    //   if (!userExist) {
+    //     return res
+    //       .status(404)
+    //       .json({ success: false, message: "User not found" });
+    //   }
+
+    //   if (
+    //     userExist._id.toString() !== req.user.id.toString() && // not self
+    //     userExist.parentUserId?.toString() !== req.user.id.toString() // not child
+    //   ) {
+    //     return res.status(403).json({
+    //       success: false,
+    //       message: "Not allowed to access this user",
+    //     });
+    //   }
+    // }
+
     if (user) {
       if (!mongoose.Types.ObjectId.isValid(user)) {
-        return res
-          .status(400)
-          .json({ success: false, message: "Invalid user ID" });
+        return res.status(400).json({
+          success: false,
+          message: "Invalid user ID",
+        });
       }
 
-      const userExist = await User.findOne({ _id: user }).lean();
+      const userObjectId = new mongoose.Types.ObjectId(user);
+      const currentUserId = new mongoose.Types.ObjectId(req.user.id);
+
+      const userExist = await User.findById(userObjectId).lean();
 
       if (!userExist) {
-        return res
-          .status(404)
-          .json({ success: false, message: "User not found" });
+        return res.status(404).json({
+          success: false,
+          message: "User not found",
+        });
       }
 
-      if (
-        userExist._id.toString() !== req.user.id.toString() && // not self
-        userExist.parentUserId?.toString() !== req.user.id.toString() // not child
-      ) {
-        return res.status(403).json({
-          success: false,
-          message: "Not allowed to access this user",
-        });
+      // ✅ ONLY check if NOT self
+      if (!userObjectId.equals(currentUserId)) {
+        const downlineData = await User.aggregate([
+          { $match: { _id: currentUserId } },
+          {
+            $graphLookup: {
+              from: "users",
+              startWith: "$_id",
+              connectFromField: "_id",
+              connectToField: "parentUserId",
+              as: "downline",
+              maxDepth: 10,
+            },
+          },
+          {
+            $project: {
+              allUserIds: {
+                $concatArrays: [["$_id"], "$downline._id"],
+              },
+            },
+          },
+        ]);
+
+        const allUserIds = downlineData?.[0]?.allUserIds || [];
+
+        const isAllowed = allUserIds.some((id) => id.equals(userObjectId));
+
+        if (!isAllowed) {
+          return res.status(403).json({
+            success: false,
+            message: "Not allowed to access this user",
+          });
+        }
       }
     }
 
@@ -622,29 +678,85 @@ const getCompleteRechargeReport = async (req, res, next) => {
 
     if (user) {
       if (!mongoose.Types.ObjectId.isValid(user)) {
-        return res
-          .status(400)
-          .json({ success: false, message: "Invalid user ID" });
-      }
-
-      const userExist = await User.findOne({ _id: user }).lean();
-
-      if (!userExist) {
-        return res
-          .status(404)
-          .json({ success: false, message: "User not found" });
-      }
-
-      if (
-        userExist._id.toString() !== req.user.id.toString() && // not self
-        userExist.parentUserId?.toString() !== req.user.id.toString() // not child
-      ) {
-        return res.status(403).json({
+        return res.status(400).json({
           success: false,
-          message: "Not allowed to access this user",
+          message: "Invalid user ID",
         });
       }
+
+      const userObjectId = new mongoose.Types.ObjectId(user);
+      const currentUserId = new mongoose.Types.ObjectId(req.user.id);
+
+      const userExist = await User.findById(userObjectId).lean();
+
+      if (!userExist) {
+        return res.status(404).json({
+          success: false,
+          message: "User not found",
+        });
+      }
+
+      // ✅ ONLY check if NOT self
+      if (!userObjectId.equals(currentUserId)) {
+        const downlineData = await User.aggregate([
+          { $match: { _id: currentUserId } },
+          {
+            $graphLookup: {
+              from: "users",
+              startWith: "$_id",
+              connectFromField: "_id",
+              connectToField: "parentUserId",
+              as: "downline",
+              maxDepth: 10,
+            },
+          },
+          {
+            $project: {
+              allUserIds: {
+                $concatArrays: [["$_id"], "$downline._id"],
+              },
+            },
+          },
+        ]);
+
+        const allUserIds = downlineData?.[0]?.allUserIds || [];
+
+        const isAllowed = allUserIds.some((id) => id.equals(userObjectId));
+
+        if (!isAllowed) {
+          return res.status(403).json({
+            success: false,
+            message: "Not allowed to access this user",
+          });
+        }
+      }
     }
+
+    // if (user) {
+    //   if (!mongoose.Types.ObjectId.isValid(user)) {
+    //     return res
+    //       .status(400)
+    //       .json({ success: false, message: "Invalid user ID" });
+    //   }
+
+    //   const userExist = await User.findOne({ _id: user }).lean();
+
+    //   if (!userExist) {
+    //     return res
+    //       .status(404)
+    //       .json({ success: false, message: "User not found" });
+    //   }
+
+    //   if (
+    //     userExist._id.toString() !== req.user.id.toString() && // not self
+    //     userExist.parentUserId?.toString() !== req.user.id.toString() // not child
+    //   ) {
+    //     return res.status(403).json({
+    //       success: false,
+    //       message: "Not allowed to access this user",
+    //     });
+    //   }
+    // }
 
     const rechargeReport = await User.aggregate([
       {

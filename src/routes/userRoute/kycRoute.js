@@ -12,7 +12,7 @@ const createUploader = require("../../middleware/uploadMiddleware");
 const checkUserPaymentAndKYC = require("../../middleware/kycPaymentCheckMiddleware");
 const router = express.Router();
 
-const kycUpload = createUploader("kyc", /jpeg|jpg|png|pdf/, 15);
+const kycUpload = createUploader("kyc", /jpeg|jpg|png|pdf/, 200); //kb
 
 router.get("/submitted-kyc", authenticateUser, getSubmittedKyc);
 

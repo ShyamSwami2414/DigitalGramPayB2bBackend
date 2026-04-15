@@ -13,7 +13,7 @@ const idempotencyMiddleware = require("../../middleware/idempotencyMiddleware");
 
 const router = express.Router();
 
-const upload = createUploader("paymentProof", /jpeg|jpg|png|pdf/, 5);
+const upload = createUploader("paymentProof", /jpeg|jpg|png|pdf/, 2048);
 
 router.get(
   "/offline-topup-requests-stats",

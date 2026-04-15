@@ -52,7 +52,7 @@ exports.superAdminLogin = async (req, res, next) => {
         .json({ success: false, message: "Email and password are required" });
     }
 
-    const admin = await Admin.findOne({ email });
+    const admin = await Admin.findOne({ email, isDeleted: false });
     if (!admin) {
       return res
         .status(404)
@@ -105,7 +105,7 @@ exports.verifySuperAdminOtp = async (req, res, next) => {
         .json({ success: false, message: "Email and OTP are required" });
     }
 
-    const admin = await Admin.findOne({ email });
+    const admin = await Admin.findOne({ email, isDeleted: false });
     if (!admin) {
       return res
         .status(404)
@@ -133,7 +133,12 @@ exports.verifySuperAdminOtp = async (req, res, next) => {
         .json({ success: false, message: "OTP has expired" });
     }
 
-    const token = generateToken({ id: admin._id, role: "admin" });
+    const token = generateToken({
+      id: admin?._id,
+      role: "admin",
+      type: admin?.type,
+      permissionIds: admin?.permissionIds,
+    });
 
     savedOtp.isUsed = true;
     await savedOtp.save();
@@ -214,19 +219,18 @@ exports.updateProfile = async (req, res, next) => {
         .status(404)
         .json({ success: false, message: "Admin not found" });
     }
-    
-    const {name,phone,email,bio}=req.body
-    if(!name||!phone||!email){
-        return res.status(400).json({
-            success:false,
-            message:"All fields are required"
-        })
+
+    const { name, phone, email, bio } = req.body;
+    if (!name || !phone || !email) {
+      return res.status(400).json({
+        success: false,
+        message: "All fields are required",
+      });
     }
-    admin.name=name
-    admin.email=email
-    admin.phone=phone
-    admin.bio=bio||""
-    
+    admin.name = name;
+    admin.email = email;
+    admin.phone = phone;
+    admin.bio = bio || "";
 
     await admin.save();
     return res.status(201).json({
@@ -242,20 +246,57 @@ exports.fetchProfile = async (req, res, next) => {
   try {
     const adminId = req.user.id;
 
-    const admin = await Admin.findOne({
-      _id: new mongoose.Types.ObjectId(adminId),
-      isDeleted: false,
-    });
-    if (!admin) {
-      return res
-        .status(404)
-        .json({ success: false, message: "Admin not found" });
+    console.log(adminId, "adminId");
+
+    const result = await Admin.aggregate([
+      {
+        $match: {
+          _id: new mongoose.Types.ObjectId(adminId),
+          isDeleted: false,
+        },
+      },
+      {
+        $lookup: {
+          from: "permissions",
+          let: { permissionIds: "$permissionIds" },
+          pipeline: [
+            {
+              $match: {
+                $expr: {
+                  $in: ["$_id", "$$permissionIds"],
+                },
+              },
+            },
+            {
+              $project: {
+                _id: 1, 
+                name: 1, 
+              },
+            },
+          ],
+          as: "permissions",
+        },
+      },
+      {
+        $project: {
+          password: 0,
+        },
+      },
+    ]);
+
+    console.log(result, "result");
+
+    if (!result || result.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: "Admin not found",
+      });
     }
 
-    return res.status(201).json({
+    return res.status(200).json({
       success: true,
-      message: "Password changed successfully",
-      data: admin,
+      message: "Profile fetched successfully",
+      data: result[0],
     });
   } catch (error) {
     next(error);

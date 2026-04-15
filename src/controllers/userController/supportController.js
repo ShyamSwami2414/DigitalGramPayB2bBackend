@@ -123,8 +123,10 @@ exports.getMySupportRequests = async (req, res, next) => {
 exports.getSupportRequestById = async (req, res, next) => {
   try {
     const { id } = req.params;
+    console.log(req.params, "params");
     const filter = {
       userId: new mongoose.Types.ObjectId(req.user.id),
+      _id: new mongoose.Types.ObjectId(id),
       isDeleted: false,
     };
 

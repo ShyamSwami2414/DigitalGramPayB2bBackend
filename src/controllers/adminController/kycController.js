@@ -13,9 +13,11 @@ exports.getKycData = async (req, res, next) => {
   try {
     let { page = 1, limit = 10, status = "", search = "" } = req.query;
 
+    console.log(req.query, "query");
+
     page = Number(page);
     limit = Number(limit);
-    status = status.trim();
+    status = status?.trim();
     const skip = (page - 1) * limit;
 
     if (isNaN(page) || isNaN(limit) || page <= 0 || limit <= 0) {
@@ -27,7 +29,8 @@ exports.getKycData = async (req, res, next) => {
     const filter = { isDeleted: false };
 
     if (status) {
-      filter.status = status.toLowerCase();
+      console.log(status);
+      filter.status = status?.toLowerCase();
     }
 
     if (search) {
@@ -43,6 +46,14 @@ exports.getKycData = async (req, res, next) => {
       Kyc.find(filter).sort({ createdAt: -1 }).skip(skip).limit(limit).lean(),
       Kyc.countDocuments(filter),
     ]);
+
+    console.log(kycs, "kycs");
+
+    if (!kycs) {
+      return res
+        .status(404)
+        .json({ success: true, message: "KYC data fetched successfully" });
+    }
 
     return res.status(200).json({
       success: true,
@@ -345,7 +356,6 @@ exports.requestReKyc = async (req, res, next) => {
     const { id } = req.params;
     let { reason = "" } = req.body;
 
-    //  THROW ERRORS (no manual abort here)
     if (!id || !mongoose.Types.ObjectId.isValid(id)) {
       const error = new Error("Invalid KYC ID");
       error.statusCode = 400;
@@ -388,12 +398,14 @@ exports.requestReKyc = async (req, res, next) => {
     );
 
     const updatedUser = await User.findByIdAndUpdate(
-      kyc.userId,
+      updatedKyc.userId,
       {
         $set: { kycStatus: "rekyc" },
       },
       { new: true, session },
     );
+
+    console.log(updatedUser, "updatedUser");
 
     if (!updatedUser) {
       const error = new Error("User not found");
@@ -401,7 +413,13 @@ exports.requestReKyc = async (req, res, next) => {
       throw error;
     }
 
-    const html = reKycTemplate({ name: updatedUser?.name, reason: reason });
+    const fullName =
+      `${updatedUser?.firstName || ""} ${updatedUser?.lastName || ""}`.trim();
+
+    const html = reKycTemplate({
+      name: fullName,
+      reason: reason,
+    });
 
     await session.commitTransaction();
 
@@ -416,6 +434,9 @@ exports.requestReKyc = async (req, res, next) => {
     return res.status(200).json({
       success: true,
       message: "KYC marked for re-upload",
+      data: {
+        kycStatus: "rekyc",
+      },
     });
   } catch (error) {
     if (session.inTransaction()) {

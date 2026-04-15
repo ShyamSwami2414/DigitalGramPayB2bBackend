@@ -152,7 +152,10 @@ exports.getCommissionList = async (req, res, next) => {
       ...item,
       from: paiseToRupee(item?.from),
       to: paiseToRupee(item?.to),
-      commission: paiseToRupee(item?.commission),
+      commission:
+        item?.type === "flat"
+          ? paiseToRupee(item?.commission)
+          : item?.commission,
     }));
 
     return res.status(200).json({
@@ -169,6 +172,7 @@ exports.createCommission = async (req, res, next) => {
   try {
     let { packageId, serviceId, operatorId, categoryId, plan } = req.body;
 
+    // ✅ Required fields
     if (!packageId || !serviceId) {
       return res.status(400).json({
         success: false,
@@ -183,6 +187,7 @@ exports.createCommission = async (req, res, next) => {
       });
     }
 
+    // ✅ ObjectId validation
     if (!mongoose.Types.ObjectId.isValid(packageId)) {
       return res.status(400).json({
         success: false,
@@ -197,18 +202,22 @@ exports.createCommission = async (req, res, next) => {
       });
     }
 
-    //rupee to paise
-    plan = plan.map((p) => ({
-      from: rupeeToPaise(p.from),
-      to: rupeeToPaise(p.to),
-      commission:
-        p.type === "percent"
-          ? Number(p.commission)
-          : rupeeToPaise(p.commission),
-      type: p.type?.trim().toLowerCase(),
-    }));
+    // ✅ Normalize + convert
+    plan = plan.map((p, i) => {
+      const type = p.type?.toString().trim().toLowerCase();
 
-    // sort plans
+      return {
+        from: Number(rupeeToPaise(p.from)),
+        to: Number(rupeeToPaise(p.to)),
+        commission:
+          type === "percent"
+            ? Number(p.commission)
+            : Number(rupeeToPaise(p.commission)),
+        type,
+      };
+    });
+
+    // ✅ Sort plans
     plan.sort((a, b) => a.from - b.from);
 
     const validatedPlans = [];
@@ -216,67 +225,57 @@ exports.createCommission = async (req, res, next) => {
     for (let i = 0; i < plan.length; i++) {
       let { from, to, commission, type } = plan[i];
 
-      from = Number(from);
-      to = Number(to);
-      commission = Number(commission);
-      type = type?.trim().toLowerCase();
-
-      if (isNaN(from) || isNaN(to) || isNaN(commission)) {
+      // ✅ Basic validations
+      if ([from, to, commission].some((v) => isNaN(v))) {
         return res.status(400).json({
           success: false,
-          message: `Invalid numeric value in plan index ${i}`,
+          message: `Invalid numeric value at index ${i}`,
         });
       }
 
       if (from <= 0 || to <= 0) {
         return res.status(400).json({
           success: false,
-          message: `Amount must be greater than 0 in plan index ${i}`,
+          message: `Amounts must be greater than 0 at index ${i}`,
         });
       }
 
       if (from >= to) {
         return res.status(400).json({
           success: false,
-          message: `Invalid range in plan index ${i}`,
+          message: `Invalid range at index ${i}`,
         });
       }
 
       if (!["flat", "percent"].includes(type)) {
         return res.status(400).json({
           success: false,
-          message: `Invalid type in plan index ${i}`,
+          message: `Invalid type at index ${i}`,
         });
       }
 
       if (type === "percent" && commission > 100) {
         return res.status(400).json({
           success: false,
-          message: `Commission cannot exceed 100% in plan index ${i}`,
+          message: `Commission cannot exceed 100% at index ${i}`,
         });
       }
 
-      // check overlap inside request
+      // ✅ Overlap check inside request (CRITICAL)
       if (i > 0) {
         const prev = validatedPlans[i - 1];
-
         if (from <= prev.to) {
           return res.status(400).json({
             success: false,
-            message: `Plan overlaps with previous range at index ${i}`,
+            message: `Overlapping ranges at index ${i}`,
           });
         }
       }
 
-      validatedPlans.push({
-        from: from,
-        to: to,
-        commission: commission,
-        type,
-      });
+      validatedPlans.push({ from, to, commission, type });
     }
 
-    // validate package
+    // ✅ Validate package
     const isValidPackage = await Package.findOne({
       _id: packageId,
       isActive: true,
@@ -290,7 +289,7 @@ exports.createCommission = async (req, res, next) => {
       });
     }
 
-    // validate service
+    // ✅ Validate service
     const isValidService = await Service.findOne({
       _id: serviceId,
       isActive: true,
@@ -304,8 +303,15 @@ exports.createCommission = async (req, res, next) => {
       });
     }
 
-    // validate operator
+    // ✅ Validate operator
     if (operatorId) {
+      if (!mongoose.Types.ObjectId.isValid(operatorId)) {
+        return res.status(400).json({
+          success: false,
+          message: "Invalid Operator ID",
+        });
+      }
+
       const isValidOperator = await Operator.findOne({
         _id: operatorId,
         isActive: true,
@@ -320,8 +326,15 @@ exports.createCommission = async (req, res, next) => {
       }
     }
 
-    // validate category
+    // ✅ Validate category
     if (categoryId) {
+      if (!mongoose.Types.ObjectId.isValid(categoryId)) {
+        return res.status(400).json({
+          success: false,
+          message: "Invalid Category ID",
+        });
+      }
+
       const isValidCategory = await BbpsCategory.findOne({
         _id: categoryId,
         isActive: true,
@@ -336,7 +349,7 @@ exports.createCommission = async (req, res, next) => {
       }
     }
 
-    // check if commission already exists
+    // ✅ Find existing commission
     let commissionDoc = await Commission.findOne({
       packageId,
       serviceId,
@@ -344,9 +357,9 @@ exports.createCommission = async (req, res, next) => {
       categoryId: categoryId || null,
     });
 
+    // ✅ CREATE
     if (!commissionDoc) {
-      // create new commission
-      commissionDoc = await Commission.create({
+      await Commission.create({
         packageId,
         serviceId,
         operatorId: operatorId || null,
@@ -360,52 +373,275 @@ exports.createCommission = async (req, res, next) => {
       });
     }
 
-    const existingPlans = commissionDoc.plan.filter((p) => !p.isDeleted);
-    const plansToInsert = [];
+    // ✅ REPLACE MODE (NO BUGS)
+    commissionDoc.plan = validatedPlans;
 
-    for (let newPlan of validatedPlans) {
-      // check if exact plan already exists
-      const alreadyExists = existingPlans.some(
-        (oldPlan) =>
-          oldPlan.from === newPlan.from &&
-          oldPlan.to === newPlan.to &&
-          oldPlan.commission === newPlan.commission &&
-          oldPlan.type === newPlan.type,
-      );
-
-      if (alreadyExists) continue;
-
-      // check overlap
-      for (let oldPlan of existingPlans) {
-        if (newPlan.from <= oldPlan.to && newPlan.to >= oldPlan.from) {
-          return res.status(400).json({
-            success: false,
-            message: `Plan range ${newPlan.from}-${newPlan.to} overlaps with existing range`,
-          });
-        }
-      }
-
-      plansToInsert.push(newPlan);
-    }
-
-    if (plansToInsert.length === 0) {
-      return res.status(200).json({
-        success: true,
-        message: "No new plans to add",
-      });
-    }
-
-    commissionDoc.plan.push(...plansToInsert);
     await commissionDoc.save();
 
     return res.status(200).json({
       success: true,
-      message: "Commission Plans Added Successfully",
+      message: "Commission Updated Successfully",
     });
   } catch (error) {
     next(error);
   }
 };
+
+// exports.createCommission = async (req, res, next) => {
+//   try {
+//     let { packageId, serviceId, operatorId, categoryId, plan } = req.body;
+
+//     if (!packageId || !serviceId) {
+//       return res.status(400).json({
+//         success: false,
+//         message: "packageId and serviceId are required",
+//       });
+//     }
+
+//     if (!Array.isArray(plan) || plan.length === 0) {
+//       return res.status(400).json({
+//         success: false,
+//         message: "Plan must be a non-empty array",
+//       });
+//     }
+
+//     if (!mongoose.Types.ObjectId.isValid(packageId)) {
+//       return res.status(400).json({
+//         success: false,
+//         message: "Invalid Package ID",
+//       });
+//     }
+
+//     if (!mongoose.Types.ObjectId.isValid(serviceId)) {
+//       return res.status(400).json({
+//         success: false,
+//         message: "Invalid Service ID",
+//       });
+//     }
+
+//     //rupee to paise
+//     plan = plan.map((p) => ({
+//       from: rupeeToPaise(p.from),
+//       to: rupeeToPaise(p.to),
+//       commission:
+//         p.type === "percent"
+//           ? Number(p.commission)
+//           : rupeeToPaise(p.commission),
+//       type: p.type?.trim().toLowerCase(),
+//     }));
+
+//     // sort plans
+//     plan.sort((a, b) => a.from - b.from);
+
+//     const validatedPlans = [];
+
+//     for (let i = 0; i < plan.length; i++) {
+//       let { from, to, commission, type } = plan[i];
+
+//       from = Number(from);
+//       to = Number(to);
+//       commission = Number(commission);
+//       type = type?.trim().toLowerCase();
+
+//       if (isNaN(from) || isNaN(to) || isNaN(commission)) {
+//         return res.status(400).json({
+//           success: false,
+//           message: `Invalid numeric value in plan index ${i}`,
+//         });
+//       }
+
+//       if (from <= 0 || to <= 0) {
+//         return res.status(400).json({
+//           success: false,
+//           message: `Amount must be greater than 0 in plan index ${i}`,
+//         });
+//       }
+
+//       if (from >= to) {
+//         return res.status(400).json({
+//           success: false,
+//           message: `Invalid range in plan index ${i}`,
+//         });
+//       }
+
+//       if (!["flat", "percent"].includes(type)) {
+//         return res.status(400).json({
+//           success: false,
+//           message: `Invalid type in plan index ${i}`,
+//         });
+//       }
+
+//       if (type === "percent" && commission > 100) {
+//         return res.status(400).json({
+//           success: false,
+//           message: `Commission cannot exceed 100% in plan index ${i}`,
+//         });
+//       }
+
+//       // check overlap inside request
+//       if (i > 0) {
+//         const prev = validatedPlans[i - 1];
+
+//         if (from <= prev.to) {
+//           return res.status(400).json({
+//             success: false,
+//             message: `Plan overlaps with previous range at index ${i}`,
+//           });
+//         }
+//       }
+
+//       validatedPlans.push({
+//         from: from,
+//         to: to,
+//         commission: commission,
+//         type,
+//       });
+//     }
+
+//     // validate package
+//     const isValidPackage = await Package.findOne({
+//       _id: packageId,
+//       isActive: true,
+//       isDeleted: false,
+//     });
+
+//     if (!isValidPackage) {
+//       return res.status(404).json({
+//         success: false,
+//         message: "Package Not Found",
+//       });
+//     }
+
+//     // validate service
+//     const isValidService = await Service.findOne({
+//       _id: serviceId,
+//       isActive: true,
+//       isDeleted: false,
+//     });
+
+//     if (!isValidService) {
+//       return res.status(404).json({
+//         success: false,
+//         message: "Service Not Found",
+//       });
+//     }
+
+//     // validate operator
+//     if (operatorId) {
+//       const isValidOperator = await Operator.findOne({
+//         _id: operatorId,
+//         isActive: true,
+//         isDeleted: false,
+//       });
+
+//       if (!isValidOperator) {
+//         return res.status(404).json({
+//           success: false,
+//           message: "Operator Not Found",
+//         });
+//       }
+//     }
+
+//     // validate category
+//     if (categoryId) {
+//       const isValidCategory = await BbpsCategory.findOne({
+//         _id: categoryId,
+//         isActive: true,
+//         isDeleted: false,
+//       });
+
+//       if (!isValidCategory) {
+//         return res.status(404).json({
+//           success: false,
+//           message: "Category Not Found",
+//         });
+//       }
+//     }
+
+//     // check if commission already exists
+//     let commissionDoc = await Commission.findOne({
+//       packageId,
+//       serviceId,
+//       operatorId: operatorId || null,
+//       categoryId: categoryId || null,
+//     });
+
+//     if (!commissionDoc) {
+//       // create new commission
+//       commissionDoc = await Commission.create({
+//         packageId,
+//         serviceId,
+//         operatorId: operatorId || null,
+//         categoryId: categoryId || null,
+//         plan: validatedPlans,
+//       });
+
+//       return res.status(201).json({
+//         success: true,
+//         message: "Commission Created Successfully",
+//       });
+//     }
+
+//     let isAnyChange = false;
+
+//     for (let newPlan of validatedPlans) {
+//       let isUpdated = false;
+
+//       for (let i = 0; i < commissionDoc.plan.length; i++) {
+//         let oldPlan = commissionDoc.plan[i];
+
+//         if (oldPlan.isDeleted) continue;
+
+//         // ✅ SAME RANGE → UPDATE
+//         if (oldPlan.from === newPlan.from && oldPlan.to === newPlan.to) {
+//           if (
+//             oldPlan.commission !== newPlan.commission ||
+//             oldPlan.type !== newPlan.type
+//           ) {
+//             commissionDoc.plan[i].commission = newPlan.commission;
+//             commissionDoc.plan[i].type = newPlan.type;
+//             isAnyChange = true;
+//           }
+//           isUpdated = true;
+//           break;
+//         }
+
+//         // ❌ OVERLAP → ERROR
+//         if (newPlan.from <= oldPlan.to && newPlan.to >= oldPlan.from) {
+//           return res.status(400).json({
+//             success: false,
+//             message: `Plan range ${paiseToRupee(newPlan.from)}-${paiseToRupee(newPlan.to)} overlaps with existing range`,
+//           });
+//         }
+//       }
+
+//       // ✅ INSERT NEW PLAN
+//       if (!isUpdated) {
+//         commissionDoc.plan.push(newPlan);
+//         isAnyChange = true;
+//       }
+//     }
+
+//     // ✅ sort (important)
+//     commissionDoc.plan.sort((a, b) => a.from - b.from);
+
+//     if (!isAnyChange) {
+//       return res.status(200).json({
+//         success: true,
+//         message: "No changes detected",
+//       });
+//     }
+
+//     await commissionDoc.save();
+
+//     return res.status(200).json({
+//       success: true,
+//       message: "Commission Updated Successfully",
+//     });
+//   } catch (error) {
+//     next(error);
+//   }
+// };
 
 exports.deleteCommissionPlan = async (req, res, next) => {
   try {

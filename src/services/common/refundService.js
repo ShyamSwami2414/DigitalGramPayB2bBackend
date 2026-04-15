@@ -7,12 +7,20 @@ const processRefund = async ({
   userId,
   amount, //paise
   referenceId,
-  reportModel,
+  reportModel = null,
   description,
   apiResponse = null,
+  session: providedSession = null,
 }) => {
-  const session = await mongoose.startSession();
-  session.startTransaction();
+  let session = providedSession;
+  let isInternalSession = false;
+
+  if (!session) {
+    session = await mongoose.startSession();
+    session.startTransaction();
+    isInternalSession = true;
+  }
+
   let openingBalance = 0;
   let closingBalance = 0;
 
@@ -47,35 +55,42 @@ const processRefund = async ({
       { session },
     );
 
-    await reportModel.updateOne(
-      { referenceId },
-      { $set: { status: "FAILED", isRefunded: true } },
-      { session },
-    );
+    if (reportModel) {
+      await reportModel.updateOne(
+        { referenceId },
+        { $set: { status: "FAILED", isRefunded: true } },
+        { session },
+      );
 
-    await Transaction.updateOne(
-      { referenceId: referenceId },
-      {
-        $set: {
-          status: "FAILED",
-          isRefunded: true,
-          remark: apiResponse ? apiResponse?.message : "",
-          "meta.response": apiResponse,
+      await Transaction.updateOne(
+        { referenceId: referenceId },
+        {
+          $set: {
+            status: "FAILED",
+            isRefunded: true,
+            remark: apiResponse ? apiResponse?.message : "",
+            "meta.response": apiResponse,
+          },
         },
-      },
-    );
+        { session },
+      );
+    }
 
-    await session.commitTransaction();
+    if (isInternalSession) {
+      await session.commitTransaction();
+    }
 
     return { openingBalance, closingBalance };
   } catch (error) {
-    if (session.inTransaction()) {
+    if (isInternalSession && session.inTransaction()) {
       await session.abortTransaction();
     }
 
     throw error;
   } finally {
-    session.endSession();
+    if (isInternalSession) {
+      session.endSession();
+    }
   }
 };
 

@@ -246,6 +246,7 @@ exports.getDownlineWalletRefillHistory = async (req, res, next) => {
     } = req.query;
 
     console.log(req.query, "query");
+    console.log(req.user.id, "request user");
 
     page = Number(page);
     limit = Number(limit);
@@ -271,6 +272,7 @@ exports.getDownlineWalletRefillHistory = async (req, res, next) => {
 
     const filter = {
       serviceType: "WALLET_REFILL",
+      type: "credit",
       userId: { $ne: new mongoose.Types.ObjectId(req.user.id) },
     };
 
@@ -475,7 +477,7 @@ exports.getDownlineWalletRefillHistory = async (req, res, next) => {
 
     return res.status(200).json({
       success: true,
-      message: "User profile fetched Successfully",
+      message: "User refill history fetched Successfully",
       data: formattedData,
       pagination: {
         total,

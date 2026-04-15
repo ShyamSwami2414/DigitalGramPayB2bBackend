@@ -7,10 +7,10 @@ const { paiseToRupee } = require("../../utils/money");
 
 exports.fundRequestStats = async (req, res, next) => {
   try {
-    let { user = "", status = "", from = "", to = "", range = "" } = req.query;
+    let { userId = "", status = "", from = "", to = "", range = "" } = req.query;
 
     console.log(req.query);
-    user = user?.trim();
+    userId = userId?.trim();
     status = status?.trim().toLowerCase();
 
     range = typeof range === "string" ? range?.trim().toLowerCase() : "";
@@ -144,14 +144,14 @@ exports.fundRequestStats = async (req, res, next) => {
       if (toDate) filter.createdAt.$lte = toDate;
     }
 
-    if (user) {
-      if (!mongoose.Types.ObjectId.isValid(user)) {
+    if (userId) {
+      if (!mongoose.Types.ObjectId.isValid(userId)) {
         return res
           .status(400)
           .json({ success: false, message: "Invalid user ID" });
       }
 
-      const userExist = await User.findOne({ _id: user }).lean();
+      const userExist = await User.findOne({ _id: userId }).lean();
 
       if (!userExist) {
         return res
@@ -159,12 +159,12 @@ exports.fundRequestStats = async (req, res, next) => {
           .json({ success: false, message: "User not found" });
       }
 
-      filter.userId = new mongoose.Types.ObjectId(user);
+      filter.userId = new mongoose.Types.ObjectId(userId);
     }
 
     console.log(filter, "filter");
 
-    const result = await FundRequest.aggregate([
+    const [result] = await FundRequest.aggregate([
       {
         $match: filter,
       },
@@ -180,7 +180,16 @@ exports.fundRequestStats = async (req, res, next) => {
           rejected: {
             $sum: { $cond: [{ $eq: ["$status", "rejected"] }, 1, 0] },
           },
+
           total: { $sum: 1 },
+
+          approvedAmount: {
+            $sum: { $cond: [{ $eq: ["$status", "approved"] }, "$amount", 0] },
+          },
+
+          rejectedAmount: {
+            $sum: { $cond: [{ $eq: ["$status", "rejected"] }, "$amount", 0] },
+          },
         },
       },
       {
@@ -189,15 +198,32 @@ exports.fundRequestStats = async (req, res, next) => {
           pending: 1,
           approved: 1,
           rejected: 1,
+          approvedAmount: 1,
+          rejectedAmount: 1,
           // total: 1
         },
       },
     ]);
 
+    const formattedData = result
+      ? {
+          ...result,
+          approvedAmount: paiseToRupee(result?.approvedAmount),
+          rejectedAmount: paiseToRupee(result?.rejectedAmount),
+        }
+      : {
+          pending: 0,
+          approved: 0,
+          rejected: 0,
+          total: 0,
+          approvedAmount: 0,
+          rejectedAmount: 0,
+        };
+
     return res.status(200).json({
       success: true,
       message: "Fund requests stats fetched successfully",
-      data: result[0] || { pending: 0, approved: 0, rejected: 0, total: 0 },
+      data: formattedData,
     });
   } catch (error) {
     next(error);
@@ -210,7 +236,7 @@ exports.getAllFundRequests = async (req, res, next) => {
       page = 1,
       limit = 10,
       search = "",
-      user = "",
+      userId = "",
       status = "",
       from = "",
       to = "",
@@ -221,7 +247,7 @@ exports.getAllFundRequests = async (req, res, next) => {
     page = Number(page);
     limit = Number(limit);
     search = search?.trim().toLowerCase();
-    user = user?.trim();
+    userId = userId?.trim();
     status = status?.trim().toLowerCase();
 
     from = typeof from === "string" ? from.trim().toLowerCase() : "";
@@ -369,14 +395,14 @@ exports.getAllFundRequests = async (req, res, next) => {
       ];
     }
 
-    if (user) {
-      if (!mongoose.Types.ObjectId.isValid(user)) {
+    if (userId) {
+      if (!mongoose.Types.ObjectId.isValid(userId)) {
         return res
           .status(400)
           .json({ success: false, message: "Invalid user ID" });
       }
 
-      const userExist = await User.findOne({ _id: user }).lean();
+      const userExist = await User.findOne({ _id: userId }).lean();
 
       if (!userExist) {
         return res
@@ -384,7 +410,7 @@ exports.getAllFundRequests = async (req, res, next) => {
           .json({ success: false, message: "User not found" });
       }
 
-      filter.userId = new mongoose.Types.ObjectId(user);
+      filter.userId = new mongoose.Types.ObjectId(userId);
     }
 
     console.log(filter, "filter");

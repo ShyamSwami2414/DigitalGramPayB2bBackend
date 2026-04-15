@@ -6,6 +6,7 @@ const { rupeeToPaise, paiseToRupee } = require("../../utils/money");
 const {
   generateUniqueRefernceId,
 } = require("../../utils/generateUniqueReferenceId");
+const HoldReleaseHistory = require("../../models/holdReleaseHistoryModel");
 
 exports.getWalletBalances = async (req, res, next) => {
   try {
@@ -118,7 +119,10 @@ exports.getAllUserWallet = async (req, res, next) => {
 };
 
 exports.holdReleaseAmount = async (req, res, next) => {
+  const session = await mongoose.startSession();
   try {
+    session.startTransaction();
+
     let { userId, amount, walletType, type, reason } = req.body;
     amount = Number(amount);
 
@@ -138,6 +142,7 @@ exports.holdReleaseAmount = async (req, res, next) => {
     });
 
     if (missingField.length > 0) {
+      await session.abortTransaction();
       return res.status(400).json({
         success: false,
         message: `Missing fields: ${missingField.join(", ")}`,
@@ -145,6 +150,7 @@ exports.holdReleaseAmount = async (req, res, next) => {
     }
 
     if (!mongoose.Types.ObjectId.isValid(userId)) {
+      await session.abortTransaction();
       return res.status(400).json({
         success: false,
         message: "Invalid user ID",
@@ -152,10 +158,12 @@ exports.holdReleaseAmount = async (req, res, next) => {
     }
 
     if (!Number.isFinite(amount)) {
+      await session.abortTransaction();
       return res.status(400).json({ message: "Invalid amount" });
     }
 
     if (amount <= 0) {
+      await session.abortTransaction();
       return res.status(400).json({
         success: false,
         message: "Amount must be greater than 0",
@@ -163,11 +171,21 @@ exports.holdReleaseAmount = async (req, res, next) => {
     }
 
     if (!["hold", "release"].includes(type)) {
+      await session.abortTransaction();
       return res.status(400).json({ message: "Invalid type" });
     }
 
     if (!["aeps", "main"].includes(walletType)) {
+      await session.abortTransaction();
       return res.status(400).json({ message: "Invalid wallet type" });
+    }
+
+    if (type === "hold" && !reason) {
+      await session.abortTransaction();
+      return res.status(400).json({
+        success: false,
+        message: "Reason is required for hold",
+      });
     }
 
     const userExist = await User.findOne({
@@ -177,6 +195,7 @@ exports.holdReleaseAmount = async (req, res, next) => {
     });
 
     if (!userExist) {
+      await session.abortTransaction();
       return res.status(400).json({
         success: false,
         message: "User not found or not active",
@@ -185,6 +204,8 @@ exports.holdReleaseAmount = async (req, res, next) => {
 
     const field = walletType === "aeps" ? "aepsHoldAmount" : "mainHoldAmount";
     const transactionAmount = type === "hold" ? amountInPaise : -amountInPaise;
+
+    const isHolded = type === "hold";
 
     const query =
       type === "release"
@@ -213,10 +234,11 @@ exports.holdReleaseAmount = async (req, res, next) => {
     const updatedUserWallet = await UserWallet.findOneAndUpdate(
       query,
       updateData,
-      { new: true },
+      { new: true, session },
     );
 
     if (!updatedUserWallet) {
+      await session.abortTransaction();
       return res.status(400).json({
         success: false,
         message:
@@ -224,15 +246,34 @@ exports.holdReleaseAmount = async (req, res, next) => {
       });
     }
 
-    const formattedData = updatedUserWallet
+    await HoldReleaseHistory.create(
+      [
+        {
+          userId: userId,
+          wallet: walletType,
+          amount: amount,
+          type: type,
+          holdReason: isHolded ? reason : null,
+          holdBy: isHolded ? req.user.id : undefined,
+          releasedBy: !isHolded ? req.user.id : undefined,
+        },
+      ],
+      { session },
+    );
+
+    const walletObj = updatedUserWallet.toObject();
+
+    const formattedData = walletObj
       ? {
-          ...updatedUserWallet,
-          aepsWallet: paiseToRupee(updatedUserWallet?.aepsWallet),
-          mainWallet: paiseToRupee(updatedUserWallet?.mainWallet),
-          aepsHoldAmount: paiseToRupee(updatedUserWallet?.aepsHoldAmount),
-          mainHoldAmount: paiseToRupee(updatedUserWallet?.mainHoldAmount),
+          ...walletObj,
+          aepsWallet: paiseToRupee(walletObj?.aepsWallet),
+          mainWallet: paiseToRupee(walletObj?.mainWallet),
+          aepsHoldAmount: paiseToRupee(walletObj?.aepsHoldAmount),
+          mainHoldAmount: paiseToRupee(walletObj?.mainHoldAmount),
         }
       : null;
+
+    await session.commitTransaction();
 
     return res.status(200).json({
       success: true,
@@ -240,7 +281,10 @@ exports.holdReleaseAmount = async (req, res, next) => {
       data: formattedData,
     });
   } catch (error) {
+    await session.abortTransaction();
     next(error);
+  } finally {
+    session.endSession();
   }
 };
 

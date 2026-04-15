@@ -33,6 +33,11 @@ const supportSchema = new mongoose.Schema(
       required: true,
     },
 
+    adminRemark: {
+      type: String,
+      trim: true,
+    },
+
     status: {
       type: String,
       enum: ["pending", "resolved", "closed"],

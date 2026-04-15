@@ -89,7 +89,7 @@ const kycSchema = new mongoose.Schema(
       pincode: {
         type: String,
         required: true,
-        match: [/^\d{6}$/, "Invalid pincode"],
+        match: [/^\d{6}$/, "Invalid Personal pincode"],
       },
     },
 
@@ -111,7 +111,7 @@ const kycSchema = new mongoose.Schema(
       pincode: {
         type: String,
         required: true,
-        match: [/^\d{6}$/, "Invalid pincode"],
+        match: [/^\d{6}$/, "Invalid Bussiness pincode"],
       },
     },
 
@@ -151,7 +151,6 @@ const kycSchema = new mongoose.Schema(
       trim: true,
       minlength: 2,
       maxlength: 80,
-      match: [/^[A-Za-z\s.&]+$/, "Invalid bank name"],
     },
 
     branchName: {

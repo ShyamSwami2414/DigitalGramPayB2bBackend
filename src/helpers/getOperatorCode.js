@@ -3,6 +3,7 @@ exports.getOperatorCode = (operator) => {
     JIO: "Jio",
     AT: "Airtel",
     VI: "VodafoneIdea",
+    VF: "VodafoneIdea",
     BSNL: "BSNLTalktime",
   };
 

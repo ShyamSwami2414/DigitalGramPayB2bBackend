@@ -151,7 +151,7 @@ const getMyCommissionPlan = async (req, res, next) => {
         fromAmount: paiseToRupee(row.fromAmount),
         toAmount: paiseToRupee(row.toAmount),
         commission:
-          row.type === "percent"
+          row.commissionType === "percent"
             ? row.commission
             : paiseToRupee(row.commission),
       })),
