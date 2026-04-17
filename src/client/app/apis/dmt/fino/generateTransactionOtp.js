@@ -1,7 +1,7 @@
 const appClient = require("../../../app.client");
 const NobleDmtLog = require("../../../../../models/nobleDmtLogModel");
 
-exports.generateRegisterOtp = async ({
+exports.generateTransactionOtp = async ({
   client_referenceId,
   userId,
   requestId, //idempotency key
@@ -15,9 +15,19 @@ exports.generateRegisterOtp = async ({
   const timestamp = new Date().toISOString().slice(0, 19);
   const startTime = Date.now();
 
+  console.log(typeof publicIp);
+  console.log(
+    merchantMobileNumber,
+    customerName,
+    mobileNumber,
+    latitude,
+    longitude,
+    publicIp,
+  );
+
   try {
     const response = await appClient.post(
-      "dmt/generate-otp-registration",
+      "dmt/generate-otp-transaction",
       {
         merchantMobileNo: merchantMobileNumber,
         customerMobileNo: mobileNumber,
@@ -63,10 +73,10 @@ exports.generateRegisterOtp = async ({
       providerTxnId: response?.data?.txn_ref || undefined,
       serviceCategory: "DMT",
       userId: userId,
-      type: "REGISTER-OTP",
+      type: "T-OTP",
       referenceId: client_referenceId,
       providerName: "NOBLE_FINO",
-      endPoint: "dmt/generate-otp-registration",
+      endPoint: "dmt/generate-otp-transaction",
       method: "POST",
       request: {
         merchantMobileNo: merchantMobileNumber,
@@ -89,10 +99,10 @@ exports.generateRegisterOtp = async ({
       providerTxnId: error?.response?.data?.txn_ref || undefined,
       serviceCategory: "DMT",
       userId: userId,
-      type: "REGISTER-OTP",
+      type: "T-OTP",
       referenceId: client_referenceId,
       providerName: "NOBLE_FINO",
-      endPoint: "dmt/generate-otp-registration",
+      endPoint: "dmt/generate-otp-transaction",
       method: "POST",
       request: {
         merchantMobileNo: merchantMobileNumber,

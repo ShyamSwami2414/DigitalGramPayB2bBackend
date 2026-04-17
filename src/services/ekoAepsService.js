@@ -90,7 +90,11 @@ exports.onboardEkoAepsUser = async ({
 
     console.log("Status", result?.status);
 
-    if (result?.status === false || result?.data?.response_type_id !== 1290) {
+    if (
+      result?.status === false ||
+      (result?.data?.response_type_id !== 1290 &&
+        result?.data?.response_type_id !== 1307)
+    ) {
       console.log("Entered Error Dealing block");
       const { openingBalance, closingBalance } = await processRefund({
         userId: userId,
@@ -104,7 +108,8 @@ exports.onboardEkoAepsUser = async ({
     if (
       result?.status === "FAILED" ||
       result?.status === false ||
-      result?.data?.response_type_id !== 1290
+      (result?.data?.response_type_id !== 1290 &&
+        result?.data?.response_type_id !== 1307)
     ) {
       throw result;
     }
@@ -197,8 +202,9 @@ exports.activateService = async ({
 
     if (
       result?.status === "FAILED" ||
-      result?.status === false ||
-      result?.http_code !== 200
+      result?.http_code !== 200 ||
+      (result?.data?.service_status_desc !== "Pending" &&
+        result?.data?.service_status_desc !== "Activated")
     ) {
       throw result;
     }

@@ -1,6 +1,7 @@
 const mongoose = require("mongoose");
 const Merchant = require("../models/instantAepsOutletModel");
 const User = require("../models/userModel");
+const InstantAepsReport = require("../models/instantAepsReportModel");
 const DailyAepsLogin = require("../models/dailyAepsLoginModel");
 const {
   generateUniqueRefernceId,
@@ -192,7 +193,9 @@ exports.checkBiometricKycStatus = async ({ userId, requestId }) => {
         console.log(data?.action, "action");
 
         const isKycStatusApproved =
-          data?.status === "APPROVED" && data?.action === "NO-ACTION-REQUIRED";
+          (data?.status === "APPROVED" ||
+            data?.status === "APPROVAL-PENDING") &&
+          data?.action === "NO-ACTION-REQUIRED";
 
         console.log(isKycStatusApproved, "isKycStatusApproved");
 
@@ -511,6 +514,20 @@ exports.doBalanceEnquiry = async ({
       throw err;
     }
 
+    await InstantAepsReport.create(
+      [
+        {
+          userId: userId,
+          serviceType: "BALANCE-INQUIRY",
+          providerName: "INSTANT",
+          referenceId: referenceId,
+          txnStatus: "PENDING",
+          amount: 0,
+        },
+      ],
+      { session: session },
+    );
+
     console.log(merchantExist, "merchantExist");
 
     await session.commitTransaction();
@@ -557,7 +574,13 @@ exports.doBalanceEnquiry = async ({
       throw err;
     }
 
+    result = {
+      ...result,
+      transactionId: referenceId,
+    };
+
     console.log(result, "result");
+
     return result;
   } catch (error) {
     throw error;
@@ -592,6 +615,20 @@ exports.doMiniStatement = async ({
     }
 
     console.log(merchantExist, "merchantExist");
+
+    await InstantAepsReport.create(
+      [
+        {
+          userId: userId,
+          serviceType: "MINI-STATEMENT",
+          providerName: "INSTANT",
+          referenceId: referenceId,
+          txnStatus: "PENDING",
+          amount: 0,
+        },
+      ],
+      { session: session },
+    );
 
     await session.commitTransaction();
 
@@ -637,6 +674,11 @@ exports.doMiniStatement = async ({
       throw err;
     }
 
+    result = {
+      ...result,
+      transactionId: referenceId,
+    };
+
     console.log(result, "result");
     return result;
   } catch (error) {
@@ -673,6 +715,20 @@ exports.doCashWithdraw = async ({
     }
 
     console.log(merchantExist, "merchantExist");
+
+    await InstantAepsReport.create(
+      [
+        {
+          userId: userId,
+          serviceType: "CASH-WITHDRAW",
+          providerName: "INSTANT",
+          referenceId: referenceId,
+          txnStatus: "PENDING",
+          amount: 0,
+        },
+      ],
+      { session: session },
+    );
 
     await session.commitTransaction();
 
@@ -743,6 +799,11 @@ exports.doCashWithdraw = async ({
       err.data = result?.data;
       throw err;
     }
+
+    result = {
+      ...result,
+      transactionId: referenceId,
+    };
 
     console.log(result, "result");
     return result;

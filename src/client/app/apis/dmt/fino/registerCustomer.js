@@ -52,7 +52,8 @@ exports.registerCustomer = async ({
     const responseTime = Date.now() - startTime;
 
     const isSuccess =
-      response?.data?.data?.statusCode === "SS0011" ||
+      (response?.data?.data?.statusCode === "DB0031" ||
+        response?.data?.data?.statusCode === "SS0011") &&
       response?.data?.data?.status === 1;
 
     let providerStatus = isSuccess ? "SUCCESS" : "FAILED";

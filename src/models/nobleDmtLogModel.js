@@ -16,6 +16,10 @@ const nobleDmtLogSchema = new mongoose.Schema(
         "CUSTOMER-EKYC",
         "REGISTER-OTP",
         "REGISTER-CUSTOMER",
+        "T-OTP",
+        "BEN-ADD",
+        "BEN-GET",
+        "BEN-DELETE",
       ],
     },
 

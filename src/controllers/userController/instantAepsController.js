@@ -156,13 +156,12 @@ const registerOutlet = async (req, res, next) => {
 
     const isMerchantExist = await Merchant.findOne({
       userId: userId,
-      email: email,
     });
 
     if (isMerchantExist) {
       return res.status(200).json({
         success: true,
-        message: "User already onboarded",
+        message: "User already registered, please proceed with further steps",
       });
     }
 
@@ -215,13 +214,16 @@ const registerOutlet = async (req, res, next) => {
           state: data?.state,
           pincode: data?.pincode,
         },
+        isKycDone: true,
         profilePic: data?.profilePic,
       });
 
       await outletRegister.save();
       return res.status(201).json({
         success: true,
-        data: response,
+        data: {
+          message: response?.data?.status,
+        },
       });
     } else {
       throw Error(response?.message || response?.data?.message);
@@ -262,6 +264,7 @@ const getBiometricKycStatus = async (req, res, next) => {
       data: {
         message: response?.message,
         action: response?.data?.data?.action,
+        status: response?.data?.data?.status,
       },
     });
   } catch (error) {
@@ -349,42 +352,42 @@ const completetBiometricKyc = async (req, res, next) => {
         .json({ success: false, message: "Biometric data is required" });
     }
 
-    let finalBiometricJson;
+    // let finalBiometricJson;
 
-    if (
-      typeof biometricData === "string" &&
-      biometricData.trim().startsWith("<?xml")
-    ) {
-      // Input is XML string - Transform it
-      try {
-        finalBiometricJson = await parseMantraXml(biometricData);
-      } catch (error) {
-        return res.status(400).json({
-          success: false,
-          message: "Biometric XML is malformed.",
-          error: error.message,
-        });
-      }
-    } else if (typeof biometricData === "object" && biometricData !== null) {
-      // Input is already JSON - Use as is (assuming it matches your schema)
-      finalBiometricJson = biometricData;
-    } else {
-      return res.status(400).json({
-        success: false,
-        message:
-          "Invalid biometricData format. Expected XML string or JSON object.",
-      });
-    }
+    // if (
+    //   typeof biometricData === "string" &&
+    //   biometricData.trim().startsWith("<?xml")
+    // ) {
+    //   // Input is XML string - Transform it
+    //   try {
+    //     finalBiometricJson = await parseMantraXml(biometricData);
+    //   } catch (error) {
+    //     return res.status(400).json({
+    //       success: false,
+    //       message: "Biometric XML is malformed.",
+    //       error: error.message,
+    //     });
+    //   }
+    // } else if (typeof biometricData === "object" && biometricData !== null) {
+    //   // Input is already JSON - Use as is (assuming it matches your schema)
+    //   finalBiometricJson = biometricData;
+    // } else {
+    //   return res.status(400).json({
+    //     success: false,
+    //     message:
+    //       "Invalid biometricData format. Expected XML string or JSON object.",
+    //   });
+    // }
 
-    //  Device-Level Error Validation
-    // errCode "0" means success in Mantra/UIDAI standards.
-    if (finalBiometricJson.errCode !== "0") {
-      return res.status(422).json({
-        success: false,
-        message: `Capture Failed: ${finalBiometricJson.errInfo || "No error info provided"}`,
-        errorCode: finalBiometricJson.errCode,
-      });
-    }
+    // //  Device-Level Error Validation
+    // // errCode "0" means success in Mantra/UIDAI standards.
+    // if (finalBiometricJson.errCode !== "0") {
+    //   return res.status(422).json({
+    //     success: false,
+    //     message: `Capture Failed: ${finalBiometricJson.errInfo || "No error info provided"}`,
+    //     errorCode: finalBiometricJson.errCode,
+    //   });
+    // }
 
     // console.log(finalBiometricJson, "finalBiometricJson");
 
@@ -394,7 +397,7 @@ const completetBiometricKyc = async (req, res, next) => {
       latitude,
       longitude,
       captureType,
-      biometricData: finalBiometricJson,
+      biometricData,
     });
 
     console.log(response, "response");
@@ -523,47 +526,47 @@ const dailyAepsLogin = async (req, res, next) => {
         .json({ success: false, message: "Biometric data is required" });
     }
 
-    let finalBiometricJson;
+    // let finalBiometricJson;
 
-    if (
-      typeof biometricData === "string" &&
-      biometricData.trim().startsWith("<?xml")
-    ) {
-      // Input is XML string - Transform it
-      try {
-        finalBiometricJson = await parseMantraXml(biometricData);
-      } catch (error) {
-        return res.status(400).json({
-          success: false,
-          message: "Biometric XML is malformed.",
-          error: error.message,
-        });
-      }
-    } else if (typeof biometricData === "object" && biometricData !== null) {
-      // Input is already JSON - Use as is (assuming it matches your schema)
-      finalBiometricJson = biometricData;
-    } else {
-      return res.status(400).json({
-        success: false,
-        message:
-          "Invalid biometricData format. Expected XML string or JSON object.",
-      });
-    }
+    // if (
+    //   typeof biometricData === "string" &&
+    //   biometricData.trim().startsWith("<?xml")
+    // ) {
+    //   // Input is XML string - Transform it
+    //   try {
+    //     finalBiometricJson = await parseMantraXml(biometricData);
+    //   } catch (error) {
+    //     return res.status(400).json({
+    //       success: false,
+    //       message: "Biometric XML is malformed.",
+    //       error: error.message,
+    //     });
+    //   }
+    // } else if (typeof biometricData === "object" && biometricData !== null) {
+    //   // Input is already JSON - Use as is (assuming it matches your schema)
+    //   finalBiometricJson = biometricData;
+    // } else {
+    //   return res.status(400).json({
+    //     success: false,
+    //     message:
+    //       "Invalid biometricData format. Expected XML string or JSON object.",
+    //   });
+    // }
 
     //  Device-Level Error Validation
     // errCode "0" means success in Mantra/UIDAI standards.
-    if (finalBiometricJson.errCode !== "0") {
-      return res.status(422).json({
-        success: false,
-        message: `Capture Failed: ${finalBiometricJson.errInfo || "No error info provided"}`,
-        errorCode: finalBiometricJson.errCode,
-      });
-    }
+    // if (finalBiometricJson.errCode !== "0") {
+    //   return res.status(422).json({
+    //     success: false,
+    //     message: `Capture Failed: ${finalBiometricJson.errInfo || "No error info provided"}`,
+    //     errorCode: finalBiometricJson.errCode,
+    //   });
+    // }
 
-    console.log(finalBiometricJson, "finalBiometricJson");
+    // console.log(finalBiometricJson, "finalBiometricJson");
 
     const finalPayload = {
-      ...finalBiometricJson, // existing biometric data
+      ...biometricData, // existing biometric data
       encryptedAadhaar: encryptedAadhaar, // add encrypted aadhaar
     };
 
@@ -600,6 +603,10 @@ const balanceEnquiry = async (req, res, next) => {
       captureType = "FINGER",
       biometricData,
     } = req.body;
+
+    // return res.status(200).json({
+    //   message: "Hello",
+    // });
 
     aadhaar = aadhaar?.trim();
     mobile = mobile?.trim();
@@ -714,64 +721,64 @@ const balanceEnquiry = async (req, res, next) => {
     console.log("Bank iin", isValidBank?.iin);
     console.log("Bank iin type", typeof isValidBank?.iin);
 
-    let finalBiometricJson;
+    // let finalBiometricJson;
 
-    if (
-      typeof biometricData === "string" &&
-      biometricData.trim().startsWith("<?xml")
-    ) {
-      // Input is XML string - Transform it
-      try {
-        finalBiometricJson = await parseMantraXml(biometricData);
-      } catch (error) {
-        return res.status(400).json({
-          success: false,
-          message: "Biometric XML is malformed.",
-          error: error.message,
-        });
-      }
-    } else if (typeof biometricData === "object" && biometricData !== null) {
-      // Input is already JSON - Use as is (assuming it matches your schema)
-      finalBiometricJson = biometricData;
-    } else {
-      return res.status(400).json({
-        success: false,
-        message:
-          "Invalid biometricData format. Expected XML string or JSON object.",
-      });
-    }
+    // if (
+    //   typeof biometricData === "string" &&
+    //   biometricData.trim().startsWith("<?xml")
+    // ) {
+    //   // Input is XML string - Transform it
+    //   try {
+    //     finalBiometricJson = await parseMantraXml(biometricData);
+    //   } catch (error) {
+    //     return res.status(400).json({
+    //       success: false,
+    //       message: "Biometric XML is malformed.",
+    //       error: error.message,
+    //     });
+    //   }
+    // } else if (typeof biometricData === "object" && biometricData !== null) {
+    //   // Input is already JSON - Use as is (assuming it matches your schema)
+    //   finalBiometricJson = biometricData;
+    // } else {
+    //   return res.status(400).json({
+    //     success: false,
+    //     message:
+    //       "Invalid biometricData format. Expected XML string or JSON object.",
+    //   });
+    // }
 
     //  Device-Level Error Validation
     // errCode "0" means success in Mantra/UIDAI standards.
-    if (finalBiometricJson.errCode !== "0") {
-      return res.status(422).json({
-        success: false,
-        message: `Capture Failed: ${finalBiometricJson.errInfo || "No error info provided"}`,
-        errorCode: finalBiometricJson.errCode,
-      });
-    }
+    // if (finalBiometricJson.errCode !== "0") {
+    //   return res.status(422).json({
+    //     success: false,
+    //     message: `Capture Failed: ${finalBiometricJson.errInfo || "No error info provided"}`,
+    //     errorCode: finalBiometricJson.errCode,
+    //   });
+    // }
 
-    console.log(finalBiometricJson, "finalBiometricJson");
+    // console.log(finalBiometricJson, "finalBiometricJson");
 
-    const { error } = validateBiometricSchema(finalBiometricJson);
+    // const { error } = validateBiometricSchema(finalBiometricJson);
 
-    if (error) {
-      return res.status(400).json({
-        success: false,
-        message: "Biometric data integrity check failed",
-        details: error.details[0].message, // Tells exactly which field is wrong
-      });
-    }
+    // if (error) {
+    //   return res.status(400).json({
+    //     success: false,
+    //     message: "Biometric data integrity check failed",
+    //     details: error.details[0].message, // Tells exactly which field is wrong
+    //   });
+    // }
 
-    if (parseInt(finalBiometricJson.qScore) < 40) {
-      return res.status(422).json({
-        success: false,
-        message: "Fingerprint quality too low. Please capture again.",
-      });
-    }
+    // if (parseInt(finalBiometricJson.qScore) < 40) {
+    //   return res.status(422).json({
+    //     success: false,
+    //     message: "Fingerprint quality too low. Please capture again.",
+    //   });
+    // }
 
     const finalPayload = {
-      ...finalBiometricJson, // existing biometric data
+      ...biometricData, // existing biometric data
       encryptedAadhaar: encryptedAadhaar, // add encrypted aadhaar
     };
 
@@ -790,7 +797,7 @@ const balanceEnquiry = async (req, res, next) => {
 
     console.log(response, "response");
 
-    return res.status(201).json({
+    return res.status(200).json({
       success: true,
       data: response,
     });
@@ -924,64 +931,64 @@ const miniStatement = async (req, res, next) => {
     console.log("Bank iin", isValidBank?.iin);
     console.log("Bank iin type", typeof isValidBank?.iin);
 
-    let finalBiometricJson;
+    // let finalBiometricJson;
 
-    if (
-      typeof biometricData === "string" &&
-      biometricData.trim().startsWith("<?xml")
-    ) {
-      // Input is XML string - Transform it
-      try {
-        finalBiometricJson = await parseMantraXml(biometricData);
-      } catch (error) {
-        return res.status(400).json({
-          success: false,
-          message: "Biometric XML is malformed.",
-          error: error.message,
-        });
-      }
-    } else if (typeof biometricData === "object" && biometricData !== null) {
-      // Input is already JSON - Use as is (assuming it matches your schema)
-      finalBiometricJson = biometricData;
-    } else {
-      return res.status(400).json({
-        success: false,
-        message:
-          "Invalid biometricData format. Expected XML string or JSON object.",
-      });
-    }
+    // if (
+    //   typeof biometricData === "string" &&
+    //   biometricData.trim().startsWith("<?xml")
+    // ) {
+    //   // Input is XML string - Transform it
+    //   try {
+    //     finalBiometricJson = await parseMantraXml(biometricData);
+    //   } catch (error) {
+    //     return res.status(400).json({
+    //       success: false,
+    //       message: "Biometric XML is malformed.",
+    //       error: error.message,
+    //     });
+    //   }
+    // } else if (typeof biometricData === "object" && biometricData !== null) {
+    //   // Input is already JSON - Use as is (assuming it matches your schema)
+    //   finalBiometricJson = biometricData;
+    // } else {
+    //   return res.status(400).json({
+    //     success: false,
+    //     message:
+    //       "Invalid biometricData format. Expected XML string or JSON object.",
+    //   });
+    // }
 
     //  Device-Level Error Validation
     // errCode "0" means success in Mantra/UIDAI standards.
-    if (finalBiometricJson.errCode !== "0") {
-      return res.status(422).json({
-        success: false,
-        message: `Capture Failed: ${finalBiometricJson.errInfo || "No error info provided"}`,
-        errorCode: finalBiometricJson.errCode,
-      });
-    }
+    // if (finalBiometricJson.errCode !== "0") {
+    //   return res.status(422).json({
+    //     success: false,
+    //     message: `Capture Failed: ${finalBiometricJson.errInfo || "No error info provided"}`,
+    //     errorCode: finalBiometricJson.errCode,
+    //   });
+    // }
 
-    console.log(finalBiometricJson, "finalBiometricJson");
+    // console.log(finalBiometricJson, "finalBiometricJson");
 
-    const { error } = validateBiometricSchema(finalBiometricJson);
+    // const { error } = validateBiometricSchema(finalBiometricJson);
 
-    if (error) {
-      return res.status(400).json({
-        success: false,
-        message: "Biometric data integrity check failed",
-        details: error.details[0].message, // Tells exactly which field is wrong
-      });
-    }
+    // if (error) {
+    //   return res.status(400).json({
+    //     success: false,
+    //     message: "Biometric data integrity check failed",
+    //     details: error.details[0].message, // Tells exactly which field is wrong
+    //   });
+    // }
 
-    if (parseInt(finalBiometricJson.qScore) < 40) {
-      return res.status(422).json({
-        success: false,
-        message: "Fingerprint quality too low. Please capture again.",
-      });
-    }
+    // if (parseInt(finalBiometricJson.qScore) < 40) {
+    //   return res.status(422).json({
+    //     success: false,
+    //     message: "Fingerprint quality too low. Please capture again.",
+    //   });
+    // }
 
     const finalPayload = {
-      ...finalBiometricJson, // existing biometric data
+      ...biometricData, // existing biometric data
       encryptedAadhaar: encryptedAadhaar, // add encrypted aadhaar
     };
 
@@ -1156,64 +1163,64 @@ const cashWithdraw = async (req, res, next) => {
     console.log("Bank iin", isValidBank?.iin);
     console.log("Bank iin type", typeof isValidBank?.iin);
 
-    let finalBiometricJson;
+    // let finalBiometricJson;
 
-    if (
-      typeof biometricData === "string" &&
-      biometricData.trim().startsWith("<?xml")
-    ) {
-      // Input is XML string - Transform it
-      try {
-        finalBiometricJson = await parseMantraXml(biometricData);
-      } catch (error) {
-        return res.status(400).json({
-          success: false,
-          message: "Biometric XML is malformed.",
-          error: error.message,
-        });
-      }
-    } else if (typeof biometricData === "object" && biometricData !== null) {
-      // Input is already JSON - Use as is (assuming it matches your schema)
-      finalBiometricJson = biometricData;
-    } else {
-      return res.status(400).json({
-        success: false,
-        message:
-          "Invalid biometricData format. Expected XML string or JSON object.",
-      });
-    }
+    // if (
+    //   typeof biometricData === "string" &&
+    //   biometricData.trim().startsWith("<?xml")
+    // ) {
+    //   // Input is XML string - Transform it
+    //   try {
+    //     finalBiometricJson = await parseMantraXml(biometricData);
+    //   } catch (error) {
+    //     return res.status(400).json({
+    //       success: false,
+    //       message: "Biometric XML is malformed.",
+    //       error: error.message,
+    //     });
+    //   }
+    // } else if (typeof biometricData === "object" && biometricData !== null) {
+    //   // Input is already JSON - Use as is (assuming it matches your schema)
+    //   finalBiometricJson = biometricData;
+    // } else {
+    //   return res.status(400).json({
+    //     success: false,
+    //     message:
+    //       "Invalid biometricData format. Expected XML string or JSON object.",
+    //   });
+    // }
 
     //  Device-Level Error Validation
     // errCode "0" means success in Mantra/UIDAI standards.
-    if (finalBiometricJson.errCode !== "0") {
-      return res.status(422).json({
-        success: false,
-        message: `Capture Failed: ${finalBiometricJson.errInfo || "No error info provided"}`,
-        errorCode: finalBiometricJson.errCode,
-      });
-    }
+    // if (finalBiometricJson.errCode !== "0") {
+    //   return res.status(422).json({
+    //     success: false,
+    //     message: `Capture Failed: ${finalBiometricJson.errInfo || "No error info provided"}`,
+    //     errorCode: finalBiometricJson.errCode,
+    //   });
+    // }
 
-    console.log(finalBiometricJson, "finalBiometricJson");
+    // console.log(finalBiometricJson, "finalBiometricJson");
 
-    const { error } = validateBiometricSchema(finalBiometricJson);
+    // const { error } = validateBiometricSchema(finalBiometricJson);
 
-    if (error) {
-      return res.status(400).json({
-        success: false,
-        message: "Biometric data integrity check failed",
-        details: error.details[0].message, // Tells exactly which field is wrong
-      });
-    }
+    // if (error) {
+    //   return res.status(400).json({
+    //     success: false,
+    //     message: "Biometric data integrity check failed",
+    //     details: error.details[0].message, // Tells exactly which field is wrong
+    //   });
+    // }
 
-    if (parseInt(finalBiometricJson.qScore) < 40) {
-      return res.status(422).json({
-        success: false,
-        message: "Fingerprint quality too low. Please capture again.",
-      });
-    }
+    // if (parseInt(finalBiometricJson.qScore) < 40) {
+    //   return res.status(422).json({
+    //     success: false,
+    //     message: "Fingerprint quality too low. Please capture again.",
+    //   });
+    // }
 
     const finalPayload = {
-      ...finalBiometricJson, // existing biometric data
+      ...biometricData, // existing biometric data
       encryptedAadhaar: encryptedAadhaar, // add encrypted aadhaar
     };
 

@@ -1,27 +1,56 @@
 const appClient = require("../../../app.client");
 const NobleDmtLog = require("../../../../../models/nobleDmtLogModel");
 
-exports.generateRegisterOtp = async ({
+exports.initiateTransfer = async ({
   client_referenceId,
   userId,
   requestId, //idempotency key
   merchantMobileNumber,
   customerName,
   mobileNumber,
+  otp,
+
+  beneficiaryName,
+  beneficiaryAccountNumber,
+  beneficiaryIfscCode,
+  amount,
+
+  tOtpRefrenceId,
   latitude,
   longitude,
   publicIp,
 }) => {
   const timestamp = new Date().toISOString().slice(0, 19);
   const startTime = Date.now();
+  const transferMode = "IMPS";
+
+  console.log(typeof publicIp);
+  console.log(
+    merchantMobileNumber,
+    customerName,
+    mobileNumber,
+    latitude,
+    longitude,
+    publicIp,
+  );
 
   try {
     const response = await appClient.post(
-      "dmt/generate-otp-registration",
+      "dmt/generate-otp-transaction",
       {
-        merchantMobileNo: merchantMobileNumber,
+        transactionId: client_referenceId,
         customerMobileNo: mobileNumber,
+        merchantMobileNo: merchantMobileNumber,
         customerName: customerName,
+
+        beneName: beneficiaryName,
+        beneAccountNo: beneficiaryAccountNumber,
+        beneIfscCode: beneficiaryIfscCode,
+        amount: amount,
+
+        transferMode: transferMode,
+        otp: otp,
+        otpRefrenceId: tOtpRefrenceId,
         latitude: String(latitude),
         longitude: String(longitude),
         publicIp: publicIp,
@@ -63,10 +92,10 @@ exports.generateRegisterOtp = async ({
       providerTxnId: response?.data?.txn_ref || undefined,
       serviceCategory: "DMT",
       userId: userId,
-      type: "REGISTER-OTP",
+      type: "T-OTP",
       referenceId: client_referenceId,
       providerName: "NOBLE_FINO",
-      endPoint: "dmt/generate-otp-registration",
+      endPoint: "dmt/generate-otp-transaction",
       method: "POST",
       request: {
         merchantMobileNo: merchantMobileNumber,
@@ -89,10 +118,10 @@ exports.generateRegisterOtp = async ({
       providerTxnId: error?.response?.data?.txn_ref || undefined,
       serviceCategory: "DMT",
       userId: userId,
-      type: "REGISTER-OTP",
+      type: "T-OTP",
       referenceId: client_referenceId,
       providerName: "NOBLE_FINO",
-      endPoint: "dmt/generate-otp-registration",
+      endPoint: "dmt/generate-otp-transaction",
       method: "POST",
       request: {
         merchantMobileNo: merchantMobileNumber,

@@ -40,8 +40,10 @@ module.exports = (app) => {
   app.use(`${apiPrefix}/dmtReport`, require("./dmtReportRoute"));
   app.use(`${apiPrefix}/search`, require("./transactionSearchRoute"));
   app.use(`${apiPrefix}/charge`, require("./idChargeRequest"));
+  app.use(`${apiPrefix}/serviceRequest`, require("./serviceRequestRoute"));
   app.use(`${apiPrefix}/policy`, require("./policyRoute"));
   app.use(`${apiPrefix}/aepsbank`, require("./instantAepsBankRoute"));
   app.use(`${apiPrefix}/aepsInstant`, require("./instantAepsRoute"));
   app.use(`${apiPrefix}/dmt`, require("./nobleFinoDmtRoute"));
+  app.use(`${apiPrefix}/dmt-ben`, require("./nobleDmtBeneficiaryRoute"));
 };

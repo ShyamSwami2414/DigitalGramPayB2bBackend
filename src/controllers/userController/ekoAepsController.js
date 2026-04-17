@@ -209,23 +209,28 @@ const onboardAepsUser = async (req, res, next) => {
 
     console.log(response, "response");
 
-    if (response && response?.data?.response_type_id === 1290) {
+    if ([1290, 1307].includes(response?.data?.response_type_id)) {
       const data = response?.data?.data;
-      const ekoUserOnboard = new EkoOnboardAepsUser({
-        userId: userId,
-        userCode: data?.user_code,
-        initiatorId: data?.initiator_id,
-        firstName: firstName,
-        lastName: lastName,
-        email: email,
-        mobile: mobile,
-        panNumber: panNumber,
-        dateOfBirth: dateOfBirth,
-        address: address,
-      });
 
-      await ekoUserOnboard.save();
-      return res.status(201).json({
+      await EkoOnboardAepsUser.findOneAndUpdate(
+        { userId },
+        {
+          $set: {
+            userCode: data?.user_code,
+            initiatorId: data?.initiator_id,
+            firstName,
+            lastName,
+            email,
+            mobile,
+            panNumber,
+            dateOfBirth,
+            address,
+          },
+        },
+        { upsert: true, new: true },
+      );
+
+      return res.status(200).json({
         success: true,
         data: {
           message: response?.data?.message,
@@ -481,8 +486,10 @@ const activateUser = async (req, res, next) => {
 
     console.log(response, "response");
 
-    if (response && response?.status === true) {
-      const data = response?.data?.data;
+    if (response && response?.http_code === 200) {
+      const data = response?.data;
+      const isServiceActivated =
+        response?.data?.service_status_desc === "Activated";
 
       await EkoOnboardAepsUser.findOneAndUpdate(
         { userId: userId },
@@ -497,13 +504,14 @@ const activateUser = async (req, res, next) => {
             longitude,
             deviceNumber,
             modelName,
-            isActivated: true,
+            isActivated: isServiceActivated ? true : false,
           },
         },
       );
-      return res.status(201).json({
+      return res.status(200).json({
         success: true,
         data: {
+          status: response?.data?.service_status_desc,
           message: response?.message,
         },
       });

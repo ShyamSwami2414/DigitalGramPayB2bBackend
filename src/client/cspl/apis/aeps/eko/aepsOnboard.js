@@ -40,7 +40,7 @@ exports.aepsOnboard = async ({
         },
 
         // Accept any status code < 500 as "valid" so Axios doesn't throw
-        validateStatus: (status) => status < 400,
+        validateStatus: (status) => status < 500,
       },
     );
 
@@ -48,7 +48,9 @@ exports.aepsOnboard = async ({
 
     const responseTime = Date.now() - startTime;
 
-    const isSuccess = response?.data?.data?.response_type_id === 1290;
+    const isSuccess =
+      response?.data?.data?.response_type_id === 1290 ||
+      response?.data?.data?.response_type_id === 1307;
 
     let providerStatus = isSuccess ? "SUCCESS" : "FAILED";
 
@@ -57,7 +59,7 @@ exports.aepsOnboard = async ({
         providerStatus: providerStatus,
         message: response?.data?.data?.message,
         reason: response?.data?.data?.data?.reason,
-         fullResponse: response?.data,
+        fullResponse: response?.data,
       };
     }
 

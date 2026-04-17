@@ -61,7 +61,6 @@ const instantAepsOutletSchema = new mongoose.Schema(
     gender: {
       type: String,
       enum: ["M", "F", "O"], // Male, Female, Other
-      required: true,
     },
 
     latitude: {
@@ -97,6 +96,11 @@ const instantAepsOutletSchema = new mongoose.Schema(
         required: true,
         trim: true,
       },
+    },
+
+    isKycDone: {
+      type: Boolean,
+      default: false,
     },
 
     isActive: {

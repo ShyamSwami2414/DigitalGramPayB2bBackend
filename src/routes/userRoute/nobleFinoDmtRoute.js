@@ -6,7 +6,9 @@ const {
   checkLimit,
   doCustomerKyc,
   generateRegistrationOtp,
-  registerNewCustomer
+  registerNewCustomer,
+  generateTransactionOtp,
+  initiateTransaction,
 } = require("../../controllers/userController/nobleFinoDmtController");
 const idempotencyMiddleware = require("../../middleware/idempotencyMiddleware");
 const apiLogger = require("../../middleware/apiLogger");
@@ -56,6 +58,24 @@ router.post(
   idempotencyMiddleware,
   apiLogger,
   registerNewCustomer,
+);
+
+router.post(
+  "/generate-totp",
+  authenticateUser,
+  checkUserPaymentAndKYC,
+  idempotencyMiddleware,
+  apiLogger,
+  generateTransactionOtp,
+);
+
+router.post(
+  "/generate-totp",
+  authenticateUser,
+  checkUserPaymentAndKYC,
+  idempotencyMiddleware,
+  apiLogger,
+  initiateTransaction,
 );
 
 module.exports = router;

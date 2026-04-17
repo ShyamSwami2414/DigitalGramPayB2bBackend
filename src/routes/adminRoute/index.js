@@ -54,4 +54,5 @@ module.exports = (app) => {
   );
 
   app.use(`${apiPrefix}/policy`, require("./policyRoute"));
+  app.use(`${apiPrefix}/serviceRequest`, require("./serviceRequestRoute"));
 };

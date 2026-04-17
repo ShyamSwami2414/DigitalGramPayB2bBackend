@@ -573,6 +573,7 @@ exports.fetchProfile = async (req, res, next) => {
           pipeline: [
             {
               $project: {
+                isKycDone: 1,
                 isAepsEnabled: 1,
                 isLoginRequired: 1,
                 action: 1,
@@ -590,6 +591,7 @@ exports.fetchProfile = async (req, res, next) => {
       },
       {
         $addFields: {
+          "aeps1.isVerified": "$merchant.isKycDone",
           "aeps1.isAepsEnabled": "$merchant.isAepsEnabled",
           "aeps1.isLoginRequired": "$merchant.isLoginRequired",
           "aeps1.action": "$merchant.action",
