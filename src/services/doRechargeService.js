@@ -222,9 +222,7 @@ exports.doRechargeService = async ({
 
         throw error;
       }
-    }
-
-    if (result.status === "FAILED") {
+    } else if (result.status === "FAILED") {
       // let openingBalance = 0;
       // let closingBalance = 0;
 

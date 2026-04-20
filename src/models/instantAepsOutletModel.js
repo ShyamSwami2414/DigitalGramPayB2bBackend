@@ -1,5 +1,35 @@
 const mongoose = require("mongoose");
 
+//for limit
+const aepsLimitsSchema = new mongoose.Schema(
+  {
+    dailyTransactionNumberLimit: {
+      type: Number,
+      default: 0,
+      min: 0,
+    },
+
+    dailyTransactionAmountLimit: {
+      type: Number,
+      default: 0,
+      min: 0,
+    },
+
+    perTransactionLimit: {
+      type: Number,
+      default: 0,
+      min: 0,
+    },
+
+    allowedBankLimits: {
+      type: Number,
+      default: 2,
+      min: 0,
+    },
+  },
+  { _id: false },
+);
+
 const instantAepsOutletSchema = new mongoose.Schema(
   {
     userId: {
@@ -137,6 +167,17 @@ const instantAepsOutletSchema = new mongoose.Schema(
     temp_ref: {
       type: String,
       default: "",
+    },
+
+    //number of bank added
+    aepsPayoutBanksAdded: {
+      type: Number,
+      default: 0,
+    },
+
+    aepsLimits: {
+      type: aepsLimitsSchema,
+      default: () => ({}), //  ensures object always exists
     },
   },
   {

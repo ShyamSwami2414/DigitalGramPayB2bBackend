@@ -268,6 +268,8 @@ const activateUser = async (req, res, next) => {
     deviceNumber = deviceNumber?.trim();
     modelName = modelName?.trim();
 
+    console.log(req.body);
+
     const userId = req.user.id;
     const idempotency = req.headers["idempotency-key"];
 
@@ -786,8 +788,13 @@ const doEkycBiometric = async (req, res, next) => {
 
     console.log(response, "response");
 
-    if (response && response?.status === true) {
-      const data = response?.data?.data;
+    if (
+      response &&
+      response?.status === true &&
+      response?.data?.response_status_id === 0 &&
+      response?.data?.status === 0
+    ) {
+      const data = response?.data;
 
       await EkoOnboardAepsUser.findOneAndUpdate(
         { userId: userId },
@@ -799,7 +806,7 @@ const doEkycBiometric = async (req, res, next) => {
       return res.status(201).json({
         success: true,
         data: {
-          message: response?.message,
+          message: data?.message,
         },
       });
     } else {

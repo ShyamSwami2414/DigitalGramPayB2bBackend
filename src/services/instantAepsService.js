@@ -94,7 +94,7 @@ exports.instantAepsOutletRegister = async ({
           error?.response?.data?.message ||
           error.message ||
           "Something went wrong",
-        data: error?.response?.data || null,
+        // data: error?.response?.data || null,
       };
     }
 
@@ -518,6 +518,7 @@ exports.doBalanceEnquiry = async ({
       [
         {
           userId: userId,
+          outletId: merchantExist?.outletId,
           serviceType: "BALANCE-INQUIRY",
           providerName: "INSTANT",
           referenceId: referenceId,
@@ -554,7 +555,7 @@ exports.doBalanceEnquiry = async ({
           error?.response?.data?.message ||
           error.message ||
           "Something went wrong",
-        data: error?.response?.data || null,
+        // data: error?.response?.data || null,
       };
     }
 
@@ -562,28 +563,73 @@ exports.doBalanceEnquiry = async ({
 
     console.log("Status", result?.status_code || result?.status);
 
-    if (
-      result?.status === "FAILED" ||
-      result?.status_code === "ERR" ||
-      result?.status === "ERROR" ||
-      result?.status_code !== "TXN"
-    ) {
-      const err = new Error(result?.message || "API Failed");
-      err.statusCode = 400;
-      err.data = result?.data;
-      throw err;
+    if (result?.status_code === "TXN" || result?.statuscode === "TXN") {
+      try {
+        const data = result?.response?.data;
+        await InstantAepsReport.findOneAndUpdate(
+          { referenceId: referenceId },
+          {
+            $set: {
+              txnStatus: "SUCCESS",
+              providerTxnId: data?.externalRef,
+              accountBalance: data?.bankAccountBalance,
+              bankName: data?.bankName,
+              aadhaar: data?.accountNumber,
+              message: result?.message,
+              rawResponse: result,
+            },
+          },
+        );
+
+        result = {
+          ...result,
+          transactionId: referenceId,
+        };
+
+        console.log(result, "result");
+        return result;
+      } catch (error) {
+        throw error;
+      }
+    } else {
+      try {
+        const data = result?.response?.data;
+        await InstantAepsReport.findOneAndUpdate(
+          { referenceId: referenceId },
+          {
+            $set: {
+              txnStatus: "FAILED",
+              providerTxnId: data?.externalRef,
+              accountBalance: data?.bankAccountBalance,
+              bankName: data?.bankName,
+              aadhaar: data?.accountNumber,
+              message: result?.message,
+              reason: result?.message,
+              rawResponse: result,
+            },
+          },
+        );
+
+        result = {
+          ...result,
+          transactionId: referenceId,
+        };
+
+        const err = new Error(result?.message || "API Failed");
+        err.statusCode = 400;
+        err.data = result?.data;
+        throw err;
+      } catch (error) {
+        throw error;
+      }
     }
-
-    result = {
-      ...result,
-      transactionId: referenceId,
-    };
-
-    console.log(result, "result");
-
-    return result;
   } catch (error) {
+    if (session.inTransaction()) {
+      await session.abortTransaction();
+    }
     throw error;
+  } finally {
+    session.endSession();
   }
 };
 
@@ -620,6 +666,7 @@ exports.doMiniStatement = async ({
       [
         {
           userId: userId,
+          outletId: merchantExist?.outletId,
           serviceType: "MINI-STATEMENT",
           providerName: "INSTANT",
           referenceId: referenceId,
@@ -654,7 +701,7 @@ exports.doMiniStatement = async ({
           error?.response?.data?.message ||
           error.message ||
           "Something went wrong",
-        data: error?.response?.data || null,
+        // data: error?.response?.data || null,
       };
     }
 
@@ -662,27 +709,74 @@ exports.doMiniStatement = async ({
 
     console.log("Status", result?.status_code || result?.status);
 
-    if (
-      result?.status === "FAILED" ||
-      result?.status_code === "ERR" ||
-      result?.status === "ERROR" ||
-      result?.status_code !== "TXN"
-    ) {
-      const err = new Error(result?.message || "API Failed");
-      err.statusCode = 400;
-      err.data = result?.data;
-      throw err;
+    if (result?.status_code === "TXN" || result?.statuscode === "TXN") {
+      try {
+        const data = result?.response?.data;
+        await InstantAepsReport.findOneAndUpdate(
+          { referenceId: referenceId },
+          {
+            $set: {
+              txnStatus: "SUCCESS",
+              providerTxnId: data?.externalRef,
+              miniStatement: data?.miniStatement,
+              accountBalance: data?.bankAccountBalance,
+              bankName: data?.bankName,
+              aadhaar: data?.accountNumber,
+              message: result?.message,
+              rawResponse: result,
+            },
+          },
+        );
+
+        result = {
+          ...result,
+          transactionId: referenceId,
+        };
+
+        console.log(result, "result");
+        return result;
+      } catch (error) {
+        throw error;
+      }
+    } else {
+      try {
+        const data = result?.response?.data;
+        await InstantAepsReport.findOneAndUpdate(
+          { referenceId: referenceId },
+          {
+            $set: {
+              txnStatus: "FAILED",
+              providerTxnId: data?.externalRef,
+              accountBalance: data?.bankAccountBalance,
+              bankName: data?.bankName,
+              aadhaar: data?.accountNumber,
+              message: result?.message,
+              reason: result?.message,
+              rawResponse: result,
+            },
+          },
+        );
+
+        result = {
+          ...result,
+          transactionId: referenceId,
+        };
+
+        const err = new Error(result?.message || "API Failed");
+        err.statusCode = 400;
+        err.data = result?.data;
+        throw err;
+      } catch (error) {
+        throw error;
+      }
     }
-
-    result = {
-      ...result,
-      transactionId: referenceId,
-    };
-
-    console.log(result, "result");
-    return result;
   } catch (error) {
+    if (session.inTransaction()) {
+      await session.abortTransaction();
+    }
     throw error;
+  } finally {
+    session.endSession();
   }
 };
 
@@ -720,11 +814,12 @@ exports.doCashWithdraw = async ({
       [
         {
           userId: userId,
+          outletId: merchantExist?.outletId,
           serviceType: "CASH-WITHDRAW",
           providerName: "INSTANT",
           referenceId: referenceId,
           txnStatus: "PENDING",
-          amount: 0,
+          amount: paiseToRupee(amount),
         },
       ],
       { session: session },
@@ -755,7 +850,7 @@ exports.doCashWithdraw = async ({
           error?.response?.data?.message ||
           error.message ||
           "Something went wrong",
-        data: error?.response?.data || null,
+        // data: error?.response?.data || null,
       };
     }
 
@@ -768,8 +863,9 @@ exports.doCashWithdraw = async ({
 
       try {
         withdrawSession.startTransaction();
+        const data = result?.response?.data;
 
-        const { openingBalance, closingBalance } = creditWallet({
+        const { openingBalance, closingBalance } = await creditWallet({
           userId: userId,
           amount: amount, // paise
           walletType: "aeps",
@@ -779,35 +875,78 @@ exports.doCashWithdraw = async ({
           session: withdrawSession,
         });
 
+        await InstantAepsReport.findOneAndUpdate(
+          { referenceId: referenceId },
+          {
+            $set: {
+              txnStatus: "SUCCESS",
+              providerTxnId: data?.externalRef,
+              accountBalance: data?.bankAccountBalance,
+              bankName: data?.bankName,
+              aadhaar: data?.accountNumber,
+              message: result?.message,
+              rawResponse: result,
+            },
+          },
+          { session: withdrawSession },
+        );
+
         await withdrawSession.commitTransaction();
+
+        result = {
+          ...result,
+          transactionId: referenceId,
+        };
+
+        console.log(result, "result");
+        return result;
       } catch (error) {
         console.log(error, "Error in aeps wallet credit session");
         if (withdrawSession.inTransaction()) {
           await withdrawSession.abortTransaction();
         }
+        throw error;
       } finally {
         withdrawSession.endSession();
       }
-    } else if (
-      result?.status === "FAILED" ||
-      result?.status_code === "ERR" ||
-      result?.status === "ERROR" ||
-      result?.status_code !== "TXN"
-    ) {
-      const err = new Error(result?.message || "API Failed");
-      err.statusCode = 400;
-      err.data = result?.data;
-      throw err;
+    } else {
+      try {
+        const data = result?.response?.data;
+        await InstantAepsReport.findOneAndUpdate(
+          { referenceId: referenceId },
+          {
+            $set: {
+              txnStatus: "FAILED",
+              providerTxnId: data?.externalRef,
+              accountBalance: data?.bankAccountBalance,
+              bankName: data?.bankName,
+              aadhaar: data?.accountNumber,
+              message: result?.message,
+              reason: result?.message,
+              rawResponse: result,
+            },
+          },
+        );
+
+        result = {
+          ...result,
+          transactionId: referenceId,
+        };
+
+        const err = new Error(result?.message || "API Failed");
+        err.statusCode = 400;
+        err.data = result?.data;
+        throw err;
+      } catch (error) {
+        throw error;
+      }
     }
-
-    result = {
-      ...result,
-      transactionId: referenceId,
-    };
-
-    console.log(result, "result");
-    return result;
   } catch (error) {
+    if (session.inTransaction()) {
+      await session.abortTransaction();
+    }
     throw error;
+  } finally {
+    session.endSession();
   }
 };

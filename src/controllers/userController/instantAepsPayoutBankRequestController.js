@@ -1,6 +1,7 @@
 const mongoose = require("mongoose");
-const AepsPayoutBank = require("../../models/aepsPayoutBankModel");
+const AepsPayoutBank = require("../../models/instantAepsPayoutBankModel");
 const User = require("../../models/userModel");
+const InstantAepsOutlet = require("../../models/instantAepsOutletModel");
 
 // this api give only approved bank list for select bar
 exports.getApprovedAepsBankList = async (req, res, next) => {
@@ -80,6 +81,9 @@ exports.getAepsPayoutBanks = async (req, res, next) => {
 exports.addAepsPayoutBank = async (req, res, next) => {
   try {
     const { bankName, accountHolderName, accountNumber, ifscCode } = req.body;
+    console.log(req.file);
+    console.log(req.body);
+    const cheque = req?.file?.filename;
     const userId = req.user.id;
     const requiredField = [
       "bankName",
@@ -102,6 +106,13 @@ exports.addAepsPayoutBank = async (req, res, next) => {
       });
     }
 
+    if (!cheque) {
+      return res.status(400).json({
+        success: false,
+        message: `Cheque is required`,
+      });
+    }
+
     const accountExist = await AepsPayoutBank.findOne({
       userId: new mongoose.Types.ObjectId(userId),
       accountNumber: accountNumber,
@@ -119,12 +130,50 @@ exports.addAepsPayoutBank = async (req, res, next) => {
       _id: new mongoose.Types.ObjectId(userId),
       isActive: true,
       isDeleted: false,
-    });
+    })
+      .select("_id firstName lastName")
+      .lean();
 
     if (!userExist) {
       return res.status(400).json({
         success: false,
         message: "User not found or not active",
+      });
+    }
+
+    const fullName = userExist?.firstName + " " + userExist?.lastName;
+
+    console.log(fullName, "fullName");
+
+    if (accountHolderName !== fullName) {
+      return res.status(400).json({
+        success: false,
+        message: "Only User's own account can be added for aeps payout",
+      });
+    }
+
+    const instantOutlet = await InstantAepsOutlet.findOne({
+      userId: userId,
+    })
+      .select("aepsLimits aepsPayoutBanksAdded")
+      .lean();
+
+    if (!instantOutlet) {
+      return res.status(400).json({
+        success: false,
+        message: "Outlet not found",
+      });
+    }
+
+    console.log(instantOutlet, "instantOutlet");
+
+    if (
+      instantOutlet?.aepsPayoutBanksAdded >=
+      instantOutlet?.aepsLimits?.allowedBankLimits
+    ) {
+      return res.status(400).json({
+        success: false,
+        message: `Maximum account adding limit : ${instantOutlet?.aepsLimits?.allowedBankLimits}  `,
       });
     }
 
@@ -134,11 +183,19 @@ exports.addAepsPayoutBank = async (req, res, next) => {
       accountHolderName,
       accountNumber,
       ifscCode,
+      chequeUrl: `uploads/aepsPayoutCheque/${cheque}`,
     });
 
-    return res.status(200).json({
+    await InstantAepsOutlet.findOneAndUpdate(
+      {
+        userId: userId,
+      },
+      { $inc: { aepsPayoutBanksAdded: 1 } },
+    );
+
+    return res.status(201).json({
       success: true,
-      message: "AEPS payout bank added successfully",
+      message: "AEPS payout bank request added successfully",
       data: aepsPayoutBank,
     });
   } catch (error) {

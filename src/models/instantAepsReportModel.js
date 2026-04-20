@@ -8,6 +8,12 @@ const instantAepsReportSchema = new mongoose.Schema(
       required: true,
     },
 
+    outletId: {
+      type: String,
+      required: true,
+      trim: true,
+    },
+
     serviceType: {
       type: String,
       enum: ["CASH-WITHDRAW", "BALANCE-INQUIRY", "MINI-STATEMENT"],
@@ -44,30 +50,28 @@ const instantAepsReportSchema = new mongoose.Schema(
       index: true,
     },
 
+    //for withdraw
     amount: {
       type: Number,
       default: 0,
     },
 
-    balance: {
+    accountBalance: {
       type: Number,
       default: 0,
     },
 
-    bankRefNumber: {
+    miniStatement: {
+      type: [mongoose.Schema.Types.Mixed],
+      default: [],
+    },
+
+    bankName: {
       type: String,
     },
 
     aadhaar: {
       type: String, // masked
-    },
-
-    customerName: {
-      type: String,
-    },
-
-    userCode: {
-      type: String,
     },
 
     message: {
@@ -76,10 +80,6 @@ const instantAepsReportSchema = new mongoose.Schema(
 
     reason: {
       type: String,
-    },
-
-    responseTypeId: {
-      type: Number,
     },
 
     rawResponse: {

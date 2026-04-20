@@ -187,6 +187,7 @@ exports.activateService = async ({
         status: false,
         message:
           error?.response?.data?.message ||
+          error.error ||
           error.message ||
           "Something went wrong",
         data: error?.response?.data || null,

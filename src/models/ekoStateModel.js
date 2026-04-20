@@ -17,6 +17,13 @@ const ekoStateSchema = new mongoose.Schema(
       index: true,
     },
 
+    stateCodeForStateCity: {
+      type: String,
+      required: true,
+      trim: true,
+      unique: true,
+    },
+
     value: {
       type: Number,
       required: true,

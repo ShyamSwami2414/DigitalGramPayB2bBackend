@@ -292,10 +292,14 @@ const deleteNobleDmtBeneficiary = async (req, res, next) => {
     ) {
       const data = response?.data?.responseData?.[0];
 
-      return res.status(201).json({
+      await NobleDmtBeneficiary.findOneAndDelete({
+        mobile: mobile,
+        accountNumber: accountNumber,
+      });
+
+      return res.status(200).json({
         success: true,
         message: response?.message,
-        data: data,
       });
     } else {
       throw Error(response?.message || response?.data?.message);

@@ -9,7 +9,7 @@ module.exports = (app) => {
   app.use(`${apiPrefix}/offlineTopup`, require("./offlineTopupRequestRoute"));
   app.use(`${apiPrefix}/topupBank`, require("./topupBankRoute"));
   app.use(`${apiPrefix}/wallet`, require("./walletRoute"));
-  app.use(`${apiPrefix}/aepsPayoutBank`, require("./aepsPayoutBankRoute"));
+
   app.use(`${apiPrefix}/enquiry`, require("./enquiryRoute"));
   app.use(`${apiPrefix}/support`, require("./supportRoute"));
   app.use(`${apiPrefix}/service`, require("./serviceRoute"));
@@ -43,6 +43,10 @@ module.exports = (app) => {
   app.use(`${apiPrefix}/serviceRequest`, require("./serviceRequestRoute"));
   app.use(`${apiPrefix}/policy`, require("./policyRoute"));
   app.use(`${apiPrefix}/aepsbank`, require("./instantAepsBankRoute"));
+  app.use(
+    `${apiPrefix}/aepsPayoutBank`,
+    require("./intantAepsPayoutBankRequestRoute"),
+  );
   app.use(`${apiPrefix}/aepsInstant`, require("./instantAepsRoute"));
   app.use(`${apiPrefix}/dmt`, require("./nobleFinoDmtRoute"));
   app.use(`${apiPrefix}/dmt-ben`, require("./nobleDmtBeneficiaryRoute"));

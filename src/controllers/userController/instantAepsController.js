@@ -444,6 +444,8 @@ const dailyAepsLogin = async (req, res, next) => {
       biometricData,
     } = req.body;
 
+    console.log(req.body, "body");
+
     latitude = Number(latitude);
     longitude = Number(longitude);
     captureType = captureType?.trim().toUpperCase();
@@ -603,6 +605,8 @@ const balanceEnquiry = async (req, res, next) => {
       captureType = "FINGER",
       biometricData,
     } = req.body;
+
+    console.log("body", req.body);
 
     // return res.status(200).json({
     //   message: "Hello",
@@ -797,9 +801,21 @@ const balanceEnquiry = async (req, res, next) => {
 
     console.log(response, "response");
 
+    const cleanResponse = {
+      message: response?.message,
+      transactionId: response?.transactionId,
+
+      data: {
+        bankName: response?.response?.data?.bankName,
+        aadhaarNumber: response?.response?.data?.accountNumber,
+        balance: Number(response?.response?.data?.bankAccountBalance),
+        timestamp: response?.response?.timestamp,
+      },
+    };
+
     return res.status(200).json({
       success: true,
-      data: response,
+      data: cleanResponse,
     });
   } catch (error) {
     next(error);
@@ -1005,11 +1021,23 @@ const miniStatement = async (req, res, next) => {
       biometricData: finalPayload,
     });
 
+    const cleanResponse = {
+      message: response?.message,
+      transactionId: response?.transactionId,
+
+      data: {
+        bankName: response?.response?.data?.bankName,
+        aadhaarNumber: response?.response?.data?.accountNumber,
+        miniStatement: response?.response?.data?.miniStatement,
+        timestamp: response?.response?.timestamp,
+      },
+    };
+
     console.log(response, "response");
 
-    return res.status(201).json({
+    return res.status(200).json({
       success: true,
-      data: response,
+      data: cleanResponse,
     });
   } catch (error) {
     next(error);

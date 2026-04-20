@@ -114,6 +114,7 @@ exports.activateAepsService = async ({
     if (providerStatus !== "SUCCESS") {
       throw {
         providerStatus: providerStatus,
+        error: response?.data?.error,
         message: response?.data?.message,
         reason: response?.data?.data?.data?.reason,
         fullResponse: response?.data,
@@ -150,7 +151,10 @@ exports.activateAepsService = async ({
 
     return response?.data;
   } catch (error) {
-    console.log("API Error Response:", error.response?.data || error.message);
+    console.log(
+      "API Error Response:",
+      error?.error || error.response?.data || error?.message,
+    );
 
     await EkoAepsLogs.create({
       providerTxnId: error?.response?.data?.txn_ref || undefined,
