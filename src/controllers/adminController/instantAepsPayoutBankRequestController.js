@@ -1,4 +1,4 @@
-const AepsPayoutBank = require("../../models/instantAepsPayoutBankModel");
+const AepsPayoutBank = require("../../models/sozoAepsPayoutBankRequestModel");
 const mongoose = require("mongoose");
 
 exports.aepsPayoutBankRequests = async (req, res, next) => {

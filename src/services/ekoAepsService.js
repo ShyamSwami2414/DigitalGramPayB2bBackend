@@ -1,5 +1,6 @@
 const mongoose = require("mongoose");
 const EkoOnboardAepsUser = require("../models/ekoAepsOnboardUserModel");
+const EkoAepsReport = require("../models/ekoAepsReportModel");
 const DailyEkoAepsLogin = require("../models/dailyEkoAepsLoginModel");
 const User = require("../models/userModel");
 
@@ -645,6 +646,22 @@ exports.initiateAepsTransaction = async ({
     }
 
     console.log(onboardMerchant, "onboardMerchant");
+
+    await EkoAepsReport.create(
+      [
+        {
+          userId: userId,
+          userCode: onboardMerchant?.userCode,
+          serviceType: `${serviceTypeName}`,
+          providerName: "EKO",
+          referenceId: referenceId,
+          txnStatus: "PENDING",
+          amount: amount, //paise
+        },
+      ],
+      { session: session },
+    );
+
     await session.commitTransaction();
 
     let result;
@@ -688,11 +705,55 @@ exports.initiateAepsTransaction = async ({
     console.log("Status", result?.status);
 
     if (
-      result?.status === "FAILED" ||
-      result?.status === false ||
-      result?.http_code !== 200
+      result?.status === true &&
+      result?.http_code === 200 &&
+      result?.data?.response_status_id === 0 &&
+      result?.data?.status === 0
     ) {
-      throw result;
+      const data = result?.data?.data;
+      try {
+        await EkoAepsReport.findOneAndUpdate(
+          { referenceId: referenceId },
+          {
+            $set: {
+              txnStatus: "SUCCESS",
+              providerTxnId: data?.tid,
+              accountBalance: data?.customer_balance,
+              bankName: data?.bankName,
+              aadhaar: data?.aadhar,
+              message: result?.data?.message,
+              reason: data?.comment,
+              rawResponse: result,
+            },
+          },
+        );
+
+        console.log(result);
+        return result;
+      } catch (error) {
+        throw error;
+      }
+    } else {
+      try {
+        const data = result?.data?.data;
+        await EkoAepsReport.findOneAndUpdate(
+          { referenceId: referenceId },
+          {
+            $set: {
+              txnStatus: "FAILED",
+              providerTxnId: data?.tid,
+              accountBalance: data?.customer_balance,
+              bankName: data?.bankName,
+              aadhaar: data?.aadhar,
+              message: result?.data?.message,
+              reason: data?.comment,
+              rawResponse: result,
+            },
+          },
+        );
+      } catch (error) {
+        throw result;
+      }
     }
 
     console.log(result);

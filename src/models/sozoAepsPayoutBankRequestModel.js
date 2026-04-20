@@ -8,6 +8,12 @@ const aepsPayoutBankSchema = new mongoose.Schema(
       required: true,
     },
 
+    payoutBankId: {
+      type: String,
+      required: [true, "Payout Bank ID is required"],
+      trim: true,
+    },
+
     bankName: {
       type: String,
       required: [true, "Bank name is required"],

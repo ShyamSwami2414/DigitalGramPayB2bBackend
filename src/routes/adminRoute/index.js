@@ -56,7 +56,7 @@ module.exports = (app) => {
   //aeps1
   app.use(
     `${apiPrefix}/aepsPayoutBankRequest`,
-    require("./instantAepsPayoutBankRequestRoute"),
+    require("./sozoAepsPayoutBankRequestRoute"),
   );
   //aeps2
 };

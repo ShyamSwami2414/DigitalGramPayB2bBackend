@@ -285,6 +285,7 @@ exports.forgotPassword = async (req, res, next) => {
     return res.status(200).json({
       success: true,
       message: "OTP sent for password reset",
+      data: { otp: otp.otp },
     });
   } catch (error) {
     next(error);
@@ -431,17 +432,40 @@ exports.changePassword = async (req, res, next) => {
       _id: new mongoose.Types.ObjectId(userId),
       isDeleted: false,
     });
+
     if (!user) {
       return res
         .status(404)
         .json({ success: false, message: "User not found" });
     }
+
     const { currentPassword, newPassword } = req.body;
 
-    if (!currentPassword || !newPassword) {
+    const requiredFields = ["currentPassword", "newPassword"];
+    const missingFields = [];
+
+    requiredFields.forEach((field) => {
+      if (!req.body[field]) {
+        missingFields.push(field);
+      }
+    });
+
+    if (missingFields.length > 0) {
+      return res.status(400).json({
+        success: false,
+        message: `Missing required fields: ${missingFields.join(", ")}`,
+      });
+    }
+
+    const isOldPasswordValid = await bcrypt.comparePassword(
+      currentPassword,
+      user.password,
+    );
+
+    if (!isOldPasswordValid) {
       return res
         .status(400)
-        .json({ success: false, message: "All fields are required" });
+        .json({ success: false, message: "Invalid Old Password" });
     }
 
     if (currentPassword === newPassword) {
@@ -449,15 +473,6 @@ exports.changePassword = async (req, res, next) => {
         success: false,
         message: "New password must be different from old password",
       });
-    }
-    const isOldPasswordValid = await bcrypt.comparePassword(
-      currentPassword,
-      user.password,
-    );
-    if (!isOldPasswordValid) {
-      return res
-        .status(400)
-        .json({ success: false, message: "Invalid Old Password" });
     }
 
     const hashedPassword = await bcrypt.hashPassword(newPassword);

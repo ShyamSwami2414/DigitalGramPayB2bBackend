@@ -5,6 +5,7 @@ const {
   verifyUserOtp,
   changePassword,
   fetchProfile,
+  forgotPassword,
 } = require("../../controllers/userController/userAuthController");
 const { authenticateUser } = require("../../middleware/authMiddleware");
 const checkUserPaymentAndKYC = require("../../middleware/kycPaymentCheckMiddleware");
@@ -15,6 +16,8 @@ router.post("/user-register", userRegister);
 router.post("/user-login", userLogin);
 
 router.post("/verify-user-otp", verifyUserOtp);
+
+router.patch("/forgot-password", forgotPassword);
 
 router.patch(
   "/change-user-password",

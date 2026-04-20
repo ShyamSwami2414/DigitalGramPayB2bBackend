@@ -6,7 +6,7 @@ const {
   getAepsPayoutBanks,
   getApprovedAepsBankList,
   deleteAepsPayoutBank,
-} = require("../../controllers/userController/instantAepsPayoutBankRequestController");
+} = require("../../controllers/userController/sozoAepsPayoutBankRequestController");
 const multerErrorHandler = require("../../middleware/multerErrorHandler");
 const createUploader = require("../../middleware/uploadMiddleware");
 const router = express.Router();
@@ -43,5 +43,6 @@ router.delete(
   checkUserPaymentAndKYC,
   deleteAepsPayoutBank,
 );
+
 
 module.exports = router;

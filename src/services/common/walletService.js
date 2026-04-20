@@ -1,6 +1,68 @@
 const UserWallet = require("../../models/userWallet");
 const WalletLedger = require("../../models/walletLedgerModel");
 
+const debitAepsWallet = async ({
+  userId,
+  amount, //paise
+  serviceType,
+  referenceId,
+  description,
+  session,
+}) => {
+  let openingBalance = 0;
+  let closingBalance = 0;
+
+  console.log(amount, "debit wallet amount value");
+
+  const wallet = await UserWallet.findOneAndUpdate(
+    {
+      userId,
+      isActive: true,
+      isDeleted: false,
+      $expr: {
+        $gte: [{ $subtract: ["$aepsWallet", "$aepsHoldAmount"] }, amount],
+      },
+    },
+    {
+      $inc: {
+        aepsWallet: -amount,
+      },
+    },
+    {
+      new: true,
+      session,
+    },
+  );
+
+  console.log("wallet from db", wallet);
+
+  if (!wallet) {
+    throw new Error("Insufficient Aeps Wallet Balance Contact Admin");
+  }
+
+  closingBalance = wallet.aepsWallet;
+  openingBalance = closingBalance + amount;
+
+  await WalletLedger.create(
+    [
+      {
+        userId,
+        serviceType,
+        wallet: "aeps",
+        type: "debit",
+        amount: amount,
+        openingBalance,
+        closingBalance,
+        referenceId,
+        description,
+      },
+    ],
+    { session },
+  );
+
+  return { openingBalance, closingBalance };
+};
+
 const debitWallet = async ({
   userId,
   amount, //paise
@@ -131,4 +193,5 @@ const creditWallet = async ({
 module.exports = {
   debitWallet,
   creditWallet,
+  debitAepsWallet,
 };

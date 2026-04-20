@@ -1,7 +1,12 @@
 const mongoose = require("mongoose");
-const AepsPayoutBank = require("../../models/instantAepsPayoutBankModel");
+const AepsPayoutBankRequest = require("../../models/sozoAepsPayoutBankRequestModel");
+const SozoAepsPayoutBank = require("../../models/sozoAepsPayoutBankModel");
 const User = require("../../models/userModel");
 const InstantAepsOutlet = require("../../models/instantAepsOutletModel");
+const stringSimilarity = require("string-similarity");
+const normalizeName = (name) => {
+  return name?.toLowerCase()?.trim()?.replace(/\s+/g, " "); // remove extra spaces
+};
 
 // this api give only approved bank list for select bar
 exports.getApprovedAepsBankList = async (req, res, next) => {
@@ -21,7 +26,7 @@ exports.getApprovedAepsBankList = async (req, res, next) => {
       });
     }
 
-    const approvedAepsPayoutBanks = await AepsPayoutBank.aggregate([
+    const approvedAepsPayoutBanks = await AepsPayoutBankRequest.aggregate([
       {
         $match: {
           userId: userId,
@@ -63,7 +68,7 @@ exports.getApprovedAepsBankList = async (req, res, next) => {
 exports.getAepsPayoutBanks = async (req, res, next) => {
   try {
     const userId = req.user.id;
-    const aepsPayoutBank = await AepsPayoutBank.find({
+    const aepsPayoutBank = await AepsPayoutBankRequest.find({
       userId,
       isDeleted: false,
     }).sort({ createdAt: -1 });
@@ -80,13 +85,13 @@ exports.getAepsPayoutBanks = async (req, res, next) => {
 
 exports.addAepsPayoutBank = async (req, res, next) => {
   try {
-    const { bankName, accountHolderName, accountNumber, ifscCode } = req.body;
+    const { bankId, accountHolderName, accountNumber, ifscCode } = req.body;
     console.log(req.file);
     console.log(req.body);
     const cheque = req?.file?.filename;
     const userId = req.user.id;
     const requiredField = [
-      "bankName",
+      "bankId",
       "accountHolderName",
       "accountNumber",
       "ifscCode",
@@ -113,11 +118,39 @@ exports.addAepsPayoutBank = async (req, res, next) => {
       });
     }
 
-    const accountExist = await AepsPayoutBank.findOne({
-      userId: new mongoose.Types.ObjectId(userId),
-      accountNumber: accountNumber,
-      isDeleted: false,
-    });
+    if (!mongoose.Types.ObjectId.isValid(bankId)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid Bank ID",
+      });
+    }
+
+    const objectUserId = new mongoose.Types.ObjectId(userId);
+
+    const [payoutBank, accountExist, user] = await Promise.all([
+      SozoAepsPayoutBank.findOne({ _id: bankId }).lean(),
+
+      AepsPayoutBankRequest.findOne({
+        userId: objectUserId,
+        accountNumber,
+        isDeleted: false,
+      }).lean(),
+
+      User.findOne({
+        _id: objectUserId,
+        isActive: true,
+        isDeleted: false,
+      })
+        .select("_id firstName lastName")
+        .lean(),
+    ]);
+
+    if (!payoutBank) {
+      return res.status(400).json({
+        success: false,
+        message: "Payout Bank Invalid",
+      });
+    }
 
     if (accountExist) {
       return res.status(400).json({
@@ -126,29 +159,31 @@ exports.addAepsPayoutBank = async (req, res, next) => {
       });
     }
 
-    const userExist = await User.findOne({
-      _id: new mongoose.Types.ObjectId(userId),
-      isActive: true,
-      isDeleted: false,
-    })
-      .select("_id firstName lastName")
-      .lean();
-
-    if (!userExist) {
+    if (!user) {
       return res.status(400).json({
         success: false,
         message: "User not found or not active",
       });
     }
 
-    const fullName = userExist?.firstName + " " + userExist?.lastName;
-
+    const fullName = user?.firstName + " " + user?.lastName;
     console.log(fullName, "fullName");
 
-    if (accountHolderName !== fullName) {
+    const dbName = normalizeName(fullName);
+    const inputName = normalizeName(accountHolderName);
+
+    console.log(dbName, "dbName");
+    console.log(inputName, "inputName");
+
+    const similarity = stringSimilarity.compareTwoStrings(dbName, inputName);
+
+    console.log(similarity, "similarity score");
+
+    // 0.8 = 80% similar (you can tune this)
+    if (similarity < 0.8) {
       return res.status(400).json({
         success: false,
-        message: "Only User's own account can be added for aeps payout",
+        message: "Only User's own account can be added for AEPS payout",
       });
     }
 
@@ -177,9 +212,10 @@ exports.addAepsPayoutBank = async (req, res, next) => {
       });
     }
 
-    const aepsPayoutBank = await AepsPayoutBank.create({
+    const aepsPayoutBank = await AepsPayoutBankRequest.create({
       userId,
-      bankName,
+      bankName: payoutBank?.bankName,
+      payoutBankId: payoutBank?.bankId,
       accountHolderName,
       accountNumber,
       ifscCode,
@@ -225,7 +261,7 @@ exports.deleteAepsPayoutBank = async (req, res, next) => {
       });
     }
 
-    const aepsPayoutBank = await AepsPayoutBank.findOneAndUpdate(
+    const aepsPayoutBank = await AepsPayoutBankRequest.findOneAndUpdate(
       {
         _id: new mongoose.Types.ObjectId(id),
         userId: new mongoose.Types.ObjectId(userId),

@@ -43,11 +43,16 @@ module.exports = (app) => {
   app.use(`${apiPrefix}/serviceRequest`, require("./serviceRequestRoute"));
   app.use(`${apiPrefix}/policy`, require("./policyRoute"));
   app.use(`${apiPrefix}/aepsbank`, require("./instantAepsBankRoute"));
-  app.use(
-    `${apiPrefix}/aepsPayoutBank`,
-    require("./intantAepsPayoutBankRequestRoute"),
-  );
+
   app.use(`${apiPrefix}/aepsInstant`, require("./instantAepsRoute"));
+
   app.use(`${apiPrefix}/dmt`, require("./nobleFinoDmtRoute"));
   app.use(`${apiPrefix}/dmt-ben`, require("./nobleDmtBeneficiaryRoute"));
+
+  app.use(
+    `${apiPrefix}/aepsPayoutBank`,
+    require("./sozoAepsPayoutBankRequestRoute"),
+  );
+  app.use(`${apiPrefix}/payout-bank`, require("./sozoAepsPayoutBankRoute"));
+  app.use(`${apiPrefix}/aepsPayout`, require("./sozoAepsPayoutRoute"));
 };
