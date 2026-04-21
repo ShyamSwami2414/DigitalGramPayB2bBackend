@@ -1,5 +1,6 @@
 const appClient = require("../../../app.client");
 const NobleDmtLog = require("../../../../../models/nobleDmtLogModel");
+const { paiseToRupee } = require("../../../../../utils/money");
 
 exports.initiateTransfer = async ({
   client_referenceId,
@@ -11,11 +12,11 @@ exports.initiateTransfer = async ({
   otp,
 
   beneficiaryName,
-  beneficiaryAccountNumber,
-  beneficiaryIfscCode,
-  amount,
+  beneficiaryAccount,
+  beneficiaryIfsc,
+  amount, //paise
 
-  tOtpRefrenceId,
+  tOtpRequestId,
   latitude,
   longitude,
   publicIp,
@@ -23,20 +24,13 @@ exports.initiateTransfer = async ({
   const timestamp = new Date().toISOString().slice(0, 19);
   const startTime = Date.now();
   const transferMode = "IMPS";
+  const amountInRupee = paiseToRupee(amount);
 
-  console.log(typeof publicIp);
-  console.log(
-    merchantMobileNumber,
-    customerName,
-    mobileNumber,
-    latitude,
-    longitude,
-    publicIp,
-  );
+  console.log(amountInRupee, "amountInRupee");
 
   try {
     const response = await appClient.post(
-      "dmt/generate-otp-transaction",
+      "dmt/transfer",
       {
         transactionId: client_referenceId,
         customerMobileNo: mobileNumber,
@@ -44,13 +38,13 @@ exports.initiateTransfer = async ({
         customerName: customerName,
 
         beneName: beneficiaryName,
-        beneAccountNo: beneficiaryAccountNumber,
-        beneIfscCode: beneficiaryIfscCode,
-        amount: amount,
+        beneAccountNo: beneficiaryAccount,
+        beneIfscCode: beneficiaryIfsc,
+        amount: String(amountInRupee), //rupee
 
         transferMode: transferMode,
         otp: otp,
-        otpRefrenceId: tOtpRefrenceId,
+        otpRefrenceId: tOtpRequestId,
         latitude: String(latitude),
         longitude: String(longitude),
         publicIp: publicIp,
@@ -74,7 +68,7 @@ exports.initiateTransfer = async ({
     const responseTime = Date.now() - startTime;
 
     const isSuccess =
-      response?.data?.data?.statusCode === "SS0011" ||
+      response?.data?.data?.statusCode === "DB0031" ||
       response?.data?.data?.status === 1;
 
     let providerStatus = isSuccess ? "SUCCESS" : "FAILED";
@@ -92,15 +86,25 @@ exports.initiateTransfer = async ({
       providerTxnId: response?.data?.txn_ref || undefined,
       serviceCategory: "DMT",
       userId: userId,
-      type: "T-OTP",
+      type: "FUND-TRANSFER",
       referenceId: client_referenceId,
       providerName: "NOBLE_FINO",
-      endPoint: "dmt/generate-otp-transaction",
+      endPoint: "dmt/transfer",
       method: "POST",
       request: {
-        merchantMobileNo: merchantMobileNumber,
+        transactionId: client_referenceId,
         customerMobileNo: mobileNumber,
+        merchantMobileNo: merchantMobileNumber,
         customerName: customerName,
+
+        beneName: beneficiaryName,
+        beneAccountNo: beneficiaryAccount,
+        beneIfscCode: beneficiaryIfsc,
+        amount: amountInRupee, //rupee
+
+        transferMode: transferMode,
+        otp: otp,
+        otpRefrenceId: tOtpRequestId,
         latitude: String(latitude),
         longitude: String(longitude),
         publicIp: publicIp,
@@ -118,15 +122,25 @@ exports.initiateTransfer = async ({
       providerTxnId: error?.response?.data?.txn_ref || undefined,
       serviceCategory: "DMT",
       userId: userId,
-      type: "T-OTP",
+      type: "FUND-TRANSFER",
       referenceId: client_referenceId,
       providerName: "NOBLE_FINO",
-      endPoint: "dmt/generate-otp-transaction",
+      endPoint: "dmt/transfer",
       method: "POST",
       request: {
-        merchantMobileNo: merchantMobileNumber,
+        transactionId: client_referenceId,
         customerMobileNo: mobileNumber,
+        merchantMobileNo: merchantMobileNumber,
         customerName: customerName,
+
+        beneName: beneficiaryName,
+        beneAccountNo: beneficiaryAccount,
+        beneIfscCode: beneficiaryIfsc,
+        amount: amountInRupee, //rupee
+
+        transferMode: transferMode,
+        otp: otp,
+        otpRefrenceId: tOtpRequestId,
         latitude: String(latitude),
         longitude: String(longitude),
         publicIp: publicIp,

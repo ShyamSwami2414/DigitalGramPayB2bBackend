@@ -23,6 +23,9 @@ const nobleFinoDmtCustomerSchema = new mongoose.Schema(
       match: [/^[6-9]\d{9}$/, "Invalid Indian mobile number"],
     },
 
+    isKycDone: { type: Boolean, default: false },
+    isVerified: { type: Boolean, default: false },
+
     ekycRequestId: {
       type: String,
       trim: true,

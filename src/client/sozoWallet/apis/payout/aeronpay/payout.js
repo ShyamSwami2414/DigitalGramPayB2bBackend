@@ -4,11 +4,11 @@ const {
 const {
   generateRequestId,
 } = require("../../../../../utils/requestIdGenerator");
-const ProviderLogs = require("../../../../../models/providerLogsModel");
+const SozoPayoutLog = require("../../../../../models/sozoPayoutLogsModel");
 const { paiseToRupee } = require("../../../../../utils/money");
 const sozoClient = require("../../../sozo.clent");
 
-exports.aepsPayout = async ({
+exports.initiatePayout = async ({
   client_referenceId,
   userId,
   requestId,
@@ -64,9 +64,16 @@ exports.aepsPayout = async ({
 
     const responseTime = Date.now() - startTime;
 
-    let providerStatus = response.data.success === true ? "SUCCESS" : "FAILED";
+    let apiStatus = response?.data?.data?.status;
 
-    if (providerStatus !== "SUCCESS") {
+    let providerStatus =
+      apiStatus === "SUCCESS"
+        ? "SUCCESS"
+        : apiStatus === "PENDING"
+          ? "PENDING"
+          : "FAILED";
+
+    if (providerStatus === "FAILED") {
       throw {
         providerStatus: providerStatus,
         error: response?.data?.errors,
@@ -75,9 +82,10 @@ exports.aepsPayout = async ({
       };
     }
 
-    await ProviderLogs.create({
+    await SozoPayoutLog.create({
       providerTxnId: response?.data?.data?.transactionId,
-      serviceCategory: "PAYOUT",
+      userId: userId,
+      type: "PAYOUT",
       referenceId: client_referenceId,
       providerName: "SOZO_WALLET",
       endPoint: "v1/payout/s/imps-payout",
@@ -110,9 +118,10 @@ exports.aepsPayout = async ({
       error?.errors || error.response?.data || error?.message,
     );
 
-    await ProviderLogs.create({
-      providerTxnId: error.response?.data?.transactionId || null,
-      serviceCategory: "PAYOUT",
+    await SozoPayoutLog.create({
+      providerTxnId: error.response?.data?.transactionId,
+      userId: userId,
+      type: "PAYOUT",
       referenceId: client_referenceId,
       providerName: "SOZO_WALLET",
       endPoint: "v1/payout/s/imps-payout",

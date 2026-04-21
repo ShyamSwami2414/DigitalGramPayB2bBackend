@@ -1,6 +1,6 @@
 const mongoose = require("mongoose");
 
-const nobleDmtLogSchema = new mongoose.Schema(
+const sozoPayoutLogSchema = new mongoose.Schema(
   {
     userId: {
       type: mongoose.Schema.Types.ObjectId,
@@ -10,18 +10,7 @@ const nobleDmtLogSchema = new mongoose.Schema(
     type: {
       type: String,
       required: [true, "Type of Transaction is required"],
-      enum: [
-        "SEARCH-CUSTOMER",
-        "CUSTOMER-LIMIT",
-        "CUSTOMER-EKYC",
-        "REGISTER-OTP",
-        "REGISTER-CUSTOMER",
-        "T-OTP",
-        "FUND-TRANSFER",
-        "BEN-ADD",
-        "BEN-GET",
-        "BEN-DELETE",
-      ],
+      enum: ["PAYOUT", "PAYOUT_STATUS"],
     },
 
     providerTxnId: {
@@ -82,4 +71,4 @@ const nobleDmtLogSchema = new mongoose.Schema(
   },
 );
 
-module.exports = mongoose.model("NobleDmtLog", nobleDmtLogSchema);
+module.exports = mongoose.model("SozoPayoutLog", sozoPayoutLogSchema);

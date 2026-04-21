@@ -24,6 +24,7 @@ const walletLedgerSchema = new mongoose.Schema(
         "AEPSTOMAIN",
         "FUNDREQUEST",
         "AEPS_PAYOUT",
+        "XPRESS_PAYOUT",
       ],
       trim: true,
       uppercase: true,

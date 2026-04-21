@@ -4,7 +4,7 @@ const {
 const {
   generateRequestId,
 } = require("../../../../../utils/requestIdGenerator");
-const ProviderLogs = require("../../../../../models/providerLogsModel");
+const SozoPayoutLog = require("../../../../../models/sozoPayoutLogsModel");
 const { paiseToRupee } = require("../../../../../utils/money");
 const sozoClient = require("../../../sozo.clent");
 
@@ -39,7 +39,10 @@ exports.aepsPayoutStatus = async ({
 
     const responseTime = Date.now() - startTime;
 
-    let providerStatus = response.data.success === true ? "SUCCESS" : "FAILED";
+    let providerStatus =
+      response?.data?.success === true && response?.data?.code === 200
+        ? "SUCCESS"
+        : "FAILED";
 
     if (providerStatus !== "SUCCESS") {
       throw {
@@ -50,9 +53,10 @@ exports.aepsPayoutStatus = async ({
       };
     }
 
-    await ProviderLogs.create({
+    await SozoPayoutLog.create({
       providerTxnId: response?.data?.data?.transactionId,
-      serviceCategory: "PAYOUT",
+      userId: userId,
+      type: "PAYOUT_STATUS",
       referenceId: client_referenceId,
       providerName: "SOZO_WALLET",
       endPoint: "payout/s/check-status",
@@ -76,7 +80,8 @@ exports.aepsPayoutStatus = async ({
 
     await ProviderLogs.create({
       providerTxnId: error.response?.data?.transactionId || undefined,
-      serviceCategory: "PAYOUT",
+      userId: userId,
+      type: "PAYOUT_STATUS",
       referenceId: client_referenceId,
       providerName: "SOZO_WALLET",
       endPoint: "payout/s/check-status",

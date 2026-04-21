@@ -8,12 +8,12 @@ const {
   generateUniqueRefernceId,
 } = require("../utils/generateUniqueReferenceId");
 const { paiseToRupee } = require("../utils/money");
-const { debitAepsWallet } = require("./common/walletService");
+const { debitWallet } = require("./common/walletService");
 const mongoose = require("mongoose");
 const { processRefund } = require("../services/common/refundService");
 const PayoutTransaction = require("../models/sozopayoutTransactionModel");
 
-exports.initiateAepsPayoutTransfer = async ({
+exports.initiateXpressPayoutTransfer = async ({
   userId,
   requestId,
   amount, //paise
@@ -43,7 +43,7 @@ exports.initiateAepsPayoutTransfer = async ({
           {
             userId: userId,
             idempotencyKey: requestId,
-            serviceType: "AEPS_PAYOUT",
+            serviceType: "XPRESS_PAYOUT",
             referenceId: referenceId,
             bankAccount: bankAccountNumber,
             ifsc: ifsc,
@@ -72,12 +72,12 @@ exports.initiateAepsPayoutTransfer = async ({
       throw err;
     }
 
-    const { openingBalance, closingBalance } = await debitAepsWallet({
+    const { openingBalance, closingBalance } = await debitWallet({
       userId: userId,
       amount: amount, //paise
-      serviceType: "AEPS_PAYOUT",
+      serviceType: "XPRESS_PAYOUT",
       referenceId: referenceId,
-      description: `Aeps Payout for ${purpose}`,
+      description: `Xpress Payout for ${purpose}`,
       session: session,
     });
 
@@ -147,8 +147,8 @@ exports.initiateAepsPayoutTransfer = async ({
           userId: userId,
           amount: amount, //paise
           referenceId: referenceId,
-          walletType: "aeps",
-          description: `Refund: AepsPayout Failed`,
+          walletType: "main",
+          description: `Refund: Xpress Payout Failed`,
           session: refundSession,
         });
 
@@ -188,7 +188,7 @@ exports.initiateAepsPayoutTransfer = async ({
   }
 };
 
-exports.checkAepsPayoutStatus = async ({
+exports.checkXpressPayoutStatus = async ({
   userId,
   requestId,
   transactionId,

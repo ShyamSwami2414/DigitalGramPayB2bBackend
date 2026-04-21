@@ -101,6 +101,7 @@ exports.onboardEkoAepsUser = async ({
         userId: userId,
         amount: registrationCharges, //paise
         referenceId: referenceId,
+        walletType: "main",
         description: "User Onboard Failed, Charges Refunded",
         apiResponse: result,
       });
@@ -118,7 +119,12 @@ exports.onboardEkoAepsUser = async ({
     console.log(result);
     return result;
   } catch (error) {
+    if (session.inTransaction()) {
+      await session.abortTransaction();
+    }
     throw error;
+  } finally {
+    session.endSession();
   }
 };
 
@@ -214,7 +220,12 @@ exports.activateService = async ({
     console.log(result);
     return result;
   } catch (error) {
+    if (session.inTransaction()) {
+      await session.abortTransaction();
+    }
     throw error;
+  } finally {
+    session.endSession();
   }
 };
 
@@ -287,7 +298,12 @@ exports.kycOtp = async ({
     console.log(result);
     return result;
   } catch (error) {
+    if (session.inTransaction()) {
+      await session.abortTransaction();
+    }
     throw error;
+  } finally {
+    session.endSession();
   }
 };
 
@@ -361,7 +377,12 @@ exports.verifyOtp = async ({ userId, requestId, otp, latitude, longitude }) => {
     console.log(result);
     return result;
   } catch (error) {
+    if (session.inTransaction()) {
+      await session.abortTransaction();
+    }
     throw error;
+  } finally {
+    session.endSession();
   }
 };
 
@@ -442,7 +463,12 @@ exports.ekycBiometric = async ({
     console.log(result);
     return result;
   } catch (error) {
+    if (session.inTransaction()) {
+      await session.abortTransaction();
+    }
     throw error;
+  } finally {
+    session.endSession();
   }
 };
 
@@ -573,6 +599,7 @@ exports.dailyBiometricLogin = async ({
           userId: userId,
           amount: dailyAepsLoginCharge,
           referenceId: referenceId,
+          walletType: "main",
           description: `Refund: Daily Eko Login Failed `,
           session: refundSession,
         });
@@ -609,8 +636,13 @@ exports.dailyBiometricLogin = async ({
 
     console.log(result);
     return result;
-  } catch (error) {
+  }  catch (error) {
+    if (session.inTransaction()) {
+      await session.abortTransaction();
+    }
     throw error;
+  } finally {
+    session.endSession();
   }
 };
 
@@ -758,7 +790,12 @@ exports.initiateAepsTransaction = async ({
 
     console.log(result);
     return result;
-  } catch (error) {
+  }  catch (error) {
+    if (session.inTransaction()) {
+      await session.abortTransaction();
+    }
     throw error;
+  } finally {
+    session.endSession();
   }
 };

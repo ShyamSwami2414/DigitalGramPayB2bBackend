@@ -1,5 +1,6 @@
 const mongoose = require("mongoose");
 const NobleDmtFinoCustomer = require("../../models/nobleFinoDmtCustomerModel");
+const NobleDmtBeneficiary = require("../../models/nobleDmtBeneficiaryModel");
 
 const { rupeeToPaise } = require("../../utils/money");
 const {
@@ -9,6 +10,7 @@ const {
   generateRegOtp,
   registerCustomer,
   generateTOtp,
+  transferFund,
 } = require("../../services/nobleFinoDmtService");
 
 const getCustomer = async (req, res, next) => {
@@ -97,6 +99,21 @@ const getCustomer = async (req, res, next) => {
       });
     }
 
+    // const customerExist = await NobleDmtFinoCustomer.findOne({
+    //   userId: userId,
+    //   mobile: mobileNumber,
+    // }).select("_id customerName");
+
+    // if (customerExist) {
+    //   return res.status(200).json({
+    //     success: true,
+    //     message: "Customer is Already registed, proceed for further step",
+    //     data: {
+    //       customerName: customerExist?.customerName,
+    //     },
+    //   });
+    // }
+
     const response = await searchCustomer({
       userId,
       requestId: idempotency,
@@ -108,6 +125,14 @@ const getCustomer = async (req, res, next) => {
 
     console.log(response, "response controller");
 
+    const existingCustomer = await NobleDmtFinoCustomer.findOne({
+      mobile: mobileNumber,
+    })
+      .select("isKycDone isVerified")
+      .lean();
+
+    console.log(existingCustomer, "existingCustomer");
+
     if (
       response &&
       response?.data?.status === 1 &&
@@ -115,21 +140,27 @@ const getCustomer = async (req, res, next) => {
     ) {
       const data = response?.data?.responseData?.[0];
 
-      const customer = new NobleDmtFinoCustomer({
-        userId: userId,
-        customerName: data?.CustomerName,
-        mobile: mobileNumber,
-      });
+      let customer;
 
-      await customer.save();
+      if (!existingCustomer) {
+        customer = new NobleDmtFinoCustomer({
+          userId,
+          customerName: data?.CustomerName,
+          mobile: mobileNumber,
+        });
+
+        await customer.save();
+      } else {
+        customer = existingCustomer; // already exists
+        data.isKycDone = existingCustomer?.isKycDone;
+        data.isVerified = existingCustomer?.isVerified;
+      }
 
       return res.status(201).json({
         success: true,
         message: response?.message,
         data: data,
       });
-    } else {
-      throw Error(response?.message || response?.data?.message);
     }
   } catch (error) {
     next(error);
@@ -206,9 +237,17 @@ const checkLimit = async (req, res, next) => {
 
 const doCustomerKyc = async (req, res, next) => {
   try {
-    let { mobileNumber, aadharNumber, pidData, latitude, longitude, publicIp } =
-      req.body;
+    let {
+      customerName,
+      mobileNumber,
+      aadharNumber,
+      pidData,
+      latitude,
+      longitude,
+      publicIp,
+    } = req.body;
 
+    customerName = customerName?.trim();
     mobileNumber = mobileNumber?.trim();
     aadharNumber = aadharNumber?.trim();
     publicIp = publicIp?.trim();
@@ -219,6 +258,7 @@ const doCustomerKyc = async (req, res, next) => {
     const idempotency = req.headers["idempotency-key"];
 
     const requiredFields = [
+      "customerName",
       "mobileNumber",
       "aadharNumber",
       "pidData",
@@ -307,6 +347,21 @@ const doCustomerKyc = async (req, res, next) => {
       });
     }
 
+    // const customerExist = await NobleDmtFinoCustomer.findOne({
+    //   mobile: mobileNumber,
+    //   isKycDone: true,
+    // }).select("_id customerName");
+
+    // if (customerExist) {
+    //   return res.status(200).json({
+    //     success: true,
+    //     message: "Customer kyc already completed, proceed for further step",
+    //     data: {
+    //       customerName: customerExist?.customerName,
+    //     },
+    //   });
+    // }
+
     const response = await customerEkyc({
       userId,
       requestId: idempotency,
@@ -318,7 +373,7 @@ const doCustomerKyc = async (req, res, next) => {
       publicIp,
     });
 
-    console.log(response, "response controller");
+    console.log(response, "response controller kyc");
 
     if (
       response &&
@@ -335,7 +390,19 @@ const doCustomerKyc = async (req, res, next) => {
         {
           $set: {
             ekycRequestId: data?.RequestId,
+            isKycDone: true,
           },
+          $setOnInsert: {
+            userId: userId,
+            customerName: customerName,
+            mobile: mobileNumber,
+            aadharNumber: aadharNumber,
+          },
+        },
+        {
+          new: true,
+          upsert: true,
+          setDefaultsOnInsert: true,
         },
       );
 
@@ -438,6 +505,22 @@ const generateRegistrationOtp = async (req, res, next) => {
       });
     }
 
+    const customerExist = await NobleDmtFinoCustomer.findOne({
+      mobile: mobileNumber,
+      isKycDone: true,
+      isVerified: true,
+    }).select("_id customerName");
+
+    if (customerExist) {
+      return res.status(200).json({
+        success: true,
+        message: "Customer already registerd, proceed for further step",
+        data: {
+          customerName: customerExist?.customerName,
+        },
+      });
+    }
+
     const response = await generateRegOtp({
       userId,
       requestId: idempotency,
@@ -471,7 +554,7 @@ const generateRegistrationOtp = async (req, res, next) => {
       return res.status(201).json({
         success: true,
         message: response?.message,
-        data: data,
+        // data: data,
       });
     } else {
       throw Error(response?.message || response?.data?.message);
@@ -578,6 +661,22 @@ const registerNewCustomer = async (req, res, next) => {
       });
     }
 
+    const customerExist = await NobleDmtFinoCustomer.findOne({
+      mobile: mobileNumber,
+      isKycDone: true,
+      isVerified: true,
+    }).select("_id customerName");
+
+    if (customerExist) {
+      return res.status(200).json({
+        success: true,
+        message: "Customer already registerd, proceed for further step",
+        data: {
+          customerName: customerExist?.customerName,
+        },
+      });
+    }
+
     const response = await registerCustomer({
       userId,
       requestId: idempotency,
@@ -593,14 +692,29 @@ const registerNewCustomer = async (req, res, next) => {
     if (
       response &&
       response?.data?.status === 1 &&
-      response?.data?.statusCode === "SS0011"
+      response?.data?.statusCode === "DB0031"
     ) {
       const data = response?.data?.responseData?.[0];
+
+      const update = await NobleDmtFinoCustomer.findOneAndUpdate(
+        {
+          userId: userId,
+          mobile: mobileNumber,
+        },
+        {
+          $set: {
+            isVerified: true,
+          },
+        },
+      );
 
       return res.status(201).json({
         success: true,
         message: response?.message,
-        data: data,
+        data: {
+          transactionId: data?.transactionId,
+          message: data?.detail,
+        },
       });
     } else {
       throw Error(response?.message || response?.data?.message);
@@ -741,7 +855,15 @@ const generateTransactionOtp = async (req, res, next) => {
 
 const initiateTransaction = async (req, res, next) => {
   try {
-    let { mobileNumber, latitude, longitude, publicIp, otp, amount } = req.body;
+    let {
+      mobileNumber,
+      latitude,
+      longitude,
+      publicIp,
+      otp,
+      amount,
+      beneficiaryAccount,
+    } = req.body;
 
     mobileNumber = mobileNumber?.trim();
     publicIp = publicIp?.trim();
@@ -749,6 +871,7 @@ const initiateTransaction = async (req, res, next) => {
     longitude = Number(longitude);
     otp = otp?.trim();
     amount = Number(amount);
+    beneficiaryAccount = beneficiaryAccount?.trim();
 
     const userId = req.user.id;
     const idempotency = req.headers["idempotency-key"];
@@ -758,6 +881,9 @@ const initiateTransaction = async (req, res, next) => {
       "latitude",
       "longitude",
       "publicIp",
+      "otp",
+      "amount",
+      "beneficiaryAccount",
     ];
 
     const missingFields = [];
@@ -851,9 +977,25 @@ const initiateTransaction = async (req, res, next) => {
       });
     }
 
+    if (!/^[0-9]{9,18}$/.test(beneficiaryAccount)) {
+      throw new Error("Invalid beneficiary account number");
+    }
+
+    const isValidBeneficiary = await NobleDmtBeneficiary.findOne({
+      accountNumber: beneficiaryAccount,
+      remitterMobile: mobileNumber,
+    });
+
+    if (!isValidBeneficiary) {
+      return res.status(404).json({
+        success: false,
+        message: "Beneficiary not found",
+      });
+    }
+
     const amountInPaise = rupeeToPaise(amount);
 
-    const response = await generateTOtp({
+    const response = await transferFund({
       userId,
       requestId: idempotency,
       mobileNumber,
@@ -862,14 +1004,17 @@ const initiateTransaction = async (req, res, next) => {
       publicIp,
       otp: otp,
       amount: amountInPaise,
+      beneficiaryName: isValidBeneficiary?.accountHolderName,
+      beneficiaryAccount: isValidBeneficiary?.accountNumber,
+      beneficiaryIfsc: isValidBeneficiary?.ifsc,
     });
 
-    console.log(response, "response controller");
+    console.log("response controller:", JSON.stringify(response, null, 2));
 
     if (
       response &&
       response?.data?.status === 1 &&
-      response?.data?.statusCode === "SS0011"
+      response?.data?.statusCode === "DB0031"
     ) {
       const data = response?.data?.responseData?.[0];
 

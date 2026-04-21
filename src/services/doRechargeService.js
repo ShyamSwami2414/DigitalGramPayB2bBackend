@@ -234,6 +234,7 @@ exports.doRechargeService = async ({
           userId: userId,
           amount: amount, //paise
           referenceId: referenceId,
+          walletType: "main",
           reportModel: RechargeReport,
           description: "Recharge Failed Refund",
           apiResponse: result,

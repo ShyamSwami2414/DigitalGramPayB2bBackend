@@ -55,4 +55,6 @@ module.exports = (app) => {
   );
   app.use(`${apiPrefix}/payout-bank`, require("./sozoAepsPayoutBankRoute"));
   app.use(`${apiPrefix}/aepsPayout`, require("./sozoAepsPayoutRoute"));
+  app.use(`${apiPrefix}/xpressPayoutBank`, require("./sozoXpressPayoutBankRoute"));
+  app.use(`${apiPrefix}/xpressPayout`, require("./sozoXpressPayoutRoute"));
 };

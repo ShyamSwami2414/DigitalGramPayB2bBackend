@@ -8,6 +8,7 @@ const nobleDmtBeneficiarySchema = new mongoose.Schema(
       required: true,
     },
 
+    //means customer who register
     remitterMobile: {
       type: String,
       required: true,

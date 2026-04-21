@@ -111,6 +111,7 @@ exports.instantAepsOutletRegister = async ({
         userId: userId,
         amount: registrationCharges, //paise
         referenceId: referenceId,
+        walletType: "main",
         description: "Outlet Register Failed, Charges Refunded",
         apiResponse: result,
       });
@@ -453,6 +454,7 @@ exports.dailyLogin = async ({
           userId: userId,
           amount: dailyAepsLoginCharge,
           referenceId: referenceId,
+           walletType: "main",
           description: `Refund: Daily Login Failed `,
           session: refundSession,
         });

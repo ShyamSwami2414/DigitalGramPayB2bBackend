@@ -12,7 +12,7 @@ const debitAepsWallet = async ({
   let openingBalance = 0;
   let closingBalance = 0;
 
-  console.log(amount, "debit wallet amount value");
+  console.log(amount, "aeps debit wallet amount value");
 
   const wallet = await UserWallet.findOneAndUpdate(
     {

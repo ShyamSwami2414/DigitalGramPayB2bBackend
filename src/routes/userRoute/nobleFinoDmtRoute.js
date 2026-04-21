@@ -70,7 +70,7 @@ router.post(
 );
 
 router.post(
-  "/generate-totp",
+  "/transfer-fund",
   authenticateUser,
   checkUserPaymentAndKYC,
   idempotencyMiddleware,

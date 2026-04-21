@@ -11,6 +11,7 @@ exports.generateTransactionOtp = async ({
   latitude,
   longitude,
   publicIp,
+  
 }) => {
   const timestamp = new Date().toISOString().slice(0, 19);
   const startTime = Date.now();

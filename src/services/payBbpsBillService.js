@@ -202,6 +202,7 @@ exports.payBbpsBillService = async ({
         userId: userId,
         amount: billamount, //paise
         referenceId: referenceId,
+        walletType: "main",
         reportModel: BbpsReport,
         description: "Bbps Bill Failed Refund",
         apiResponse: result,
@@ -220,6 +221,11 @@ exports.payBbpsBillService = async ({
       throw new Error(errorMessage);
     }
   } catch (error) {
+    if (session.inTransaction()) {
+      await session.abortTransaction();
+    }
     throw error;
+  } finally {
+    session.endSession();
   }
 };
