@@ -54,7 +54,7 @@ exports.aepsPayoutStatus = async ({
     }
 
     await SozoPayoutLog.create({
-      providerTxnId: response?.data?.data?.transactionId,
+      providerTxnId: response?.data?.data?.transactionId || undefined,
       userId: userId,
       type: "PAYOUT_STATUS",
       referenceId: client_referenceId,

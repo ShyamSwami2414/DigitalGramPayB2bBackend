@@ -636,7 +636,7 @@ exports.dailyBiometricLogin = async ({
 
     console.log(result);
     return result;
-  }  catch (error) {
+  } catch (error) {
     if (session.inTransaction()) {
       await session.abortTransaction();
     }
@@ -667,7 +667,9 @@ exports.initiateAepsTransaction = async ({
     const onboardMerchant = await EkoOnboardAepsUser.findOne({
       userId: userId,
     })
-      .select("_id userCode aadhaar mobile temp_otp_ref_id temp_reference_tid")
+      .select(
+        "_id userCode initiatorId aadhaar mobile temp_otp_ref_id temp_reference_tid",
+      )
       .lean()
       .session(session);
 
@@ -790,7 +792,7 @@ exports.initiateAepsTransaction = async ({
 
     console.log(result);
     return result;
-  }  catch (error) {
+  } catch (error) {
     if (session.inTransaction()) {
       await session.abortTransaction();
     }

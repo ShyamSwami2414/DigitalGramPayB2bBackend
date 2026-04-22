@@ -1,6 +1,6 @@
 const { rupeeToPaise } = require("../../utils/money");
 const mongoose = require("mongoose");
-const SozoPayoutBank = require("../../models/sozoXpressPayoutBankModel");
+const SozoXpressPayoutBank = require("../../models/sozoXpressPayoutBankModel");
 const User = require("../../models/userModel");
 const Kyc = require("../../models/kycModel");
 const {
@@ -96,7 +96,7 @@ exports.initiateXpressPayout = async (req, res, next) => {
         .select("_id email phone ")
         .lean(),
 
-      SozoPayoutBank.findOne({
+      SozoXpressPayoutBank.findOne({
         _id: bankId,
         userId: userId,
         isActive: true,

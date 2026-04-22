@@ -191,6 +191,10 @@ exports.doMobilePrepaidRecharge = async (req, res, next) => {
       throw err;
     }
 
+    if (isNaN(amount) || amount <= 0) {
+      throw new Error("Invalid amount");
+    }
+
     //paise
     if (amountInPaise < 1000) {
       const err = new Error("Amount must be equal to or greater than 10");
@@ -222,17 +226,6 @@ exports.doMobilePrepaidRecharge = async (req, res, next) => {
       throw err;
     }
 
-    // return res.status(200).json({
-    //   success: true,
-    //   message: "Dummy Recharge Successful",
-    //   data: {
-    //     status: "SUCCESS",
-    //     txn_ref: "RCHG202603201533425337",
-    //     utr: null,
-    //     message: "Transaction Successful",
-    //   },
-    // });
-
     const response = await doRechargeService({
       userId,
       operatorId: operatorId._id,
@@ -243,7 +236,9 @@ exports.doMobilePrepaidRecharge = async (req, res, next) => {
       billerMode,
     });
 
-    if (response.status === "FAILED") {
+    console.log("controller final response", response);
+
+    if (response?.status === "FAILED") {
       return res.status(400).json({
         success: false,
         message: "Recharge Failed",
@@ -251,15 +246,13 @@ exports.doMobilePrepaidRecharge = async (req, res, next) => {
       });
     }
 
-    if (response.status === "PENDING") {
-      return res.status(400).json({
+    if (response?.status === "PENDING") {
+      return res.status(200).json({
         success: true,
         message: "Recharge Pending",
         data: response,
       });
     }
-
-    console.log("controller final response", response);
 
     return res.status(200).json({
       success: true,

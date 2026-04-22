@@ -83,7 +83,7 @@ exports.initiatePayout = async ({
     }
 
     await SozoPayoutLog.create({
-      providerTxnId: response?.data?.data?.transactionId,
+      providerTxnId: response?.data?.data?.transactionId || undefined,
       userId: userId,
       type: "PAYOUT",
       referenceId: client_referenceId,
@@ -119,7 +119,7 @@ exports.initiatePayout = async ({
     );
 
     await SozoPayoutLog.create({
-      providerTxnId: error.response?.data?.transactionId,
+      providerTxnId: error.response?.data?.transactionId || undefined,
       userId: userId,
       type: "PAYOUT",
       referenceId: client_referenceId,

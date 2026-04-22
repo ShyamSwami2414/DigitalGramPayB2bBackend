@@ -6,6 +6,7 @@ const Commission = require("../../models/commissionModel");
 const validateUserPackageAndService = async ({
   userId,
   serviceName,
+  pipeline,
   operatorId = null,
   categoryId = null,
   amount, //paise
@@ -39,6 +40,7 @@ const validateUserPackageAndService = async ({
 
   const service = await Service.findOne({
     name: serviceName,
+    "pipeline.code": pipeline,
     isActive: true,
     isDeleted: false,
   });
@@ -47,9 +49,18 @@ const validateUserPackageAndService = async ({
     throw new Error(`${serviceName} service not exist`);
   }
 
-  const isAssigned = user.assignedServices.some(
-    (id) => id.toString() === service._id.toString(),
+  const isAssigned = user?.assignedServices?.some(
+    (s) =>
+      s?.serviceId.toString() === service._id.toString() &&
+      s?.pipelineCodes.includes(pipeline),
   );
+
+  console.log(service, "service");
+  console.log(isAssigned);
+
+  // const isAssigned = user.assignedServices.some(
+  //   (id) => id.toString() === service._id.toString(),
+  // );
 
   if (!isAssigned) {
     throw new Error(`${serviceName} Service Not Assigned`);
@@ -58,13 +69,19 @@ const validateUserPackageAndService = async ({
   const commissionPlan = await Commission.findOne({
     packageId: user.packageId,
     serviceId: service._id,
+    pipelineCode: pipeline,
     operatorId: operatorId,
     categoryId: categoryId,
   }).lean();
 
+  console.log(commissionPlan, "commissionPlan");
+
   if (!commissionPlan) {
-    throw new Error(`Commission Plan not found`);
+    return { packageId: user.packageId, serviceId: service._id };
+    // throw new Error(`Commission Plan not configured for this slab`);
   }
+
+  return;
 
   const validPlan = commissionPlan.plan.find(
     (p) => !p.isDeleted && amount >= p.from && amount <= p.to,

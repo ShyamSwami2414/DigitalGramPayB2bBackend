@@ -569,14 +569,14 @@ exports.fetchProfile = async (req, res, next) => {
       {
         $lookup: {
           from: "services",
-          localField: "assignedServices",
+          localField: "assignedServices.serviceId",
           foreignField: "_id",
           pipeline: [
             {
               $project: { name: 1 },
             },
           ],
-          as: "assignedServices",
+          as: "serviceDetails",
         },
       },
 
@@ -645,6 +645,7 @@ exports.fetchProfile = async (req, res, next) => {
         $project: {
           onboardUser: 0,
           merchant: 0,
+          serviceDetails: 0,
         },
       },
     ]);

@@ -74,6 +74,7 @@ exports.payBbpsBillService = async ({
       ({ packageId, serviceId } = await validateUserPackageAndService({
         userId: userId,
         serviceName: "bbps",
+        pipeline: "bbps1",
         categoryId: billerCategory?._id,
         amount: billamount, //paise
       }));

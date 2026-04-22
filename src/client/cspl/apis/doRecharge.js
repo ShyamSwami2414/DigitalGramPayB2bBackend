@@ -19,7 +19,6 @@ exports.doRecharge = async ({
   const startTime = Date.now();
 
   const amountInRupee = paiseToRupee(amount); //rupee
-
   console.log(amountInRupee, "amountInRupee");
 
   // return {
@@ -34,10 +33,10 @@ exports.doRecharge = async ({
       "mobile-prepaid-Recharge",
       {
         amount: amountInRupee, //rupee
-        client_referenceId,
-        operatorCode,
-        number,
-        billerMode,
+        client_referenceId: client_referenceId,
+        operatorCode: operatorCode,
+        number: number,
+        billerMode: billerMode,
       },
       {
         headers: {
@@ -57,10 +56,19 @@ exports.doRecharge = async ({
     const responseTime = Date.now() - startTime;
 
     let providerStatus =
-      response.data.status === "SUCCESS" ? "SUCCESS" : "FAILED";
+      response?.data?.status === "SUCCESS" ? "SUCCESS" : "FAILED";
+
+    if (providerStatus !== "SUCCESS") {
+      throw {
+        providerStatus: providerStatus,
+        message: response?.data?.message,
+        txn_ref: response?.data?.txn_ref,
+        fullResponse: response?.data,
+      };
+    }
 
     await ProviderLogs.create({
-      providerTxnId: response?.data?.txn_ref,
+      providerTxnId: response?.data?.txn_ref || undefined,
       serviceCategory: "RECHARGE",
       referenceId: client_referenceId,
       providerName: "CSPL",
@@ -68,11 +76,11 @@ exports.doRecharge = async ({
       method: "POST",
 
       request: {
-        amount,
-        operatorCode,
-        number,
-        billerMode,
-        client_referenceId,
+        amount: amountInRupee, //rupee
+        client_referenceId: client_referenceId,
+        operatorCode: operatorCode,
+        number: number,
+        billerMode: billerMode,
       },
 
       response: response.data,
@@ -85,14 +93,21 @@ exports.doRecharge = async ({
     console.log("API Error Response:", error.response?.data || error.message);
 
     await ProviderLogs.create({
-      providerTxnId: error.response?.data?.txn_ref || null,
+      providerTxnId: error.response?.data?.txn_ref || error?.txn_ref || undefined,
       serviceCategory: "RECHARGE",
       referenceId: client_referenceId,
       providerName: "CSPL",
       endPoint: "mobile-prepaid-Recharge",
       method: "POST",
-      request: { amount, operatorCode, number, billerMode, client_referenceId },
-      response: error.response?.data || { message: error.message },
+      request: {
+        amount: amountInRupee, //rupee
+        client_referenceId: client_referenceId,
+        operatorCode: operatorCode,
+        number: number,
+        billerMode: billerMode,
+      },
+      response: error.fullResponse ||
+        error.response?.data || { message: error.message },
       providerStatus: "FAILED",
       responseTime: Date.now() - startTime,
     });

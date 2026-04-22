@@ -11,6 +11,7 @@ const processCommission = async ({
   packageId,
   serviceId,
   operatorId = null,
+  pipeline,
   referenceId,
   providerTxnId = null,
   reportModel, //dynamic (RechargeReport, BBPSReport, etc.)
@@ -27,6 +28,7 @@ const processCommission = async ({
       packageId,
       serviceId,
       operatorId,
+      pipeline,
     });
 
     console.log("commission", commission);
@@ -72,20 +74,20 @@ const processCommission = async ({
       { session },
     );
 
-    await Transaction.updateOne(
-      {
-        referenceId: referenceId,
-      },
-      {
-        $set: {
-          status: "SUCCESS",
-          providerTxnId: providerTxnId,
-          remark: apiResponse ? apiResponse?.message : "",
-          "meta.response": apiResponse,
-        },
-      },
-      { session },
-    );
+    // await Transaction.updateOne(
+    //   {
+    //     referenceId: referenceId,
+    //   },
+    //   {
+    //     $set: {
+    //       status: "SUCCESS",
+    //       providerTxnId: providerTxnId,
+    //       remark: apiResponse ? apiResponse?.message : "",
+    //       "meta.response": apiResponse,
+    //     },
+    //   },
+    //   { session },
+    // );
 
     await session.commitTransaction();
 

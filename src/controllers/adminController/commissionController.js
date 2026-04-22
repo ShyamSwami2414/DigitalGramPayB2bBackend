@@ -8,60 +8,73 @@ const { rupeeToPaise, paiseToRupee } = require("../../utils/money");
 
 exports.getCommissionList = async (req, res, next) => {
   try {
-    const { packageId, serviceId, operatorId, categoryId } = req.query;
+    let { packageId, serviceId, pipeline, operatorId, categoryId } = req.query;
+    pipeline = pipeline?.trim()?.toLowerCase();
 
-    if (!packageId || !serviceId) {
-      return res.status(400).json({
-        success: false,
-        message: "packageId and serviceId are required",
-      });
-    }
+    const requiredFields = ["packageId", "serviceId", "pipeline"];
+    const missingFields = [];
 
-    if (!mongoose.Types.ObjectId.isValid(packageId)) {
-      return res.status(400).json({
-        success: false,
-        message: "Invalid Package ID",
-      });
-    }
-
-    if (!mongoose.Types.ObjectId.isValid(serviceId)) {
-      return res.status(400).json({
-        success: false,
-        message: "Invalid Service ID",
-      });
-    }
-
-    // check package
-    const isValidPackage = await Package.findOne({
-      _id: packageId,
-      isActive: true,
-      isDeleted: false,
+    requiredFields.forEach((field) => {
+      if (!req.query[field]) {
+        missingFields.push(field);
+      }
     });
 
-    if (!isValidPackage) {
-      return res.status(404).json({
+    if (missingFields.length > 0) {
+      return res.status(400).json({
         success: false,
-        message: "Package Not Found",
+        message: `Missing required fields: ${missingFields.join(", ")}`,
       });
     }
 
-    // check service
-    const isValidService = await Service.findOne({
-      _id: serviceId,
-      isActive: true,
-      isDeleted: false,
-    });
+    const validateId = (id, name) => {
+      if (!id || !mongoose.Types.ObjectId.isValid(id)) {
+        throw new Error(`Invalid ${name}`);
+      }
+    };
 
-    if (!isValidService) {
-      return res.status(404).json({
+    try {
+      validateId(packageId, "Package ID");
+      validateId(serviceId, "Service ID");
+
+      const [pkg, service] = await Promise.all([
+        Package.findOne({
+          _id: packageId,
+          isActive: true,
+          isDeleted: false,
+        }).select("_id"),
+
+        Service.findOne({
+          _id: serviceId,
+          isActive: true,
+          isDeleted: false,
+        }).select("_id"),
+      ]);
+
+      if (!pkg) {
+        return res.status(404).json({
+          success: false,
+          message: "Package Not Found",
+        });
+      }
+
+      if (!service) {
+        return res.status(404).json({
+          success: false,
+          message: "Service Not Found",
+        });
+      }
+    } catch (err) {
+      return res.status(400).json({
         success: false,
-        message: "Service Not Found",
+        message: err.message,
       });
     }
 
     let filter = {
       packageId: new mongoose.Types.ObjectId(packageId),
       serviceId: new mongoose.Types.ObjectId(serviceId),
+      pipelineCode: pipeline?.toLowerCase(),
     };
 
     if (operatorId) {
@@ -136,9 +149,13 @@ exports.getCommissionList = async (req, res, next) => {
           type: "$plan.type",
           commission: "$plan.commission",
 
+          packageId: "$package._id",
           packageName: "$package.name",
+          serviceId: "$service._id",
           serviceName: "$service.name",
+          operatorId: "$operator._id",
           operatorName: "$operator.name",
+          categoryId: "$category._id",
           categoryName: "$category.name",
         },
       },
@@ -170,13 +187,23 @@ exports.getCommissionList = async (req, res, next) => {
 
 exports.createCommission = async (req, res, next) => {
   try {
-    let { packageId, serviceId, operatorId, categoryId, plan } = req.body;
+    let { packageId, serviceId, pipeline, operatorId, categoryId, plan } =
+      req.body;
+    pipeline = pipeline?.trim()?.toLowerCase();
 
-    // ✅ Required fields
-    if (!packageId || !serviceId) {
+    const requiredFields = ["packageId", "serviceId", "pipeline"];
+    const missingFields = [];
+
+    requiredFields.forEach((field) => {
+      if (!req.body[field]) {
+        missingFields.push(field);
+      }
+    });
+
+    if (missingFields.length > 0) {
       return res.status(400).json({
         success: false,
-        message: "packageId and serviceId are required",
+        message: `Missing required fields: ${missingFields.join(", ")}`,
       });
     }
 
@@ -187,22 +214,7 @@ exports.createCommission = async (req, res, next) => {
       });
     }
 
-    // ✅ ObjectId validation
-    if (!mongoose.Types.ObjectId.isValid(packageId)) {
-      return res.status(400).json({
-        success: false,
-        message: "Invalid Package ID",
-      });
-    }
-
-    if (!mongoose.Types.ObjectId.isValid(serviceId)) {
-      return res.status(400).json({
-        success: false,
-        message: "Invalid Service ID",
-      });
-    }
-
-    // ✅ Normalize + convert
+    //  Normalize + convert
     plan = plan.map((p, i) => {
       const type = p.type?.toString().trim().toLowerCase();
 
@@ -217,7 +229,7 @@ exports.createCommission = async (req, res, next) => {
       };
     });
 
-    // ✅ Sort plans
+    //  Sort plans
     plan.sort((a, b) => a.from - b.from);
 
     const validatedPlans = [];
@@ -275,93 +287,105 @@ exports.createCommission = async (req, res, next) => {
       validatedPlans.push({ from, to, commission, type });
     }
 
-    // ✅ Validate package
-    const isValidPackage = await Package.findOne({
-      _id: packageId,
-      isActive: true,
-      isDeleted: false,
-    });
+    //common validator for all
+    const validateId = (id) => id && mongoose.Types.ObjectId.isValid(id);
 
-    if (!isValidPackage) {
-      return res.status(404).json({
-        success: false,
-        message: "Package Not Found",
-      });
+    if (!validateId(packageId)) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Invalid Package ID" });
     }
 
-    // ✅ Validate service
-    const isValidService = await Service.findOne({
-      _id: serviceId,
-      isActive: true,
-      isDeleted: false,
-    });
-
-    if (!isValidService) {
-      return res.status(404).json({
-        success: false,
-        message: "Service Not Found",
-      });
+    if (!validateId(serviceId)) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Invalid Service ID" });
     }
 
-    // ✅ Validate operator
-    if (operatorId) {
-      if (!mongoose.Types.ObjectId.isValid(operatorId)) {
-        return res.status(400).json({
-          success: false,
-          message: "Invalid Operator ID",
-        });
-      }
+    if (operatorId && !validateId(operatorId)) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Invalid Operator ID" });
+    }
 
-      const isValidOperator = await Operator.findOne({
-        _id: operatorId,
+    if (categoryId && !validateId(categoryId)) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Invalid Category ID" });
+    }
+
+    //  Run all DB queries in parallel
+    const [pkg, service, operator, category] = await Promise.all([
+      Package.findOne({
+        _id: packageId,
         isActive: true,
         isDeleted: false,
-      });
+      }).select("_id"),
 
-      if (!isValidOperator) {
-        return res.status(404).json({
-          success: false,
-          message: "Operator Not Found",
-        });
-      }
-    }
-
-    // ✅ Validate category
-    if (categoryId) {
-      if (!mongoose.Types.ObjectId.isValid(categoryId)) {
-        return res.status(400).json({
-          success: false,
-          message: "Invalid Category ID",
-        });
-      }
-
-      const isValidCategory = await BbpsCategory.findOne({
-        _id: categoryId,
+      Service.findOne({
+        _id: serviceId,
         isActive: true,
         isDeleted: false,
-      });
+        "pipeline.code": pipeline,
+      }).select("_id pipeline"),
 
-      if (!isValidCategory) {
-        return res.status(404).json({
-          success: false,
-          message: "Category Not Found",
-        });
-      }
+      operatorId
+        ? Operator.findOne({
+            _id: operatorId,
+            isActive: true,
+            isDeleted: false,
+          }).select("_id")
+        : null,
+
+      categoryId
+        ? BbpsCategory.findOne({
+            _id: categoryId,
+            isActive: true,
+            isDeleted: false,
+          }).select("_id")
+        : null,
+    ]);
+
+    //  Check results
+    if (!pkg) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Package Not Found" });
+    }
+
+    if (!service) {
+      return res.status(404).json({
+        success: false,
+        message: "Service or Pipeline Not Found or invalid",
+      });
+    }
+
+    if (operatorId && !operator) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Operator Not Found" });
+    }
+
+    if (categoryId && !category) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Category Not Found" });
     }
 
     // ✅ Find existing commission
     let commissionDoc = await Commission.findOne({
       packageId,
       serviceId,
+      pipelineCode: pipeline,
       operatorId: operatorId || null,
       categoryId: categoryId || null,
     });
 
-    // ✅ CREATE
     if (!commissionDoc) {
       await Commission.create({
         packageId,
         serviceId,
+        pipelineCode: pipeline || null,
         operatorId: operatorId || null,
         categoryId: categoryId || null,
         plan: validatedPlans,
@@ -373,14 +397,76 @@ exports.createCommission = async (req, res, next) => {
       });
     }
 
-    // ✅ REPLACE MODE (NO BUGS)
-    commissionDoc.plan = validatedPlans;
+    //  UPDATE (MERGE MODE)
 
+    // Step 1: get existing
+    const existingPlans = commissionDoc.plan || [];
+
+    // Step 2: merge
+    const mergedPlans = [...existingPlans, ...validatedPlans];
+
+    // Step 3: sort
+    mergedPlans.sort((a, b) => a.from - b.from);
+
+    // Step 4: validate merged
+    for (let i = 0; i < mergedPlans.length; i++) {
+      const { from, to, commission, type } = mergedPlans[i];
+
+      if ([from, to, commission].some((v) => isNaN(v))) {
+        return res.status(400).json({
+          success: false,
+          message: `Invalid numeric value at merged index ${i}`,
+        });
+      }
+
+      if (from <= 0 || to <= 0) {
+        return res.status(400).json({
+          success: false,
+          message: `Amounts must be greater than 0 at merged index ${i}`,
+        });
+      }
+
+      if (from >= to) {
+        return res.status(400).json({
+          success: false,
+          message: `Invalid range at merged index ${i}`,
+        });
+      }
+
+      if (!["flat", "percent"].includes(type)) {
+        return res.status(400).json({
+          success: false,
+          message: `Invalid type at merged index ${i}`,
+        });
+      }
+
+      if (type === "percent" && commission > 100) {
+        return res.status(400).json({
+          success: false,
+          message: `Commission cannot exceed 100% at merged index ${i}`,
+        });
+      }
+
+      // 🔥 overlap check
+      if (i > 0) {
+        const prev = mergedPlans[i - 1];
+
+        if (from <= prev.to) {
+          return res.status(400).json({
+            success: false,
+            message: `Overlapping between ${prev.from}-${prev.to} and ${from}-${to}`,
+          });
+        }
+      }
+    }
+
+    // Step 5: save
+    commissionDoc.plan = mergedPlans;
     await commissionDoc.save();
 
     return res.status(200).json({
       success: true,
-      message: "Commission Updated Successfully",
+      message: "Commission Updated (Merged) Successfully",
     });
   } catch (error) {
     next(error);

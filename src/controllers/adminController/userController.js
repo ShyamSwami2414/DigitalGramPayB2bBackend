@@ -789,66 +789,115 @@ exports.assignServiceToUser = async (req, res, next) => {
     const { services } = req.body;
     const { userId } = req.params;
 
-    const missingFields = [];
-
-    if (!services || !Array.isArray(services)) missingFields.push("services");
-
-    if (!userId) missingFields.push("userId");
-
-    if (missingFields.length > 0) {
-      return res.status(400).json({
-        success: false,
-        message: `${missingFields.join(", ")} is missing`,
-        missingFields,
-      });
-    }
-
-    if (!mongoose.Types.ObjectId.isValid(userId)) {
+    //  Basic validation
+    if (!userId || !mongoose.Types.ObjectId.isValid(userId)) {
       return res.status(400).json({
         success: false,
         message: "Invalid userId",
       });
     }
 
-    const invalidIds = services.filter(
-      (id) => !mongoose.Types.ObjectId.isValid(id),
-    );
-
-    if (invalidIds.length > 0) {
+    if (!Array.isArray(services) || services.length === 0) {
       return res.status(400).json({
         success: false,
-        message: "Invalid service IDs",
-        invalidIds,
+        message: "services must be a non-empty array",
       });
     }
 
-    const validServices = await Service.find({
-      _id: { $in: services },
-      isActive: true,
+    //  Validate each service object
+    for (let i = 0; i < services.length; i++) {
+      const { serviceId, pipelineCodes } = services[i];
+
+      if (!serviceId || !mongoose.Types.ObjectId.isValid(serviceId)) {
+        return res.status(400).json({
+          success: false,
+          message: `Invalid serviceId at index ${i}`,
+        });
+      }
+
+      if (!Array.isArray(pipelineCodes) || pipelineCodes.length === 0) {
+        return res.status(400).json({
+          success: false,
+          message: `pipelineCodes required at index ${i}`,
+        });
+      }
+
+      //  Fetch service with pipelines
+      const service = await Service.findOne({
+        _id: serviceId,
+        isActive: true,
+        isDeleted: false,
+      }).select("pipeline");
+
+      if (!service) {
+        return res.status(404).json({
+          success: false,
+          message: `Service not found at index ${i}`,
+        });
+      }
+
+      //  Validate pipelines
+      const validPipelines = service.pipeline
+        .filter((p) => p.isActive)
+        .map((p) => p.code);
+
+      console.log(validPipelines, "validPipelines");
+      console.log(pipelineCodes, "pipelineCodes");
+
+      const invalidPipelines = pipelineCodes.filter(
+        (code) => !validPipelines.includes(code),
+      );
+
+      if (invalidPipelines.length > 0) {
+        return res.status(400).json({
+          success: false,
+          message: `Invalid pipelineCodes at index ${i}`,
+          invalidPipelines,
+        });
+      }
+    }
+
+    const user = await User.findOne({
+      _id: userId,
       isDeleted: false,
-    }).select("_id");
+    });
 
-    const serviceIds = validServices.map((s) => s._id);
-
-    const existingUser = await User.findOneAndUpdate(
-      { _id: userId, isDeleted: false },
-      {
-        assignedServices: serviceIds,
-      },
-      { new: true },
-    );
-
-    if (!existingUser) {
+    if (!user) {
       return res.status(404).json({
         success: false,
         message: "User not found",
       });
     }
 
+    const assignedServices = user.assignedServices || [];
+
+    // existing services
+    const updatedServices = [];
+
+    services.forEach((newService) => {
+      const existing = assignedServices.find(
+        (s) => s.serviceId.toString() === newService.serviceId,
+      );
+
+      if (existing) {
+        // replace pipelines (NOT merge)
+        updatedServices.push({
+          serviceId: newService.serviceId,
+          pipelineCodes: newService.pipelineCodes,
+        });
+      } else {
+        updatedServices.push(newService);
+      }
+    });
+
+    //  This removes services not in request
+    user.assignedServices = updatedServices;
+    await user.save();
+
     return res.status(200).json({
       success: true,
       message: "User services updated successfully",
-      data: existingUser,
+      data: user,
     });
   } catch (error) {
     next(error);

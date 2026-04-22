@@ -1,4 +1,5 @@
 const Package = require("../../models/packageModel");
+const User = require("../../models/userModel");
 const { generatePackageCode } = require("../../utils/generatePackageCode");
 const mongoose = require("mongoose");
 
@@ -173,6 +174,14 @@ exports.deletePackage = async (req, res, next) => {
       return res
         .status(400)
         .json({ success: false, message: "Invalid Id Provided" });
+    }
+
+    const isPackageAssigned = await User.findOne({ packageId: id });
+
+    if (isPackageAssigned) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Assigned Package can't be Deleted" });
     }
 
     const existingPackage = await Package.findOneAndUpdate(

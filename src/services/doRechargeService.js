@@ -38,6 +38,7 @@ exports.doRechargeService = async ({
     const { packageId, serviceId } = await validateUserPackageAndService({
       userId: userId,
       serviceName: "recharge",
+      pipeline: "recharge1",
       operatorId: operatorId,
       amount: amount, //paise
     });
@@ -51,50 +52,6 @@ exports.doRechargeService = async ({
       session: session,
     });
 
-    // const wallet = await UserWallet.findOneAndUpdate(
-    //   {
-    //     userId: userId,
-    //     isActive: true,
-    //     isDeleted: false,
-    //     $expr: {
-    //       $gte: [{ $subtract: ["$mainWallet", "$mainHoldAmount"] }, amount],
-    //     },
-    //   },
-    //   {
-    //     $inc: {
-    //       mainWallet: -amount,
-    //     },
-    //   },
-    //   {
-    //     new: true,
-    //     session,
-    //   },
-    // );
-
-    // if (!wallet) {
-    //   throw new Error("Insufficient Wallet Balance");
-    // }
-
-    // closingBalance = wallet.mainWallet;
-    // openingBalance = closingBalance + amount;
-
-    // await WalletLedger.create(
-    //   [
-    //     {
-    //       userId: userId,
-    //       serviceType: "RECHARGE",
-    //       wallet: "main",
-    //       type: "debit",
-    //       amount: amount,
-    //       openingBalance: openingBalance,
-    //       closingBalance: closingBalance,
-    //       referenceId: referenceId,
-    //       description: "Mobile Prepaid Recharge",
-    //     },
-    //   ],
-    //   { session },
-    // );
-
     await RechargeReport.create(
       [
         {
@@ -104,32 +61,33 @@ exports.doRechargeService = async ({
           mobileNumber: number,
           amount: amount,
           referenceId: referenceId,
+          status: "INITIATED",
         },
       ],
       { session },
     );
 
-    await Transaction.create(
-      [
-        {
-          userId: userId,
-          referenceId: referenceId,
-          serviceType: "RECHARGE",
-          amount: amount,
-          wallet: "main",
-          type: "debit",
-          status: "PENDING",
-          meta: {
-            request: {
-              operatorId: operatorId,
-              operatorName: operatorName,
-              mobileNumber: number,
-            },
-          },
-        },
-      ],
-      { session },
-    );
+    // await Transaction.create(
+    //   [
+    //     {
+    //       userId: userId,
+    //       referenceId: referenceId,
+    //       serviceType: "RECHARGE",
+    //       amount: amount,
+    //       wallet: "main",
+    //       type: "debit",
+    //       status: "PENDING",
+    //       meta: {
+    //         request: {
+    //           operatorId: operatorId,
+    //           operatorName: operatorName,
+    //           mobileNumber: number,
+    //         },
+    //       },
+    //     },
+    //   ],
+    //   { session },
+    // );
 
     await session.commitTransaction();
 
@@ -144,19 +102,23 @@ exports.doRechargeService = async ({
         billerMode,
       });
     } catch (error) {
-      result = { status: "FAILED" };
+      result = {
+        status: "FAILED",
+        message:
+          error?.response?.data?.message ||
+          error?.message ||
+          error?.errors ||
+          "Something went wrong",
+        // data: error?.response?.data || null,
+      };
     }
 
-    if (result.status === "PENDING") {
+    if (result?.status === "PENDING") {
+      console.log("Entered Pending Block");
       await RechargeReport.updateOne({ referenceId }, { status: "PENDING" });
-    }
-
-    if (result.status === "SUCCESS") {
-      // let openingBalance = 0;
-      // let closingBalance = 0;
-
-      // const commissionSession = await mongoose.startSession();
-      // commissionSession.startTransaction();
+      return result;
+    } else if (result?.status === "SUCCESS") {
+      console.log("Entered Success Block");
 
       try {
         const { commission, tdsAmount, netCommission } =
@@ -166,68 +128,20 @@ exports.doRechargeService = async ({
             packageId: packageId,
             serviceId: serviceId,
             operatorId: operatorId,
+            pipeline: "recharge1",
             referenceId: referenceId,
             providerTxnId: result?.txn_ref,
             reportModel: RechargeReport,
             description: "Recharge Commission",
             apiResponse: result,
           });
-        // const commission = await calculateCommission({
-        //   amount,
-        //   packageId: user.packageId,
-        //   serviceId: rechargeService._id,
-        //   operatorId: operatorId,
-        // });
-        // const tdsAmount = calculateTds(commission);
-        // const netCommission = commission - tdsAmount;
-        // console.log(commission, "calculatedCommission");
-        // const wallet = await UserWallet.findOneAndUpdate(
-        //   { userId, isActive: true, isDeleted: false },
-        //   { $inc: { mainWallet: netCommission } },
-        //   { new: true, session: commissionSession },
-        // );
-        // closingBalance = wallet.mainWallet;
-        // openingBalance = closingBalance - netCommission;
-        // await WalletLedger.create(
-        //   [
-        //     {
-        //       userId,
-        //       serviceType: "COMMISSION",
-        //       wallet: "main",
-        //       type: "credit",
-        //       amount: netCommission,
-        //       referenceId: referenceId,
-        //       openingBalance: openingBalance,
-        //       closingBalance: closingBalance,
-        //       description: "Recharge Commission",
-        //     },
-        //   ],
-        //   { session: commissionSession },
-        // );
-        // await RechargeReport.updateOne(
-        //   { referenceId },
-        //   {
-        //     status: "SUCCESS",
-        //     commission: commission,
-        //     tds: tdsAmount,
-        //     netCommission: netCommission,
-        //   },
-        //   { session: commissionSession },
-        // );
-        // await commissionSession.commitTransaction();
+
+        return result;
       } catch (error) {
-        // if (commissionSession.inTransaction()) {
-        //   await commissionSession.abortTransaction();
-        // }
-
-        throw error;
+        console.error("Commission failed:", error);
       }
-    } else if (result.status === "FAILED") {
-      // let openingBalance = 0;
-      // let closingBalance = 0;
-
-      // const refundSession = await mongoose.startSession();
-      // refundSession.startTransaction();
+    } else {
+      console.log("Entered Failed Block");
 
       try {
         const { openingBalance, closingBalance } = await processRefund({
@@ -240,44 +154,15 @@ exports.doRechargeService = async ({
           apiResponse: result,
         });
 
-        // const wallet = await UserWallet.findOneAndUpdate(
-        //   { userId, isActive: true, isDeleted: false },
-        //   { $inc: { mainWallet: amount } },
-        //   { new: true, session: refundSession },
-        // );
-        // closingBalance = wallet.mainWallet;
-        // openingBalance = closingBalance - amount;
-        // await WalletLedger.create(
-        //   [
-        //     {
-        //       userId,
-        //       serviceType: "REFUND",
-        //       wallet: "main",
-        //       type: "credit",
-        //       amount,
-        //       referenceId,
-        //       openingBalance: openingBalance,
-        //       closingBalance: closingBalance,
-        //       description: "Recharge Failed Refund",
-        //     },
-        //   ],
-        //   { session: refundSession },
-        // );
-        // await RechargeReport.updateOne(
-        //   { referenceId },
-        //   { status: "FAILED" },
-        //   { new: true, session: refundSession },
-        // );
-        // await refundSession.commitTransaction();
+        const err = new Error(result?.message || "Recharge Failed");
+        err.statusCode = 400;
+        err.data = result;
+
+        throw err;
       } catch (error) {
-        // if (refundSession.inTransaction()) {
-        //   await refundSession.abortTransaction();
-        // }
-        // throw error;
+        throw error;
       }
     }
-
-    return result;
   } catch (error) {
     if (session.inTransaction()) {
       await session.abortTransaction();

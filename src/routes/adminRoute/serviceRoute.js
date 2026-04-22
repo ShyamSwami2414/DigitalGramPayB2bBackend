@@ -1,7 +1,9 @@
 const express = require("express");
 const {
   createService,
+  serviceListWithPipeline,
   getActiveServiceList,
+  getSelectedServicePipelineList,
   updateService,
   updateServiceStatus,
   deleteService,
@@ -20,11 +22,27 @@ const router = express.Router();
 // );
 
 router.get(
+  "/list",
+  authenticateUser,
+  authorizeRoles("admin"),
+  checkAllowedPermission("SERVICE"),
+  serviceListWithPipeline,
+);
+
+router.get(
   "/get-services",
   authenticateUser,
   authorizeRoles("admin"),
   checkAllowedPermission("SERVICE"),
   getActiveServiceList,
+);
+
+router.get(
+  "/get-pipeline",
+  authenticateUser,
+  authorizeRoles("admin"),
+  checkAllowedPermission("SERVICE"),
+  getSelectedServicePipelineList,
 );
 
 // router.put(

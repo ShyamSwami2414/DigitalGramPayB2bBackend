@@ -82,8 +82,16 @@ const userSchema = new mongoose.Schema(
 
     assignedServices: [
       {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "Service",
+        _id: false,
+        serviceId: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: "Service",
+        },
+        pipelineCodes: [
+          {
+            type: String, // "aeps1", "aeps2"
+          },
+        ],
       },
     ],
 
