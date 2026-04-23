@@ -21,6 +21,7 @@ const {
   dailyBiometricLogin,
 } = require("../../services/ekoAepsService");
 const { rupeeToPaise } = require("../../utils/money");
+const { encryptEkoAadhar } = require("../../helpers/encryptEkoAadhar");
 
 const validateAddress = (address, type = "address") => {
   const errors = {};
@@ -912,6 +913,7 @@ const doAepsTransaction = async (req, res, next) => {
     let {
       sourceIp,
       serviceType,
+      aadhaar,
       bankId,
       amount = 0,
       latitude,
@@ -935,6 +937,7 @@ const doAepsTransaction = async (req, res, next) => {
       "latitude",
       "longitude",
       "pidData",
+      "aadhaar",
     ];
 
     const missingFields = [];
@@ -987,6 +990,8 @@ const doAepsTransaction = async (req, res, next) => {
 
     const serviceCode = getServiceType(serviceType);
     const amountInPaise = rupeeToPaise(amount);
+
+    const encryptAadhaar = encryptEkoAadhar(aadhaar);
 
     //rupee comparison 100 rupee
     if (serviceType === "withdraw" && amount < 100) {
@@ -1047,6 +1052,7 @@ const doAepsTransaction = async (req, res, next) => {
       amount: amountInPaise,
       serviceTypeName: serviceType?.toUpperCase(), //just for logs type
       bankCode: isBankExist?.bankCode,
+      encryptedAadhaar : encryptAadhaar
     });
 
     console.log(response, "response");

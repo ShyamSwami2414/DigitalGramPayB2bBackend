@@ -5,9 +5,16 @@ const packageSchema = new mongoose.Schema(
     name: {
       type: String,
       required: true,
-      lowercase: true,
+      uppercase: true,
       unique: true,
       trim: true,
+    },
+
+    roleId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Role",
+      required: true,
+      index: true,
     },
 
     packageCode: {
@@ -21,7 +28,6 @@ const packageSchema = new mongoose.Schema(
     isActive: { type: Boolean, default: true },
     isDeleted: { type: Boolean, default: false },
     deletedAt: { type: Date, default: null },
-    
   },
   { timestamps: true, versionKey: false },
 );

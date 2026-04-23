@@ -198,6 +198,8 @@ exports.listAllServiceRequest = async (req, res, next) => {
           fullName: {
             $concat: ["$user.firstName", " ", "$user.lastName"],
           },
+          email: "$user.email",
+          phone: "$user.phone",
         },
       },
 
@@ -246,6 +248,8 @@ exports.listAllServiceRequest = async (req, res, next) => {
         },
       },
     ]);
+
+    console.log(JSON.stringify(serviceRequest, null, 2), "serviceRequest");
 
     const data = serviceRequest[0]?.data || [];
     const total = serviceRequest[0]?.totalCount?.[0]?.count || 0;

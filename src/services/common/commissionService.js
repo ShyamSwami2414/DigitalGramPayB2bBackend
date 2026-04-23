@@ -4,6 +4,8 @@ const WalletLedger = require("../../models/walletLedgerModel");
 const { calculateCommission } = require("../../helpers/calculateCommission");
 const { calculateTds } = require("../../helpers/calculateTds");
 const Transaction = require("../../models/transactionModel");
+const TdsLedger = require("../../models/tdsLedgerModel");
+const { splitCommission } = require("../../helpers/splitCommission");
 
 const processCommission = async ({
   userId,
@@ -34,7 +36,7 @@ const processCommission = async ({
     console.log("commission", commission);
 
     const tdsAmount = calculateTds(commission); //paise
-    const netCommission = commission - tdsAmount;
+    const netCommission = commission - tdsAmount; //payable to user
 
     const wallet = await UserWallet.findOneAndUpdate(
       { userId, isActive: true, isDeleted: false },
@@ -69,9 +71,23 @@ const processCommission = async ({
         commission,
         tds: tdsAmount,
         netCommission,
-        providerTxnId: providerTxnId,
+        providerTxnId: referenceId,
       },
       { session },
+    );
+
+    await TdsLedger.create(
+      [
+        {
+          userId: userId,
+          referenceId: referenceId,
+          commissionAmount: commission,
+          tdsRate: 5, //percent
+          netCommission: netCommission,
+          tdsAmount: tdsAmount,
+        },
+      ],
+      { session: session },
     );
 
     // await Transaction.updateOne(
@@ -88,6 +104,16 @@ const processCommission = async ({
     //   },
     //   { session },
     // );
+
+    await splitCommission({
+      userId: userId,
+      amount: amount, //paise
+      serviceId: serviceId,
+      operatorId: operatorId,
+      pipeline: pipeline,
+      referenceId: referenceId,
+      session: session,
+    });
 
     await session.commitTransaction();
 

@@ -14,6 +14,11 @@ const serviceRequestSchema = new mongoose.Schema(
       required: true,
     },
 
+    pipelineCode: {
+      type: String,
+      required: true,
+    },
+
     status: {
       type: String,
       enum: ["pending", "approved", "rejected"],

@@ -81,8 +81,6 @@ const validateUserPackageAndService = async ({
     // throw new Error(`Commission Plan not configured for this slab`);
   }
 
-  return;
-
   const validPlan = commissionPlan.plan.find(
     (p) => !p.isDeleted && amount >= p.from && amount <= p.to,
   );

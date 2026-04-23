@@ -15,10 +15,10 @@ exports.addServiceRequest = async (req, res, next) => {
   try {
     const userId = req.user.id;
 
-    let { serviceId } = req.body;
+    let { serviceId, pipeline } = req.body;
     serviceId = serviceId?.trim();
 
-    const requiredFields = ["serviceId"];
+    const requiredFields = ["serviceId", "pipeline"];
 
     const missingFields = [];
 
@@ -57,7 +57,10 @@ exports.addServiceRequest = async (req, res, next) => {
       });
     }
 
-    const isServiceExist = await Service.findOne({ _id: serviceId })
+    const isServiceExist = await Service.findOne({
+      _id: serviceId,
+      "pipeline.code": pipeline,
+    })
       .select("name")
       .lean();
 
@@ -71,6 +74,7 @@ exports.addServiceRequest = async (req, res, next) => {
     const isRequestExist = await ServiceRequest.findOne({
       userId: req.user.id,
       serviceId: serviceId,
+      pipelineCode: pipeline,
       status: { $ne: "rejected" },
     });
 
@@ -85,6 +89,7 @@ exports.addServiceRequest = async (req, res, next) => {
     const serviceRequest = new ServiceRequest({
       userId: req.user.id,
       serviceId: serviceId,
+      pipelineCode: pipeline,
     });
 
     await serviceRequest.save();

@@ -581,6 +581,41 @@ exports.fetchProfile = async (req, res, next) => {
       },
 
       {
+        $addFields: {
+          assignedServices: {
+            $map: {
+              input: "$assignedServices",
+              as: "service",
+              in: {
+                serviceId: "$$service.serviceId",
+                pipelineCodes: "$$service.pipelineCodes",
+                name: {
+                  $let: {
+                    vars: {
+                      matchedService: {
+                        $arrayElemAt: [
+                          {
+                            $filter: {
+                              input: "$serviceDetails",
+                              as: "sd",
+                              cond: {
+                                $eq: ["$$sd._id", "$$service.serviceId"],
+                              },
+                            },
+                          },
+                          0,
+                        ],
+                      },
+                    },
+                    in: "$$matchedService.name",
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+      {
         $lookup: {
           from: "instantaepsoutlets",
           localField: "_id",

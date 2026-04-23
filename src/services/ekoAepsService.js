@@ -657,6 +657,7 @@ exports.initiateAepsTransaction = async ({
   amount, //paise
   serviceTypeName,
   bankCode,
+  encryptedAadhaar,
 }) => {
   const session = await mongoose.startSession();
   try {
@@ -709,7 +710,7 @@ exports.initiateAepsTransaction = async ({
         initiatorId: onboardMerchant?.initiatorId,
         userCode: onboardMerchant?.userCode,
         mobile: onboardMerchant?.mobile,
-        aadhaar: onboardMerchant?.aadhaar,
+        aadhaar: encryptedAadhaar,
         latitude,
         longitude,
         sourceIp: sourceIp,

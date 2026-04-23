@@ -454,7 +454,7 @@ exports.createCommission = async (req, res, next) => {
         if (from <= prev.to) {
           return res.status(400).json({
             success: false,
-            message: `Overlapping between ${prev.from}-${prev.to} and ${from}-${to}`,
+            message: `message: Overlapping between existing ${paiseToRupee(prev.from)}-${paiseToRupee(prev.to)} and ${paiseToRupee(from)}-${paiseToRupee(to)}`,
           });
         }
       }

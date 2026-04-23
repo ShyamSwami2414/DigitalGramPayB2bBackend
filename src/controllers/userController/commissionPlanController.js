@@ -31,7 +31,7 @@ const getMyCommissionPlan = async (req, res, next) => {
     }
 
     const serviceIds = user.assignedServices.map(
-      (id) => new mongoose.Types.ObjectId(id),
+      (s) => new mongoose.Types.ObjectId(s.serviceId),
     );
 
     const packageId = new mongoose.Types.ObjectId(user.packageId);
@@ -108,7 +108,6 @@ const getMyCommissionPlan = async (req, res, next) => {
           commissionType: "$plan.type",
         },
       },
-
       {
         $sort: {
           serviceId: 1,

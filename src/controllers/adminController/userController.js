@@ -104,7 +104,18 @@ exports.getParticularUserDetail = async (req, res, next) => {
                 $expr: {
                   $and: [
                     { $eq: ["$packageId", "$$pkgId"] },
-                    { $in: ["$serviceId", "$$assignedServices"] },
+                    {
+                      $in: [
+                        "$serviceId",
+                        {
+                          $map: {
+                            input: { $ifNull: ["$$assignedServices", []] },
+                            as: "as",
+                            in: "$$as.serviceId",
+                          },
+                        },
+                      ],
+                    },
                   ],
                 },
               },

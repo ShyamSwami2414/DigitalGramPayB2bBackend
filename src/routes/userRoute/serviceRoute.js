@@ -1,6 +1,7 @@
 const express = require("express");
 const {
   getServiceList,
+  serviceListWithPipeline,
 } = require("../../controllers/userController/serviceController");
 const { authenticateUser } = require("../../middleware/authMiddleware");
 const checkUserPaymentAndKYC = require("../../middleware/kycPaymentCheckMiddleware");
@@ -11,6 +12,13 @@ router.get(
   authenticateUser,
   checkUserPaymentAndKYC,
   getServiceList,
+);
+
+router.get(
+  "/list",
+  authenticateUser,
+  checkUserPaymentAndKYC,
+  serviceListWithPipeline,
 );
 
 module.exports = router;
