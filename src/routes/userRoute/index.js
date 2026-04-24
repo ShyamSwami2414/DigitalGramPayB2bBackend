@@ -20,6 +20,7 @@ module.exports = (app) => {
   app.use(`${apiPrefix}/ebank`, require("./ekoBankList"));
   app.use(`${apiPrefix}/shopping`, require("./ecommerceRoute"));
   app.use(`${apiPrefix}/offlineService`, require("./offlineServiceRoute"));
+  app.use(`${apiPrefix}/onlineService`, require("./onlineServiceRoute"));
   app.use(
     `${apiPrefix}/offlineServiceRequest`,
     require("./offlineServiceRequestRoute"),
@@ -55,6 +56,7 @@ module.exports = (app) => {
   );
   app.use(`${apiPrefix}/payout-bank`, require("./sozoAepsPayoutBankRoute"));
   app.use(`${apiPrefix}/aepsPayout`, require("./sozoAepsPayoutRoute"));
+  app.use(`${apiPrefix}/aepsPayoutReport`, require("./sozoAepsPayoutReportRoute"));
   app.use(`${apiPrefix}/xpressPayoutBank`, require("./sozoXpressPayoutBankRoute"));
   app.use(`${apiPrefix}/xpressPayout`, require("./sozoXpressPayoutRoute"));
 };

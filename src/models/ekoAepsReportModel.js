@@ -59,6 +59,11 @@ const ekoAepsReportSchema = new mongoose.Schema(
       default: 0,
     },
 
+    miniStatement: {
+      type: Array,
+      default: [],
+    },
+
     bankRefNumber: {
       type: String,
     },

@@ -98,12 +98,13 @@ exports.getParticularUserDetail = async (req, res, next) => {
             pkgId: "$packageId",
             assignedServices: "$assignedServices",
           },
+
           pipeline: [
             {
               $match: {
                 $expr: {
                   $and: [
-                    { $eq: ["$packageId", "$$pkgId"] },
+                    { $eq: ["$packageId", { $toObjectId: "$$pkgId" }] },
                     {
                       $in: [
                         "$serviceId",
@@ -111,7 +112,7 @@ exports.getParticularUserDetail = async (req, res, next) => {
                           $map: {
                             input: { $ifNull: ["$$assignedServices", []] },
                             as: "as",
-                            in: "$$as.serviceId",
+                            in: { $toObjectId: "$$as.serviceId" },
                           },
                         },
                       ],

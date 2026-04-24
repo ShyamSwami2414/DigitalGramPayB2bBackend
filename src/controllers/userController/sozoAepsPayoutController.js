@@ -74,10 +74,10 @@ exports.initiateAepsPayout = async (req, res, next) => {
       });
     }
 
-    if (amount < 100) {
+    if (amount < 10) {
       return res.status(400).json({
         success: false,
-        message: "Minimum payout amount is 100 rupees",
+        message: "Minimum payout amount is 10 rupees",
       });
     }
 

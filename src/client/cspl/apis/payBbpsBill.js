@@ -2,6 +2,7 @@ const ProviderLogs = require("../../../models/providerLogsModel");
 const { generateRequestId } = require("../../../utils/requestIdGenerator");
 const csplClient = require("../cspl.client");
 
+//amount of paymnet goes in paise always in bbps
 exports.payBbpsBill = async ({
   client_referenceId,
   requestId,

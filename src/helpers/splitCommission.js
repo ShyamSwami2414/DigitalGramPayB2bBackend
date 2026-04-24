@@ -17,9 +17,14 @@ exports.splitCommission = async ({
   session,
 }) => {
   try {
-    let currentUser = await User.findById(userId).select(
-      "_id parentUserId packageId",
-    );
+    console.log("Entered Split Commission ");
+    let currentUser = await User.findOne({
+      _id: userId,
+      isActive: true,
+      isDeleted: false,
+    }).select("_id parentUserId packageId");
+
+    console.log(currentUser, "currentUser from split");
 
     if (!currentUser) return;
 
@@ -35,12 +40,20 @@ exports.splitCommission = async ({
 
     //  Traverse ONLY uplines
     while (currentUser.parentUserId) {
-      const uplineUser = await User.findById(currentUser.parentUserId).select(
-        "_id parentUserId packageId",
-      );
+      const uplineUser = await User.findOne({
+        _id: currentUser.parentUserId,
+        isDeleted: false,
+        isActive: true,
+      }).select("_id parentUserId packageId");
 
-      if (!uplineUser) break;
+      console.log(uplineUser, "uplineUser from split");
 
+      if (!uplineUser) {
+        currentUser = await User.findById(currentUser.parentUserId).select(
+          "_id parentUserId",
+        );
+        continue;
+      }
       //  Calculate upline commission
       const uplineCommission = await calculateCommission({
         amount: amount, //paise
@@ -51,8 +64,11 @@ exports.splitCommission = async ({
         pipeline: pipeline,
       });
 
+      console.log(uplineCommission, "uplineCommission from split");
+
       // Margin calculation
       const margin = uplineCommission - previousCommission;
+      console.log(margin, "margin from split");
 
       // Skip if no earning
       if (margin > 0) {
@@ -69,6 +85,10 @@ exports.splitCommission = async ({
           { $inc: { mainWallet: netAmount } },
           { new: true, session: session },
         );
+
+        if (!wallet) {
+          throw new Error(`Wallet not found for user ${uplineUser._id}`);
+        }
 
         const closingBalance = wallet.mainWallet;
         const openingBalance = closingBalance - netAmount;

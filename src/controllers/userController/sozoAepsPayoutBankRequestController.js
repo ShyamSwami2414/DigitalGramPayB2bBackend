@@ -84,7 +84,9 @@ exports.getAepsPayoutBanks = async (req, res, next) => {
 };
 
 exports.addAepsPayoutBank = async (req, res, next) => {
+  const session = await mongoose.startSession();
   try {
+    session.startTransaction();
     const { bankId, accountHolderName, accountNumber, ifscCode } = req.body;
     console.log(req.file);
     console.log(req.body);
@@ -105,24 +107,21 @@ exports.addAepsPayoutBank = async (req, res, next) => {
     });
 
     if (missingFields.length > 0) {
-      return res.status(400).json({
-        success: false,
-        message: `${missingFields.join(", ")} is required`,
-      });
+      const err = new Error(`${missingFields.join(", ")} is required`);
+      err.status = 400;
+      throw err;
     }
 
     if (!cheque) {
-      return res.status(400).json({
-        success: false,
-        message: `Cheque is required`,
-      });
+      const err = new Error("Cheque is required");
+      err.status = 400;
+      throw err;
     }
 
     if (!mongoose.Types.ObjectId.isValid(bankId)) {
-      return res.status(400).json({
-        success: false,
-        message: "Invalid Bank ID",
-      });
+      const err = new Error("Invalid Bank ID");
+      err.status = 400;
+      throw err;
     }
 
     const objectUserId = new mongoose.Types.ObjectId(userId);
@@ -146,24 +145,21 @@ exports.addAepsPayoutBank = async (req, res, next) => {
     ]);
 
     if (!payoutBank) {
-      return res.status(400).json({
-        success: false,
-        message: "Payout Bank Invalid",
-      });
+      const err = new Error("Payout Bank Invalid");
+      err.status = 400;
+      throw err;
     }
 
     if (accountExist) {
-      return res.status(400).json({
-        success: false,
-        message: "Account number already exists",
-      });
+      const err = new Error("Account already exists");
+      err.status = 400;
+      throw err;
     }
 
     if (!user) {
-      return res.status(400).json({
-        success: false,
-        message: "User not found or not active",
-      });
+      const err = new Error("User not found");
+      err.status = 404;
+      throw err;
     }
 
     const fullName = user?.firstName + " " + user?.lastName;
@@ -181,10 +177,9 @@ exports.addAepsPayoutBank = async (req, res, next) => {
 
     // 0.8 = 80% similar (you can tune this)
     if (similarity < 0.8) {
-      return res.status(400).json({
-        success: false,
-        message: "Only User's own account can be added for AEPS payout",
-      });
+      const err = new Error("Only user's own account allowed");
+      err.status = 403;
+      throw err;
     }
 
     const instantOutlet = await InstantAepsOutlet.findOne({
@@ -194,10 +189,9 @@ exports.addAepsPayoutBank = async (req, res, next) => {
       .lean();
 
     if (!instantOutlet) {
-      return res.status(400).json({
-        success: false,
-        message: "Outlet not found",
-      });
+      const err = new Error("Outlet not found");
+      err.status = 404;
+      throw err;
     }
 
     console.log(instantOutlet, "instantOutlet");
@@ -206,28 +200,37 @@ exports.addAepsPayoutBank = async (req, res, next) => {
       instantOutlet?.aepsPayoutBanksAdded >=
       instantOutlet?.aepsLimits?.allowedBankLimits
     ) {
-      return res.status(400).json({
-        success: false,
-        message: `Maximum account adding limit : ${instantOutlet?.aepsLimits?.allowedBankLimits}  `,
-      });
+      const err = new Error(
+        `Maximum account adding limit : ${instantOutlet?.aepsLimits?.allowedBankLimits}  `,
+      );
+      err.status = 400;
+      throw err;
     }
 
-    const aepsPayoutBank = await AepsPayoutBankRequest.create({
-      userId,
-      bankName: payoutBank?.bankName,
-      payoutBankId: payoutBank?.bankId,
-      accountHolderName,
-      accountNumber,
-      ifscCode,
-      chequeUrl: `uploads/aepsPayoutCheque/${cheque}`,
-    });
+    const aepsPayoutBank = await AepsPayoutBankRequest.create(
+      [
+        {
+          userId,
+          bankName: payoutBank?.bankName,
+          payoutBankId: payoutBank?.bankId,
+          accountHolderName,
+          accountNumber,
+          ifscCode,
+          chequeUrl: `uploads/aepsPayoutCheque/${cheque}`,
+        },
+      ],
+      { session: session },
+    );
 
     await InstantAepsOutlet.findOneAndUpdate(
       {
         userId: userId,
       },
       { $inc: { aepsPayoutBanksAdded: 1 } },
+      { session: session },
     );
+
+    await session.commitTransaction();
 
     return res.status(201).json({
       success: true,
@@ -235,12 +238,18 @@ exports.addAepsPayoutBank = async (req, res, next) => {
       data: aepsPayoutBank,
     });
   } catch (error) {
+    await session.abortTransaction();
+
     next(error);
+  } finally {
+    session.endSession();
   }
 };
 
 exports.deleteAepsPayoutBank = async (req, res, next) => {
+  const session = await mongoose.startSession();
   try {
+    session.startTransaction();
     const { id } = req.params;
     const userId = req.user.id;
 
@@ -248,17 +257,15 @@ exports.deleteAepsPayoutBank = async (req, res, next) => {
     console.log(userId, "userId");
 
     if (!id) {
-      return res.status(400).json({
-        success: false,
-        message: "Bank ID is required",
-      });
+      const err = new Error("Bank ID is required");
+      err.status = 400;
+      throw err;
     }
 
     if (!mongoose.Types.ObjectId.isValid(id)) {
-      return res.status(400).json({
-        success: false,
-        message: "Invalid Bank ID",
-      });
+      const err = new Error("Invalid Bank ID");
+      err.status = 400;
+      throw err;
     }
 
     const aepsPayoutBank = await AepsPayoutBankRequest.findOneAndUpdate(
@@ -275,21 +282,35 @@ exports.deleteAepsPayoutBank = async (req, res, next) => {
       },
       {
         new: true,
+        session: session,
       },
     );
 
     if (!aepsPayoutBank) {
-      return res.status(404).json({
-        success: false,
-        message: "AEPS payout bank not found",
-      });
+      const err = new Error("AEPS payout bank not found");
+      err.status = 404;
+      throw err;
     }
+
+    await InstantAepsOutlet.findOneAndUpdate(
+      {
+        userId: userId,
+        aepsPayoutBanksAdded: { $gt: 0 },
+      },
+      { $inc: { aepsPayoutBanksAdded: -1 } },
+      { session: session },
+    );
+
+    await session.commitTransaction();
 
     return res.status(200).json({
       success: true,
       message: "AEPS payout bank deleted successfully",
     });
   } catch (error) {
+    await session.abortTransaction();
     next(error);
+  } finally {
+    session.endSession();
   }
 };

@@ -30,6 +30,7 @@ module.exports = (app) => {
   app.use(`${apiPrefix}/document`, require("./documentRoute"));
   app.use(`${apiPrefix}/field`, require("./fieldRoute"));
   app.use(`${apiPrefix}/offlineService`, require("./offlineServiceRoute"));
+  app.use(`${apiPrefix}/onlineService`, require("./onlineServiceRoute"));
   app.use(
     `${apiPrefix}/offlineServiceRequest`,
     require("./offlineServiceRequestRoute"),

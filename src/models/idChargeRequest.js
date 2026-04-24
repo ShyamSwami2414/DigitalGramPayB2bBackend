@@ -24,7 +24,6 @@ const idChargeRequestSchema = new mongoose.Schema(
     amount: {
       type: Number,
       required: true,
-    
     },
 
     mode: {

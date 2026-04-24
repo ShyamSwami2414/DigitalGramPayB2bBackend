@@ -10,8 +10,7 @@ const tdsLedgerSchema = new mongoose.Schema(
     },
 
     referenceId: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Transaction",
+      type: String,
       required: true,
       index: true,
     },

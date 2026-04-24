@@ -402,8 +402,13 @@ exports.createCommission = async (req, res, next) => {
     // Step 1: get existing
     const existingPlans = commissionDoc.plan || [];
 
-    // Step 2: merge
-    const mergedPlans = [...existingPlans, ...validatedPlans];
+    const filteredExistingPlans = existingPlans.filter((existing) => {
+      return !validatedPlans.some((incoming) => {
+        return incoming.from <= existing.to && incoming.to >= existing.from;
+      });
+    });
+
+    const mergedPlans = [...filteredExistingPlans, ...validatedPlans];
 
     // Step 3: sort
     mergedPlans.sort((a, b) => a.from - b.from);
@@ -447,7 +452,7 @@ exports.createCommission = async (req, res, next) => {
         });
       }
 
-      // 🔥 overlap check
+      //  overlap check
       if (i > 0) {
         const prev = mergedPlans[i - 1];
 

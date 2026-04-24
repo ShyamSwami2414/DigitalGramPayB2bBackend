@@ -1,6 +1,7 @@
 const csplClient = require("../../../cspl.client");
 
 const EkoAepsLogs = require("../../../../../models/ekoAepsLogsModel");
+const { rupeeToPaise, paiseToRupee } = require("../../../../../utils/money");
 
 exports.aepsTransaction = async ({
   client_referenceId,
@@ -21,6 +22,11 @@ exports.aepsTransaction = async ({
 }) => {
   const timestamp = new Date().toISOString();
   const startTime = Date.now();
+
+  const amountInRupee = paiseToRupee(amount);
+  console.log("amountInRupee", amountInRupee);
+  return;
+
   try {
     const response = await csplClient.post(
       "e1/aeps/apes-txn",
@@ -30,7 +36,7 @@ exports.aepsTransaction = async ({
         service_type: serviceType,
         latlong: `${latitude}, ${longitude}`,
         source_ip: sourceIp,
-        amount: amount,
+        amount: amountInRupee,
         user_code: userCode,
         customer_id: mobile, //customer mobile number
         aadhar: aadhaar,
@@ -53,9 +59,9 @@ exports.aepsTransaction = async ({
     console.log(response.data, "response");
 
     const responseTime = Date.now() - startTime;
-
     const isSuccess =
-      (response?.data?.status === true || response?.data?.http_code === 200) &&
+      (response?.data?.status === true ||
+        response?.data?.txn_status === "success") &&
       response?.data?.data?.status === 0 &&
       response?.data?.data?.response_status_id === 0;
 
@@ -84,7 +90,7 @@ exports.aepsTransaction = async ({
         service_type: serviceType,
         latlong: `${latitude}, ${longitude}`,
         source_ip: sourceIp,
-        amount: amount,
+        amount: amountInRupee,
         user_code: userCode,
         customer_id: mobile, //customer mobile number
         aadhar: aadhaar,
@@ -115,7 +121,7 @@ exports.aepsTransaction = async ({
         service_type: serviceType,
         latlong: `${latitude}, ${longitude}`,
         source_ip: sourceIp,
-        amount: amount,
+        amount: amountInRupee,
         user_code: userCode,
         customer_id: mobile, //customer mobile number
         aadhar: aadhaar,

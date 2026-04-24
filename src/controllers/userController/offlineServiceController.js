@@ -7,6 +7,7 @@ const { paiseToRupee } = require("../../utils/money");
 exports.listAllOfflineServices = async (req, res, next) => {
   try {
     const offlineServices = await OfflineService.find({
+      isActive: true,
       isDeleted: false,
     }).lean();
 

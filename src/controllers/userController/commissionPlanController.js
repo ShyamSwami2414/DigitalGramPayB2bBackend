@@ -87,6 +87,7 @@ const getMyCommissionPlan = async (req, res, next) => {
         $project: {
           serviceId: 1,
           serviceName: "$service.name",
+          pipelineCode: 1,
 
           type: {
             $cond: [
@@ -120,6 +121,7 @@ const getMyCommissionPlan = async (req, res, next) => {
         $group: {
           _id: "$serviceId",
           serviceName: { $first: "$serviceName" },
+          pipelineCode: { $first: "$pipelineCode" },
           rows: {
             $push: {
               name: "$name",
@@ -138,6 +140,7 @@ const getMyCommissionPlan = async (req, res, next) => {
           _id: 0,
           serviceId: "$_id",
           serviceName: 1,
+          pipeline: "$pipelineCode",
           rows: 1,
         },
       },

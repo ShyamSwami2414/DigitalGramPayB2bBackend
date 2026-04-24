@@ -104,42 +104,42 @@ exports.payBbpsBillService = async ({
       { session },
     );
 
-    await Transaction.create(
-      [
-        {
-          userId: userId,
-          referenceId: referenceId,
-          serviceType: "BBPS",
-          amount: amount,
-          wallet: "main",
-          type: "debit",
-          status: "PENDING",
-          meta: {
-            request: {
-              ...(refId?.trim() && { refId: refId.trim() }),
-              ...(billerId !== undefined && billerId !== null && { billerId }),
-              ...(customerName?.trim() && {
-                customerName: customerName.trim(),
-              }),
-              ...(customerMobile?.trim() && {
-                customerMobile: customerMobile.trim(),
-              }),
-              ...(dueDate && { dueDate }),
-              ...(billamount !== undefined &&
-                billamount !== null && { billamount }),
-              ...(billDate && { billDate }),
-              ...(billPeriod && { billPeriod }),
-              ...(billNumber && { billNumber }),
-              ...(placeholderValue && { placeholderValue }),
-              ...(paramValue && { paramValue }),
-              ...(Array.isArray(inputParams) &&
-                inputParams.length > 0 && { inputParams }),
-            },
-          },
-        },
-      ],
-      { session },
-    );
+    // await Transaction.create(
+    //   [
+    //     {
+    //       userId: userId,
+    //       referenceId: referenceId,
+    //       serviceType: "BBPS",
+    //       amount: amount,
+    //       wallet: "main",
+    //       type: "debit",
+    //       status: "PENDING",
+    //       meta: {
+    //         request: {
+    //           ...(refId?.trim() && { refId: refId.trim() }),
+    //           ...(billerId !== undefined && billerId !== null && { billerId }),
+    //           ...(customerName?.trim() && {
+    //             customerName: customerName.trim(),
+    //           }),
+    //           ...(customerMobile?.trim() && {
+    //             customerMobile: customerMobile.trim(),
+    //           }),
+    //           ...(dueDate && { dueDate }),
+    //           ...(billamount !== undefined &&
+    //             billamount !== null && { billamount }),
+    //           ...(billDate && { billDate }),
+    //           ...(billPeriod && { billPeriod }),
+    //           ...(billNumber && { billNumber }),
+    //           ...(placeholderValue && { placeholderValue }),
+    //           ...(paramValue && { paramValue }),
+    //           ...(Array.isArray(inputParams) &&
+    //             inputParams.length > 0 && { inputParams }),
+    //         },
+    //       },
+    //     },
+    //   ],
+    //   { session },
+    // );
 
     await session.commitTransaction();
 
@@ -168,7 +168,7 @@ exports.payBbpsBillService = async ({
           error?.response?.data?.message ||
           error.message ||
           "Something went wrong",
-        data: error?.response?.data || null,
+        // data: error?.response?.data || null,
       };
     }
 
@@ -189,8 +189,10 @@ exports.payBbpsBillService = async ({
         amount: billamount, //paise
         packageId: packageId,
         serviceId: serviceId,
+        categoryId: billerCategory?._id,
         referenceId: referenceId,
         providerTxnId: result?.billerstatus?.txnRefId,
+        pipeline: "bbps1",
         reportModel: BbpsReport,
         description: "BBPS Commission",
         apiResponse: result,

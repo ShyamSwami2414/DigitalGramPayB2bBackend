@@ -991,7 +991,7 @@ const doAepsTransaction = async (req, res, next) => {
     const serviceCode = getServiceType(serviceType);
     const amountInPaise = rupeeToPaise(amount);
 
-    const encryptAadhaar = encryptEkoAadhar(aadhaar);
+    // const encryptAadhaar = encryptEkoAadhar(aadhaar);
 
     //rupee comparison 100 rupee
     if (serviceType === "withdraw" && amount < 100) {
@@ -1052,25 +1052,29 @@ const doAepsTransaction = async (req, res, next) => {
       amount: amountInPaise,
       serviceTypeName: serviceType?.toUpperCase(), //just for logs type
       bankCode: isBankExist?.bankCode,
-      encryptedAadhaar : encryptAadhaar
+      aadhaar: aadhaar,
     });
 
     console.log(response, "response");
 
-    if (response && response?.status === true) {
+    if (
+      response &&
+      response?.status === true &&
+      response?.txn_status === "success"
+    ) {
       const data = response?.data?.data;
 
-      await EkoOnboardAepsUser.findOneAndUpdate(
-        { userId: userId },
-        {
-          $set: { isActivated: true },
-        },
-      );
-
-      return res.status(201).json({
+      return res.status(200).json({
         success: true,
         data: {
-          message: response?.message,
+          referenceId: response?.referenceId,
+          message: response?.data?.message,
+          date: data?.transaction_date,
+          merchantName: data?.merchantname,
+          aadhar: data?.aadhar,
+          customerBalance: data?.customer_balance,
+          amount: data?.amount,
+          miniStatement: data?.mini_statement_list,
         },
       });
     } else {

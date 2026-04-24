@@ -6,6 +6,7 @@ const { calculateTds } = require("../../helpers/calculateTds");
 const Transaction = require("../../models/transactionModel");
 const TdsLedger = require("../../models/tdsLedgerModel");
 const { splitCommission } = require("../../helpers/splitCommission");
+const { paiseToRupee } = require("../../utils/money");
 
 const processCommission = async ({
   userId,
@@ -13,6 +14,7 @@ const processCommission = async ({
   packageId,
   serviceId,
   operatorId = null,
+  categoryId = null,
   pipeline,
   referenceId,
   providerTxnId = null,
@@ -33,62 +35,64 @@ const processCommission = async ({
       pipeline,
     });
 
-    console.log("commission", commission);
+    console.log("commission paise", commission);
 
     const tdsAmount = calculateTds(commission); //paise
     const netCommission = commission - tdsAmount; //payable to user
 
-    const wallet = await UserWallet.findOneAndUpdate(
-      { userId, isActive: true, isDeleted: false },
-      { $inc: { mainWallet: netCommission } },
-      { new: true, session },
-    );
+    if (paiseToRupee(commission) > 0) {
+      const wallet = await UserWallet.findOneAndUpdate(
+        { userId, isActive: true, isDeleted: false },
+        { $inc: { mainWallet: netCommission } },
+        { new: true, session },
+      );
 
-    closingBalance = wallet.mainWallet;
-    openingBalance = closingBalance - netCommission;
+      closingBalance = wallet.mainWallet;
+      openingBalance = closingBalance - netCommission;
 
-    await WalletLedger.create(
-      [
+      await WalletLedger.create(
+        [
+          {
+            userId,
+            serviceType: "COMMISSION",
+            wallet: "main",
+            type: "credit",
+            amount: netCommission,
+            referenceId,
+            openingBalance,
+            closingBalance,
+            description,
+          },
+        ],
+        { session },
+      );
+
+      await reportModel.updateOne(
+        { referenceId },
         {
-          userId,
-          serviceType: "COMMISSION",
-          wallet: "main",
-          type: "credit",
-          amount: netCommission,
-          referenceId,
-          openingBalance,
-          closingBalance,
-          description,
+          status: "SUCCESS",
+          commission,
+          tds: tdsAmount,
+          netCommission,
+          providerTxnId: referenceId,
         },
-      ],
-      { session },
-    );
+        { session },
+      );
 
-    await reportModel.updateOne(
-      { referenceId },
-      {
-        status: "SUCCESS",
-        commission,
-        tds: tdsAmount,
-        netCommission,
-        providerTxnId: referenceId,
-      },
-      { session },
-    );
-
-    await TdsLedger.create(
-      [
-        {
-          userId: userId,
-          referenceId: referenceId,
-          commissionAmount: commission,
-          tdsRate: 5, //percent
-          netCommission: netCommission,
-          tdsAmount: tdsAmount,
-        },
-      ],
-      { session: session },
-    );
+      await TdsLedger.create(
+        [
+          {
+            userId: userId,
+            referenceId: referenceId,
+            commissionAmount: commission,
+            tdsRate: 5, //percent
+            netCommission: netCommission,
+            tdsAmount: tdsAmount,
+          },
+        ],
+        { session: session },
+      );
+    }
 
     // await Transaction.updateOne(
     //   {

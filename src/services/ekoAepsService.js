@@ -657,7 +657,7 @@ exports.initiateAepsTransaction = async ({
   amount, //paise
   serviceTypeName,
   bankCode,
-  encryptedAadhaar,
+  aadhaar,
 }) => {
   const session = await mongoose.startSession();
   try {
@@ -710,7 +710,7 @@ exports.initiateAepsTransaction = async ({
         initiatorId: onboardMerchant?.initiatorId,
         userCode: onboardMerchant?.userCode,
         mobile: onboardMerchant?.mobile,
-        aadhaar: encryptedAadhaar,
+        aadhaar: aadhaar,
         latitude,
         longitude,
         sourceIp: sourceIp,
@@ -741,7 +741,7 @@ exports.initiateAepsTransaction = async ({
 
     if (
       result?.status === true &&
-      result?.http_code === 200 &&
+      result?.txn_status === "success" &&
       result?.data?.response_status_id === 0 &&
       result?.data?.status === 0
     ) {
@@ -754,7 +754,7 @@ exports.initiateAepsTransaction = async ({
               txnStatus: "SUCCESS",
               providerTxnId: data?.tid,
               accountBalance: data?.customer_balance,
-              bankName: data?.bankName,
+              miniStatement: data?.mini_statement_list,
               aadhaar: data?.aadhar,
               message: result?.data?.message,
               reason: data?.comment,
@@ -764,7 +764,10 @@ exports.initiateAepsTransaction = async ({
         );
 
         console.log(result);
-        return result;
+        return {
+          ...result,
+          referenceId: referenceId,
+        };
       } catch (error) {
         throw error;
       }
