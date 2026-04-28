@@ -21,7 +21,7 @@ const serviceRequestSchema = new mongoose.Schema(
 
     status: {
       type: String,
-      enum: ["pending", "approved", "rejected"],
+      enum: ["pending", "approved", "rejected", "assigned"],
       default: "pending",
     },
 
@@ -30,6 +30,8 @@ const serviceRequestSchema = new mongoose.Schema(
       trim: true,
       default: "",
     },
+
+    rejectedAt: { type: Date, default: null },
 
     isActive: { type: Boolean, default: true },
     isDeleted: { type: Boolean, default: false },

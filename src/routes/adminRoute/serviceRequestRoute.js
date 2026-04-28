@@ -8,6 +8,8 @@ const { authorizeRoles } = require("../../middleware/roleMiddleware");
 const checkAllowedPermission = require("../../middleware/adminPermissionCheck");
 const {
   listAllServiceRequest,
+  approveServiceRequest,
+  rejectServiceRequest,
 } = require("../../controllers/adminController/serviceRequestController");
 const router = express.Router();
 
@@ -17,6 +19,22 @@ router.get(
   authorizeRoles("admin"),
   checkAllowedPermission("SERVICE"),
   listAllServiceRequest,
+);
+
+router.patch(
+  "/approve-service-request/:id",
+  authenticateUser,
+  authorizeRoles("admin"),
+  checkAllowedPermission("ACCOUNT_WHITELIST"),
+  approveServiceRequest,
+);
+
+router.patch(
+  "/reject-service-request/:id",
+  authenticateUser,
+  authorizeRoles("admin"),
+  checkAllowedPermission("ACCOUNT_WHITELIST"),
+  rejectServiceRequest,
 );
 
 module.exports = router;

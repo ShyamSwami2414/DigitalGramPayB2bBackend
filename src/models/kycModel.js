@@ -14,7 +14,7 @@ const kycSchema = new mongoose.Schema(
       lowercase: true,
       trim: true,
       minLength: [3, "First name must be at least 3 characters"],
-      maxLength: [30, "First name cannot exceed 30 characters"],
+      maxLength: [50, "First name cannot exceed 30 characters"],
     },
 
     lastName: {
@@ -23,7 +23,7 @@ const kycSchema = new mongoose.Schema(
       lowercase: true,
       trim: true,
       minLength: [3, "Last name must be at least 3 characters"],
-      maxLength: [30, "Last name cannot exceed 30 characters"],
+      maxLength: [50, "Last name cannot exceed 30 characters"],
     },
 
     fatherName: {
@@ -32,7 +32,7 @@ const kycSchema = new mongoose.Schema(
       lowercase: true,
       trim: true,
       minLength: [3, "Father's name must be at least 3 characters"],
-      maxLength: [100, "Father's name cannot exceed 100 characters"],
+      maxLength: [50, "Father's name cannot exceed 100 characters"],
     },
 
     email: {
@@ -101,7 +101,13 @@ const kycSchema = new mongoose.Schema(
 
     // ---------------------------------------------------
 
-    shopName: { type: String, required: [true, "Bussiness name is required"] },
+    shopName: {
+      type: String,
+      required: [true, "Bussiness name is required"],
+      minLength: 5,
+      maxLength: 100,
+    },
+    
     shopImageUrl: { type: String, required: true },
 
     businessAddress: {
@@ -141,7 +147,7 @@ const kycSchema = new mongoose.Schema(
       required: [true, "Account Holder name is required"],
       trim: true,
       minlength: [3, "Account holder name must be at least 3 characters"],
-      maxlength: [60, "Account holder name cannot exceed 30 characters"],
+      maxlength: [50, "Account holder name cannot exceed 30 characters"],
       match: [/^[A-Za-z\s.]+$/, "Account holder name can contain only letters"],
     },
 
@@ -151,15 +157,6 @@ const kycSchema = new mongoose.Schema(
       trim: true,
       minlength: 2,
       maxlength: 80,
-    },
-
-    branchName: {
-      type: String,
-      required: true,
-      trim: true,
-      minlength: 2,
-      maxlength: 80,
-      match: [/^[A-Za-z0-9\s().-]+$/, "Invalid branch name"],
     },
 
     accountNumber: {
@@ -181,6 +178,8 @@ const kycSchema = new mongoose.Schema(
         message: (props) => `${props.value} is not a valid IFSC code`,
       },
     },
+
+    blankChequeUrl: { type: String, required: true },
 
     bankDetailStatus: {
       type: String,

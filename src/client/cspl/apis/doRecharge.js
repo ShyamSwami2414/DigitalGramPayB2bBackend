@@ -21,12 +21,12 @@ exports.doRecharge = async ({
   const amountInRupee = paiseToRupee(amount); //rupee
   console.log(amountInRupee, "amountInRupee");
 
-  return {
-    status: "SUCCESS",
-    txn_ref: "RCHG20260320153342533099",
-    utr: null,
-    message: "Transaction Successful",
-  };
+  // return {
+  //   status: "SUCCESS",
+  //   txn_ref: "RCHG20260320153342533099",
+  //   utr: null,
+  //   message: "Transaction Successful",
+  // };
 
   try {
     const response = await csplClient.post(

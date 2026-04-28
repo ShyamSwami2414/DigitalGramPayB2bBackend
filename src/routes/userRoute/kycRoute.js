@@ -23,6 +23,7 @@ router.post(
     { name: "aadharFile", maxCount: 1 },
     { name: "panFile", maxCount: 1 },
     { name: "shopImage", maxCount: 1 },
+    { name: "blankCheque", maxCount: 1 },
   ]),
   offlineKycSubmission,
 );

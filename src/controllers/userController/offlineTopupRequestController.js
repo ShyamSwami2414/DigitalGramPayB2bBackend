@@ -542,6 +542,15 @@ exports.addOfflineTopupRequest = async (req, res, next) => {
       });
     }
 
+    const requestExist = await FundRequest.findOne({ utrNumber: utrNumber });
+
+    if (requestExist) {
+      return res.status(400).json({
+        success: false,
+        message: "Topup request already exist",
+      });
+    }
+
     const offlineTopupRequest = new FundRequest({
       userId: req.user.id,
       referenceId: referenceId,

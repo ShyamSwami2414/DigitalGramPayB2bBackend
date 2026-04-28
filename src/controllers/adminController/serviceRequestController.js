@@ -2,6 +2,7 @@ const mongoose = require("mongoose");
 const Role = require("../../models/roleModel");
 const ServiceRequest = require("../../models/serviceRequestModel");
 const User = require("../../models/userModel");
+const { sendEmail } = require("../../utils/email");
 
 exports.listAllServiceRequest = async (req, res, next) => {
   try {
@@ -204,6 +205,7 @@ exports.listAllServiceRequest = async (req, res, next) => {
           fullName: {
             $concat: ["$user.firstName", " ", "$user.lastName"],
           },
+          userName: "$user.userName",
           email: "$user.email",
           phone: "$user.phone",
         },
@@ -276,243 +278,212 @@ exports.listAllServiceRequest = async (req, res, next) => {
   }
 };
 
-// exports.approveIdChargeRequest = async (req, res, next) => {
-//   const session = await mongoose.startSession();
+exports.approveServiceRequest = async (req, res, next) => {
+  const session = await mongoose.startSession();
 
-//   try {
-//     session.startTransaction();
+  try {
+    session.startTransaction();
 
-//     const { id } = req.params;
-//     let openingBalance = 0;
-//     let closingBalance = 0;
+    const { id } = req.params;
+    let openingBalance = 0;
+    let closingBalance = 0;
 
-//     if (!id) {
-//       const err = new Error("Invalid onboard charge request ID");
-//       err.statusCode = 400;
-//       throw err;
-//     }
+    if (!id) {
+      const err = new Error("Invalid service request ID");
+      err.statusCode = 400;
+      throw err;
+    }
 
-//     if (!mongoose.Types.ObjectId.isValid(id)) {
-//       const err = new Error("Invalid onboard charge ID");
-//       err.statusCode = 400;
-//       throw err;
-//     }
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      const err = new Error("Invalid service request ID");
+      err.statusCode = 400;
+      throw err;
+    }
 
-//     const idChargeRequest = await IdCharge.findOneAndUpdate(
-//       {
-//         _id: id,
-//         status: "pending",
-//       },
-//       {
-//         $set: {
-//           status: "approved",
-//         },
-//       },
-//       {
-//         new: true,
-//         session,
-//       },
-//     );
+    const serviceRequest = await ServiceRequest.findOneAndUpdate(
+      {
+        _id: id,
+        status: "pending",
+      },
+      {
+        $set: {
+          status: "approved",
+        },
+      },
+      {
+        new: true,
+        session: session,
+      },
+    );
 
-//     if (!idChargeRequest) {
-//       const err = new Error("Request already processed or not found");
-//       err.statusCode = 400;
-//       throw err;
-//     }
+    if (!serviceRequest) {
+      const err = new Error("Request already processed or not found");
+      err.statusCode = 400;
+      throw err;
+    }
 
-//     const requestUser = await User.findOneAndUpdate(
-//       {
-//         _id: idChargeRequest.userId,
-//         isDeleted: false,
-//       },
-//       { $set: { isPaymentDone: true, idPaymentStatus: "approved" } },
-//       { session },
-//     );
+    const result = await User.updateOne(
+      {
+        _id: serviceRequest.userId,
+        isDeleted: false,
+        "assignedServices.serviceId": serviceRequest.serviceId,
+      },
+      {
+        $addToSet: {
+          "assignedServices.$.pipelineCodes": serviceRequest.pipelineCode,
+        },
+      },
+      { session },
+    );
 
-//     if (!requestUser) {
-//       const err = new Error("User not found");
-//       err.statusCode = 400;
-//       throw err;
-//     }
+    let requestUser;
+    if (result.matchedCount === 0) {
+      requestUser = await User.findOneAndUpdate(
+        {
+          _id: serviceRequest.userId,
+          isDeleted: false,
+        },
+        {
+          $push: {
+            assignedServices: {
+              serviceId: serviceRequest.serviceId,
+              pipelineCodes: [serviceRequest.pipelineCode],
+            },
+          },
+        },
+        { new: true, session },
+      );
 
-//     // const wallet = await UserWallet.findOneAndUpdate(
-//     //   {
-//     //     userId: fundRequest.userId,
-//     //     isDeleted: false,
-//     //   },
-//     //   {
-//     //     $inc: { mainWallet: fundRequest.amount },
-//     //   },
-//     //   { new: true, session },
-//     // );
+      if (!requestUser) {
+        const err = new Error("User not found");
+        err.statusCode = 400;
+        throw err;
+      }
+    } else {
+      //  fetch user when service already exists
+      requestUser = await User.findById(serviceRequest.userId).session(session);
+    }
 
-//     // if (!wallet) {
-//     //   const err = new Error("User wallet not found");
-//     //   err.statusCode = 400;
-//     //   throw err;
-//     // }
+    await session.commitTransaction();
 
-//     // closingBalance = wallet.mainWallet;
-//     // openingBalance = closingBalance - fundRequest.amount;
+    const html =
+      "Your Service Request is Approved, please proceed with transactions";
 
-//     // await WalletLedger.create(
-//     //   [
-//     //     {
-//     //       userId: fundRequest.userId,
-//     //       serviceType: "FUNDREQUEST",
-//     //       referenceId: fundRequest?.referenceId,
-//     //       wallet: "main",
-//     //       type: "credit",
-//     //       amount: fundRequest.amount,
-//     //       openingBalance: openingBalance,
-//     //       closingBalance: closingBalance,
+    await sendEmail(
+      requestUser.email,
+      "",
+      "",
+      "Service Request Approved",
+      html,
+    );
 
-//     //       description: "Fund request approved",
-//     //     },
-//     //   ],
-//     //   { session },
-//     // );
+    const formattedData = serviceRequest
+      ? {
+          ...serviceRequest?._doc,
+        }
+      : null;
 
-//     await session.commitTransaction();
+    return res.status(200).json({
+      success: true,
+      message: "Request approved successfully",
+      data: formattedData,
+    });
+  } catch (error) {
+    if (session.inTransaction()) {
+      await session.abortTransaction();
+    }
 
-//     const html = generateIdChargeEmail({
-//       name: requestUser?.firstName,
-//       status: "Approved",
-//       amount: paiseToRupee(idChargeRequest?.amount),
-//     });
+    next(error);
+  } finally {
+    session.endSession();
+  }
+};
 
-//     await sendEmail(
-//       requestUser.email,
-//       "",
-//       "",
-//       "ID Charge Payment Request Approved",
-//       html,
-//     );
+exports.rejectServiceRequest = async (req, res, next) => {
+  const session = await mongoose.startSession();
 
-//     const formattedData = idChargeRequest
-//       ? {
-//           ...idChargeRequest?._doc,
-//           amount: paiseToRupee(idChargeRequest?.amount),
-//         }
-//       : null;
+  try {
+    session.startTransaction();
 
-//     return res.status(200).json({
-//       success: true,
-//       message: "Request approved successfully",
-//       data: formattedData,
-//     });
-//   } catch (error) {
-//     if (session.inTransaction()) {
-//       await session.abortTransaction();
-//     }
+    const { id } = req.params;
+    let { rejectionReason } = req.body;
 
-//     next(error);
-//   } finally {
-//     session.endSession();
-//   }
-// };
+    rejectionReason = rejectionReason?.trim();
 
-// exports.rejectIdChargeRequest = async (req, res, next) => {
-//   const session = await mongoose.startSession();
+    //  Validation
+    if (!id || !mongoose.Types.ObjectId.isValid(id)) {
+      const err = new Error("Invalid service request ID");
+      err.statusCode = 400;
+      throw err;
+    }
 
-//   try {
-//     session.startTransaction();
+    if (!rejectionReason) {
+      const err = new Error("Rejection reason is required");
+      err.statusCode = 400;
+      throw err;
+    }
 
-//     const { id } = req.params;
-//     let { rejectionReason } = req.body;
-//     rejectionReason = rejectionReason?.trim();
+    //  Reject request
+    const serviceRequest = await ServiceRequest.findOneAndUpdate(
+      {
+        _id: id,
+        status: "pending",
+      },
+      {
+        $set: {
+          status: "rejected",
+          rejectionReason,
+          rejectedAt: new Date(),
+        },
+      },
+      {
+        new: true,
+        session: session,
+      },
+    );
 
-//     if (!id) {
-//       const err = new Error("Onboard charge request ID is required");
-//       err.statusCode = 400;
-//       throw err;
-//     }
+    if (!serviceRequest) {
+      const err = new Error("Request already processed or not found");
+      err.statusCode = 400;
+      throw err;
+    }
 
-//     if (!rejectionReason) {
-//       const err = new Error("Rejection reason is required");
-//       err.statusCode = 400;
-//       throw err;
-//     }
+    let requestUser = await User.findOne({
+      _id: serviceRequest.userId,
+      isActive: true,
+      isDeleted: false,
+    })
+      .select("email")
+      .lean();
 
-//     if (!mongoose.Types.ObjectId.isValid(id)) {
-//       const err = new Error("Invalid Onboard charge request ID");
-//       err.statusCode = 400;
-//       throw err;
-//     }
+    if (!requestUser) {
+      const err = new Error("User not found");
+      err.statusCode = 404;
+      throw err;
+    }
 
-//     const idChargeRequest = await IdCharge.findOneAndUpdate(
-//       {
-//         _id: id,
-//         status: "pending",
-//       },
-//       {
-//         $set: {
-//           status: "rejected",
-//           rejectionReason: rejectionReason,
-//           rejectedAt: new Date(),
-//         },
-//       },
-//       {
-//         new: true,
-//         session,
-//       },
-//     );
+    await session.commitTransaction();
 
-//     if (!idChargeRequest) {
-//       const err = new Error("Request already processed or not found");
-//       err.statusCode = 400;
-//       throw err;
-//     }
+    const html = " Your Service Request has been Rejected";
 
-//     const requestUser = await User.findOneAndUpdate(
-//       {
-//         _id: idChargeRequest.userId,
-//         isDeleted: false,
-//       },
-//       { $set: { idPaymentStatus: "rejected" } },
-//       { session },
-//     );
+    await sendEmail(
+      requestUser.email,
+      "",
+      "",
+      `Service Request Rejected`,
+      html,
+    );
 
-//     if (!requestUser) {
-//       const err = new Error("User not found");
-//       err.statusCode = 400;
-//       throw err;
-//     }
-
-//     await session.commitTransaction();
-
-//     const html = generateIdChargeEmail({
-//       name: requestUser?.firstName,
-//       status: "Rejected",
-//       reason: rejectionReason,
-//       amount: paiseToRupee(idChargeRequest?.amount),
-//     });
-
-//     await sendEmail(
-//       requestUser.email,
-//       "",
-//       "",
-//       `ID Charge Payment Request Rejected because ${rejectionReason}`,
-//       html,
-//     );
-
-//     const formattedData = idChargeRequest
-//       ? {
-//           ...idChargeRequest?.doc,
-//           amount: paiseToRupee(idChargeRequest?.amount),
-//         }
-//       : null;
-
-//     return res.status(200).json({
-//       success: true,
-//       message: "Request rejected successfully",
-//     });
-//   } catch (error) {
-//     if (session.inTransaction()) {
-//       await session.abortTransaction();
-//     }
-//     next(error);
-//   } finally {
-//     session.endSession();
-//   }
-// };
+    return res.status(200).json({
+      success: true,
+      message: "Request rejected successfully",
+    });
+  } catch (error) {
+    if (session.inTransaction()) {
+      await session.abortTransaction();
+    }
+    next(error);
+  } finally {
+    session.endSession();
+  }
+};

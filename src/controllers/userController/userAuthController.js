@@ -677,10 +677,53 @@ exports.fetchProfile = async (req, res, next) => {
         },
       },
       {
+        $lookup: {
+          from: "servicerequests",
+          localField: "_id",
+          foreignField: "userId",
+          pipeline: [
+            {
+              $project: {
+                pipelineCode: 1,
+                status: 1,
+                rejectionReason: 1,
+              },
+            },
+          ],
+          as: "serviceRequest",
+        },
+      },
+      {
+        $addFields: {
+          requestedService: {
+            $map: {
+              input: {
+                $filter: {
+                  input: "$serviceRequest",
+                  as: "sr",
+                  cond: {
+                    $in: ["$$sr.status", ["pending", "rejected"]],
+                  },
+                },
+              },
+              as: "sr",
+              in: {
+                serviceName: "$$sr.pipelineCode",
+                status: "$$sr.status",
+                reason: {
+                  $ifNull: ["$$sr.rejectionReason", ""],
+                },
+              },
+            },
+          },
+        },
+      },
+      {
         $project: {
           onboardUser: 0,
           merchant: 0,
           serviceDetails: 0,
+          serviceRequest: 0,
         },
       },
     ]);

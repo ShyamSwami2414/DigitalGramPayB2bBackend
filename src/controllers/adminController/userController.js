@@ -1,4 +1,5 @@
 const User = require("../../models/userModel");
+const ServiceRequest = require("../../models/serviceRequestModel");
 const Role = require("../../models/roleModel");
 const Package = require("../../models/packageModel");
 const Service = require("../../models/serviceModel");
@@ -797,23 +798,23 @@ exports.assignPackageToUser = async (req, res, next) => {
 };
 
 exports.assignServiceToUser = async (req, res, next) => {
+  const session = await mongoose.startSession();
   try {
+    session.startTransaction();
     const { services } = req.body;
     const { userId } = req.params;
 
     //  Basic validation
     if (!userId || !mongoose.Types.ObjectId.isValid(userId)) {
-      return res.status(400).json({
-        success: false,
-        message: "Invalid userId",
-      });
+      const err = new Error("Invalid userId");
+      err.statusCode = 400;
+      throw err;
     }
 
     if (!Array.isArray(services) || services.length === 0) {
-      return res.status(400).json({
-        success: false,
-        message: "services must be a non-empty array",
-      });
+      const err = new Error("Services must be a non-empty array");
+      err.statusCode = 400;
+      throw err;
     }
 
     //  Validate each service object
@@ -821,17 +822,15 @@ exports.assignServiceToUser = async (req, res, next) => {
       const { serviceId, pipelineCodes } = services[i];
 
       if (!serviceId || !mongoose.Types.ObjectId.isValid(serviceId)) {
-        return res.status(400).json({
-          success: false,
-          message: `Invalid serviceId at index ${i}`,
-        });
+        const err = new Error(`Invalid serviceId at index ${i}`);
+        err.statusCode = 400;
+        throw err;
       }
 
       if (!Array.isArray(pipelineCodes) || pipelineCodes.length === 0) {
-        return res.status(400).json({
-          success: false,
-          message: `pipelineCodes required at index ${i}`,
-        });
+        const err = new Error(`pipelineCodes required at index ${i}`);
+        err.statusCode = 400;
+        throw err;
       }
 
       //  Fetch service with pipelines
@@ -842,10 +841,9 @@ exports.assignServiceToUser = async (req, res, next) => {
       }).select("pipeline");
 
       if (!service) {
-        return res.status(404).json({
-          success: false,
-          message: `Service not found at index ${i}`,
-        });
+        const err = new Error(`Service not found at index ${i}`);
+        err.statusCode = 404;
+        throw err;
       }
 
       //  Validate pipelines
@@ -861,11 +859,9 @@ exports.assignServiceToUser = async (req, res, next) => {
       );
 
       if (invalidPipelines.length > 0) {
-        return res.status(400).json({
-          success: false,
-          message: `Invalid pipelineCodes at index ${i}`,
-          invalidPipelines,
-        });
+        const err = new Error(`Invalid pipelineCodes at index ${i}`);
+        err.statusCode = 400;
+        throw err;
       }
     }
 
@@ -875,10 +871,9 @@ exports.assignServiceToUser = async (req, res, next) => {
     });
 
     if (!user) {
-      return res.status(404).json({
-        success: false,
-        message: "User not found",
-      });
+      const err = new Error("User not found");
+      err.statusCode = 404;
+      throw err;
     }
 
     const assignedServices = user.assignedServices || [];
@@ -904,7 +899,26 @@ exports.assignServiceToUser = async (req, res, next) => {
 
     //  This removes services not in request
     user.assignedServices = updatedServices;
-    await user.save();
+    await user.save({ session: session });
+
+    for (const srv of services) {
+      const { serviceId, pipelineCodes } = srv;
+
+      await ServiceRequest.updateMany(
+        {
+          userId: userId,
+          serviceId: serviceId,
+          pipelineCode: { $in: pipelineCodes },
+          isDeleted: false,
+        },
+        {
+          $set: { status: "assigned" },
+        },
+        { session: session },
+      );
+    }
+
+    await session.commitTransaction();
 
     return res.status(200).json({
       success: true,
@@ -912,7 +926,10 @@ exports.assignServiceToUser = async (req, res, next) => {
       data: user,
     });
   } catch (error) {
+    await session.abortTransaction();
     next(error);
+  } finally {
+    session.endSession();
   }
 };
 
