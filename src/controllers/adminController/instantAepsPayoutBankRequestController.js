@@ -45,18 +45,21 @@ exports.aepsPayoutBankRequests = async (req, res, next) => {
       {
         $addFields: {
           fullName: { $concat: ["$user.firstName", " ", "$user.lastName"] },
+          userName: "$user.userName",
         },
       },
       {
         $project: {
           bankName: 1,
           fullName: 1,
+          userName: 1,
           accountHolderName: 1,
           accountNumber: 1,
           ifscCode: 1,
           status: 1,
           createdAt: 1,
           updatedAt: 1,
+          chequeUrl : 1
         },
       },
       {

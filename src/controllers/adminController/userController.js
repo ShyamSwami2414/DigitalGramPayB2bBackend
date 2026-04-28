@@ -454,7 +454,7 @@ exports.getAllUsers = async (req, res, next) => {
     let { page = 1, limit = 10, status = "", search = "" } = req.query;
     page = Number(page);
     limit = Number(limit);
-    status = status.trim();
+    status = status?.trim();
 
     const skip = (page - 1) * limit;
     const filter = { isDeleted: false };

@@ -11,6 +11,7 @@ exports.listAllServiceRequest = async (req, res, next) => {
       search = "",
       user = "",
       status = "",
+      service = "",
       from = "",
       to = "",
       range = "",
@@ -22,6 +23,7 @@ exports.listAllServiceRequest = async (req, res, next) => {
     search = search?.trim().toLowerCase();
     user = user?.trim();
     status = status?.trim().toLowerCase();
+    service = service?.trim();
 
     from = typeof from === "string" ? from.trim().toLowerCase() : "";
     to = typeof to === "string" ? to.trim().toLowerCase() : "";
@@ -42,6 +44,10 @@ exports.listAllServiceRequest = async (req, res, next) => {
 
     const filter = {};
     const skip = (page - 1) * limit;
+
+    if (service) {
+      filter.serviceId = new mongoose.Types.ObjectId(service);
+    }
 
     const now = new Date();
     let fromDate, toDate;

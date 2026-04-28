@@ -16,12 +16,28 @@ const {
 
 exports.getAllUserRequests = async (req, res, next) => {
   try {
-    let { page = 1, limit = 10 } = req.query;
+    let { page = 1, limit = 10, status = "" } = req.query;
     page = Number(page);
     limit = Number(limit);
+    status = status?.trim()?.toLowerCase();
 
     const skip = (page - 1) * limit;
     const filter = { isDeleted: false };
+
+    const allowedStatus = ["approved", "rejected", "pending"];
+
+    if (status) {
+      if (!allowedStatus.includes(status)) {
+        const err = new Error("Invalid Status");
+        err.statusCode = 400;
+        throw err;
+      }
+      filter.status = status;
+    }
+
+    if (status) {
+      filter.status = status?.toLowerCase();
+    }
 
     if (isNaN(page) || isNaN(limit) || page <= 0 || limit <= 0) {
       return res

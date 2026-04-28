@@ -230,8 +230,6 @@ exports.updatePackage = async (req, res, next) => {
       Role.findById({ _id: role }).select("name isActive").lean(),
       Package.exists({
         name: name,
-        role: role,
-        isActive: true,
         isDeleted: false,
         _id: { $ne: id },
       }),

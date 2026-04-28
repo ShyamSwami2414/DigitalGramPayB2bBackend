@@ -175,7 +175,10 @@ exports.initiateAepsPayout = async (req, res, next) => {
       return res.status(200).json({
         success: true,
         message: response?.data?.message,
-        data: { transactionId: data?.client_referenceId },
+        data: {
+          status: response?.data?.status,
+          transactionId: data?.client_referenceId,
+        },
       });
     } else {
       throw Error(response?.message || response?.data?.message);

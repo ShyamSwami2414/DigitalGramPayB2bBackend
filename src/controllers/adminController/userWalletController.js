@@ -76,12 +76,14 @@ exports.getAllUserWallet = async (req, res, next) => {
       },
       {
         $addFields: {
-          userName: { $concat: ["$user.firstName", " ", "$user.lastName"] },
+          userName: "$user.userName",
+          fullName: { $concat: ["$user.firstName", " ", "$user.lastName"] },
           phone: "$user.phone",
         },
       },
       {
         $project: {
+          fullName: 1,
           userName: 1,
           phone: 1,
           aepsWallet: 1,

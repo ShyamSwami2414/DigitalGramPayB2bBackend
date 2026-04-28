@@ -73,10 +73,10 @@ exports.initiateXpressPayout = async (req, res, next) => {
       });
     }
 
-    if (amount < 100) {
+    if (amount < 10) {
       return res.status(400).json({
         success: false,
-        message: "Minimum payout amount is 100 rupees",
+        message: "Minimum payout amount is 10 rupees",
       });
     }
 
@@ -173,7 +173,10 @@ exports.initiateXpressPayout = async (req, res, next) => {
       return res.status(200).json({
         success: true,
         message: response?.data?.message,
-        data: { transactionId: data?.client_referenceId },
+        data: {
+          status: response?.data?.status,
+          transactionId: data?.client_referenceId,
+        },
       });
     } else {
       throw Error(response?.message || response?.data?.message);

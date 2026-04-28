@@ -23,7 +23,7 @@ exports.myAllTransaction = async (req, res, next) => {
     const skip = (page - 1) * limit;
 
     const filter = {
-      serviceType: "AEPS_PAYOUT",
+      serviceType: "XPRESS_PAYOUT",
     };
 
     // ✅ STATUS FILTER
@@ -90,7 +90,7 @@ exports.myAllTransaction = async (req, res, next) => {
           "user.mobile": 1,
           "user.email": 1,
 
-          // ❌ hidden fields automatically excluded
+          //  hidden fields automatically excluded
         },
       },
 
@@ -119,8 +119,6 @@ exports.myAllTransaction = async (req, res, next) => {
       ifsc: txn.ifsc,
       beneficiaryName: txn.beneficiaryName,
       beneficiaryPhone: txn.beneficiaryPhone,
-
-      // 💰 convert paise → rupee
       amount: paiseToRupee(txn.amount),
 
       status: txn.status,
@@ -129,7 +127,7 @@ exports.myAllTransaction = async (req, res, next) => {
 
     return res.status(200).json({
       success: true,
-      message: "AEPS Payout Report",
+      message: "Xpress Payout Report",
       data: formattedData,
       pagination: {
         total,

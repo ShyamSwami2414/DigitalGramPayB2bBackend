@@ -53,13 +53,13 @@ router.get(
 //   updateService,
 // );
 
-// router.patch(
-//   "/update-service-status/:id",
-//   authenticateUser,
-//   authorizeRoles("admin"),
-// checkAllowedPermission("SERVICE"),
-//   updateServiceStatus,
-// );
+router.patch(
+  "/update-service-status/:id",
+  authenticateUser,
+  authorizeRoles("admin"),
+checkAllowedPermission("SERVICE"),
+  updateServiceStatus,
+);
 
 // router.delete(
 //   "/delete-service/:id",

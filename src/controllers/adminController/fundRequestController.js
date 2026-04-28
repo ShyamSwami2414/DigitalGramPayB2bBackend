@@ -7,7 +7,13 @@ const { paiseToRupee } = require("../../utils/money");
 
 exports.fundRequestStats = async (req, res, next) => {
   try {
-    let { userId = "", status = "", from = "", to = "", range = "" } = req.query;
+    let {
+      userId = "",
+      status = "",
+      from = "",
+      to = "",
+      range = "",
+    } = req.query;
 
     console.log(req.query);
     userId = userId?.trim();
@@ -438,6 +444,7 @@ exports.getAllFundRequests = async (req, res, next) => {
           fullName: {
             $concat: ["$user.firstName", " ", "$user.lastName"],
           },
+          userName: "$user.userName",
         },
       },
       {
