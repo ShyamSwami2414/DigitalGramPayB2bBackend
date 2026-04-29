@@ -236,7 +236,6 @@ exports.listAllServiceRequest = async (req, res, next) => {
         $project: {
           user: 0,
           service: 0,
-          rejectionReason: 0,
           isDeletedAt: 0,
           updatedAt: 0,
           isActive: 0,

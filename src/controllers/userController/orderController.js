@@ -136,7 +136,7 @@ exports.createOrder = async (req, res, next) => {
     );
 
     if (!updatedWallet) {
-      const err = new Error("Insufficient Wallet Balance");
+      const err = new Error("Insufficient Wallet Balance, Contact to Admin");
       err.statusCode = 400;
       throw err;
     }
@@ -149,6 +149,7 @@ exports.createOrder = async (req, res, next) => {
         {
           userId,
           referenceId: referenceId,
+          entryType : "ORDER",
           wallet: "main",
           type: "debit",
           amount: grandTotal,

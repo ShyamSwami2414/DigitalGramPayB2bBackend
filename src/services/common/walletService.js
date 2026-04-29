@@ -4,7 +4,8 @@ const WalletLedger = require("../../models/walletLedgerModel");
 const debitAepsWallet = async ({
   userId,
   amount, //paise
-  serviceType,
+  serviceType = null,
+  serviceCategory = null,
   referenceId,
   description,
   session,
@@ -37,7 +38,7 @@ const debitAepsWallet = async ({
   console.log("wallet from db", wallet);
 
   if (!wallet) {
-    throw new Error("Insufficient Aeps Wallet Balance Contact Admin");
+    throw new Error("Insufficient Aeps Wallet Balance Contact to Admin");
   }
 
   closingBalance = wallet.aepsWallet;
@@ -47,7 +48,8 @@ const debitAepsWallet = async ({
     [
       {
         userId,
-        serviceType,
+        serviceType: serviceType,
+        serviceCategory: serviceCategory,
         wallet: "aeps",
         type: "debit",
         amount: amount,
@@ -66,7 +68,8 @@ const debitAepsWallet = async ({
 const debitWallet = async ({
   userId,
   amount, //paise
-  serviceType,
+  serviceType = null,
+  serviceCategory = null,
   referenceId,
   description,
   session,
@@ -99,7 +102,7 @@ const debitWallet = async ({
   console.log("wallet from db", wallet);
 
   if (!wallet) {
-    throw new Error("Insufficient Wallet Balance Contact Admin");
+    throw new Error("Insufficient Wallet Balance, Contact to Admin");
   }
 
   closingBalance = wallet.mainWallet;
@@ -108,15 +111,17 @@ const debitWallet = async ({
   await WalletLedger.create(
     [
       {
-        userId,
-        serviceType,
+        userId: userId,
+        serviceType: serviceType,
+        serviceCategory: serviceCategory, //dynamic like operator for recharge, aeps withdraw service types, bbps categories etc
         wallet: "main",
         type: "debit",
         amount: amount,
-        openingBalance,
-        closingBalance,
-        referenceId,
-        description,
+        openingBalance: openingBalance,
+        closingBalance: closingBalance,
+        referenceId: referenceId,
+        description: description,
+        status: "INITIATED",
       },
     ],
     { session },
@@ -129,7 +134,8 @@ const creditWallet = async ({
   userId,
   amount, // paise
   walletType,
-  serviceType,
+  serviceType = null,
+  serviceCategory = null,
   referenceId,
   description,
   session,
@@ -174,7 +180,8 @@ const creditWallet = async ({
     [
       {
         userId,
-        serviceType,
+        serviceType: serviceType,
+        serviceCategory: serviceCategory,
         wallet: walletType,
         type: "credit", // Type is credit
         amount: amount,

@@ -69,4 +69,8 @@ module.exports = (app) => {
     `${apiPrefix}/xpressPayoutReport`,
     require("./sozoXpressPayoutReportRoute"),
   );
+  app.use(
+    `${apiPrefix}/dashboard`,
+    require("./dashboardRoute"),
+  );
 };

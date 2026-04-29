@@ -1,6 +1,6 @@
 const mongoose = require("mongoose");
 
-const tdsLedgerSchema = new mongoose.Schema(
+const gstLedgerSchema = new mongoose.Schema(
   {
     userId: {
       type: mongoose.Schema.Types.ObjectId,
@@ -16,27 +16,34 @@ const tdsLedgerSchema = new mongoose.Schema(
       unique: true,
     },
 
-    commissionAmount: {
+    serviceType: {
+      type: String,
+      enum: ["DMT", "PAYOUT"], //xpress, aeps both
+    },
+
+    chargesAmount: {
       type: Number,
       required: true,
       min: 0,
     },
 
     //percent
-    tdsRate: {
+    gstRate: {
       type: Number,
       required: true,
       min: 0,
       max: 100,
+      default: 18,
     },
 
-    netCommission: {
+    gstAmount: {
       type: Number,
       required: true,
       min: 0,
     },
 
-    tdsAmount: {
+    //including gst
+    totalCharge: {
       type: Number,
       required: true,
       min: 0,
@@ -59,4 +66,4 @@ const tdsLedgerSchema = new mongoose.Schema(
   },
 );
 
-module.exports = mongoose.model("TdsLedger", tdsLedgerSchema);
+module.exports = mongoose.model("GstLedger", gstLedgerSchema);

@@ -10,6 +10,8 @@ exports.splitCommission = async ({
   userId, // transaction user
   amount, // paise
   serviceId,
+  serviceType = null,
+  serviceCategory = null,
   operatorId = null,
   categoryId = null,
   pipeline,
@@ -98,7 +100,9 @@ exports.splitCommission = async ({
           [
             {
               userId: uplineUser._id,
-              serviceType: "COMMISSION",
+              serviceType: serviceType,
+              serviceCategory: serviceCategory,
+              entryType: "COMMISSION",
               wallet: "main",
               type: "credit",
               amount: netAmount,

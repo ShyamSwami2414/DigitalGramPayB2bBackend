@@ -18,7 +18,7 @@ const transactionSchema = new mongoose.Schema(
     serviceType: {
       type: String,
       required: true,
-      enum: ["RECHARGE", "BBPS", "DMT", "AEPS", "PAYOUT", "WALLETTRANSFER"],
+      enum: ["RECHARGE", "BBPS", "DMT", "AEPS", "PAYOUT", "WALLET_TRANSFER"],
     },
 
     amount: {
@@ -41,8 +41,8 @@ const transactionSchema = new mongoose.Schema(
 
     status: {
       type: String,
-      enum: ["SUCCESS", "FAILED", "PENDING", "REFUNDED"],
-      default: "PENDING",
+      enum: ["INITIATED", "SUCCESS", "FAILED", "PENDING", "REFUNDED"],
+      default: "INITIATED",
     },
 
     isRefunded: {

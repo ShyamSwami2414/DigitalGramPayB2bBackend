@@ -454,7 +454,7 @@ exports.dailyLogin = async ({
           userId: userId,
           amount: dailyAepsLoginCharge,
           referenceId: referenceId,
-           walletType: "main",
+          walletType: "main",
           description: `Refund: Daily Login Failed `,
           session: refundSession,
         });
@@ -872,6 +872,7 @@ exports.doCashWithdraw = async ({
           amount: amount, // paise
           walletType: "aeps",
           serviceType: "AEPS",
+          serviceCategory: "CASH_WITHDRAW",
           referenceId: referenceId,
           description: "Aeps Cash Withdrawal",
           session: withdrawSession,

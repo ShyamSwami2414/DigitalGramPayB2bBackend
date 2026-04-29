@@ -13,6 +13,8 @@ const processCommission = async ({
   amount, //paise
   packageId,
   serviceId,
+  serviceType,
+  serviceCategory,
   operatorId = null,
   categoryId = null,
   pipeline,
@@ -50,11 +52,19 @@ const processCommission = async ({
       closingBalance = wallet.mainWallet;
       openingBalance = closingBalance - netCommission;
 
+      await WalletLedger.updateOne(
+        { referenceId: referenceId, serviceType: serviceType },
+        { status: "SUCCESS" },
+        { session: session },
+      );
+
       await WalletLedger.create(
         [
           {
             userId,
-            serviceType: "COMMISSION",
+            serviceType: serviceType,
+            serviceCategory: serviceCategory,
+            entryType: "COMMISSION",
             wallet: "main",
             type: "credit",
             amount: netCommission,
@@ -94,25 +104,27 @@ const processCommission = async ({
       );
     }
 
-    // await Transaction.updateOne(
-    //   {
-    //     referenceId: referenceId,
-    //   },
-    //   {
-    //     $set: {
-    //       status: "SUCCESS",
-    //       providerTxnId: providerTxnId,
-    //       remark: apiResponse ? apiResponse?.message : "",
-    //       "meta.response": apiResponse,
-    //     },
-    //   },
-    //   { session },
-    // );
+    await Transaction.updateOne(
+      {
+        referenceId: referenceId,
+      },
+      {
+        $set: {
+          status: "SUCCESS",
+          providerTxnId: providerTxnId,
+          remark: apiResponse ? apiResponse?.message : "",
+          "meta.response": apiResponse,
+        },
+      },
+      { session },
+    );
 
     await splitCommission({
       userId: userId,
       amount: amount, //paise
       serviceId: serviceId,
+      serviceType: serviceType,
+      serviceCategory: serviceCategory,
       operatorId: operatorId,
       pipeline: pipeline,
       referenceId: referenceId,

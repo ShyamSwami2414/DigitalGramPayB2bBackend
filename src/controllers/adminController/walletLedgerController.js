@@ -318,6 +318,7 @@ exports.getAllLedgetEntryList = async (req, res, next) => {
       from = "",
       to = "",
       userId = "",
+      referenceId = "",
     } = req.query;
 
     page = Number(page);
@@ -327,173 +328,316 @@ exports.getAllLedgetEntryList = async (req, res, next) => {
     const skip = (page - 1) * limit;
     const filter = {};
 
-    // ✅ Validations
-    if (isNaN(page) || page < 1) {
-      return res.status(400).json({
-        success: false,
-        message: "Page must be a valid number greater than 0",
-      });
-    }
+    if (referenceId) filter.referenceId = referenceId;
 
-    if (isNaN(limit) || limit < 1 || limit > 100) {
-      return res.status(400).json({
-        success: false,
-        message: "Limit must be between 1 and 100",
-      });
-    }
+    // ===============================
+    // ✅ VALIDATIONS
+    // ===============================
+    if (isNaN(page) || page < 1)
+      return res.status(400).json({ success: false, message: "Invalid page" });
 
-    if (from && isNaN(Date.parse(from))) {
-      return res.status(400).json({
-        success: false,
-        message: "Invalid 'from' date",
-      });
-    }
+    if (isNaN(limit) || limit < 1 || limit > 100)
+      return res.status(400).json({ success: false, message: "Invalid limit" });
 
-    if (to && isNaN(Date.parse(to))) {
-      return res.status(400).json({
-        success: false,
-        message: "Invalid 'to' date",
-      });
-    }
-
-    if (userId && !mongoose.Types.ObjectId.isValid(userId)) {
-      return res.status(400).json({
-        success: false,
-        message: "Invalid user id",
-      });
-    }
+    if (userId && !mongoose.Types.ObjectId.isValid(userId))
+      return res
+        .status(400)
+        .json({ success: false, message: "Invalid userId" });
 
     if (userId) {
-      const isUserExist = await User.findById(userId);
-      if (!isUserExist) {
-        return res.status(404).json({
-          success: false,
-          message: "User not Found",
-        });
-      }
+      const user = await User.findById(userId);
+      if (!user)
+        return res
+          .status(404)
+          .json({ success: false, message: "User not found" });
+
       filter.userId = new mongoose.Types.ObjectId(userId);
     }
 
-    // ✅ Date filter
     if (from || to) {
       filter.createdAt = {};
       if (from) filter.createdAt.$gte = new Date(from);
       if (to) filter.createdAt.$lte = new Date(to);
     }
 
-    // ✅ Search
     if (search) {
       filter.$or = [
-        { openingBalance: { $regex: search, $options: "i" } },
-        { closingBalance: { $regex: search, $options: "i" } },
         { referenceId: { $regex: search, $options: "i" } },
+        { description: { $regex: search, $options: "i" } },
       ];
     }
 
-    // ✅ Aggregation
-    const walletLedger = await WalletLedger.aggregate([
+    // ===============================
+    // 🚀 BASE PIPELINE
+    // ===============================
+    const basePipeline = [
       { $match: filter },
+
       {
         $lookup: {
           from: "users",
-          localField: "userId",
-          foreignField: "_id",
+          let: { uid: "$userId" },
+          pipeline: [
+            { $match: { $expr: { $eq: ["$_id", "$$uid"] } } },
+            { $project: { firstName: 1, lastName: 1, userName: 1 } },
+          ],
           as: "user",
         },
       },
       { $unwind: "$user" },
+
       {
         $addFields: {
-          fullName: { $concat: ["$user.firstName", " ", "$user.lastName"] },
+          fullName: {
+            $concat: ["$user.firstName", " ", "$user.lastName"],
+          },
           userName: "$user.userName",
         },
       },
+
+      { $unset: ["user"] },
+
+      // 🔥 GROUP
       {
-        $project: {
-          userId: 1,
-          serviceType: 1,
-          fullName: 1,
-          userName: 1,
-          wallet: 1,
-          type: 1,
-          amount: 1,
-          openingBalance: 1,
-          closingBalance: 1,
-          description: 1,
-          referenceId: 1,
-          createdAt: 1,
-          updatedAt: 1,
+        $group: {
+          _id: "$referenceId",
+          entries: { $push: "$$ROOT" },
         },
       },
+
+      // 🔥 FLAGS
+      {
+        $addFields: {
+          hasRefund: {
+            $anyElementTrue: {
+              $map: {
+                input: "$entries",
+                as: "e",
+                in: { $eq: ["$$e.entryType", "REFUND"] },
+              },
+            },
+          },
+
+          hasCommission: {
+            $anyElementTrue: {
+              $map: {
+                input: "$entries",
+                as: "e",
+                in: { $eq: ["$$e.entryType", "COMMISSION"] },
+              },
+            },
+          },
+
+          hasWalletRefill: {
+            $anyElementTrue: {
+              $map: {
+                input: "$entries",
+                as: "e",
+                in: { $eq: ["$$e.entryType", "WALLET_REFILL"] },
+              },
+            },
+          },
+
+          hasAEPS: {
+            $anyElementTrue: {
+              $map: {
+                input: "$entries",
+                as: "e",
+                in: { $eq: ["$$e.serviceType", "AEPS_TO_MAIN"] },
+              },
+            },
+          },
+        },
+      },
+
+      // 🔥 MERGE CONDITION
+      {
+        $addFields: {
+          shouldMerge: {
+            $and: [
+              { $not: ["$hasRefund"] },
+              { $not: ["$hasWalletRefill"] },
+              { $not: ["$hasAEPS"] },
+              "$hasCommission",
+            ],
+          },
+        },
+      },
+
+      // 🔥 MERGE LOGIC
+      {
+        $project: {
+          data: {
+            $cond: [
+              "$shouldMerge",
+              [
+                {
+                  $mergeObjects: [
+                    {
+                      $arrayElemAt: [
+                        {
+                          $filter: {
+                            input: "$entries",
+                            as: "e",
+                            cond: {
+                              $ne: ["$$e.entryType", "COMMISSION"],
+                            },
+                          },
+                        },
+                        0,
+                      ],
+                    },
+                    {
+                      commission: {
+                        $sum: {
+                          $map: {
+                            input: "$entries",
+                            as: "e",
+                            in: {
+                              $cond: [
+                                { $eq: ["$$e.entryType", "COMMISSION"] },
+                                "$$e.amount",
+                                0,
+                              ],
+                            },
+                          },
+                        },
+                      },
+                    },
+                  ],
+                },
+              ],
+              "$entries",
+            ],
+          },
+        },
+      },
+
+      { $unwind: "$data" },
+      { $replaceRoot: { newRoot: "$data" } },
+
+      // ===============================
+      // 🔥 TDS LOOKUP (NO tdsRate)
+      // ===============================
+      {
+        $lookup: {
+          from: "tdsledgers",
+          let: { refId: "$referenceId" },
+          pipeline: [
+            {
+              $match: {
+                $expr: { $eq: ["$referenceId", "$$refId"] },
+              },
+            },
+            {
+              $project: {
+                commissionAmount: 1,
+                tdsAmount: 1,
+                netCommission: 1,
+              },
+            },
+          ],
+          as: "tds",
+        },
+      },
+      {
+        $unwind: {
+          path: "$tds",
+          preserveNullAndEmptyArrays: true,
+        },
+      },
+      {
+        $addFields: {
+          // commissionAmount: "$tds.commissionAmount",
+          tdsAmount: "$tds.tdsAmount",
+          // netCommission: "$tds.netCommission",
+        },
+      },
+      {
+        $unset: ["tds"],
+      },
+
+      {
+        $lookup: {
+          from: "gstledgers",
+          let: { refId: "$referenceId" },
+          pipeline: [
+            {
+              $match: {
+                $expr: { $eq: ["$referenceId", "$$refId"] },
+              },
+            },
+            {
+              $project: {
+                chargesAmount: 1,
+                gstAmount: 1,
+                totalCharge: 1,
+              },
+            },
+          ],
+          as: "gst",
+        },
+      },
+      {
+        $unwind: {
+          path: "$gst",
+          preserveNullAndEmptyArrays: true, // ✅ IMPORTANT
+        },
+      },
+      {
+        $addFields: {
+          chargesAmount: "$gst.chargesAmount",
+          gstAmount: "$gst.gstAmount",
+          totalCharges: "$gst.totalCharge",
+        },
+      },
+      {
+        $unset: ["gst"],
+      },
+    ];
+
+    // ===============================
+    // 📊 DATA WITH PAGINATION
+    // ===============================
+    const dataPipeline = [
+      ...basePipeline,
       { $sort: { createdAt: -1 } },
       { $skip: skip },
       { $limit: limit },
-    ]);
+    ];
 
-    const total = await WalletLedger.countDocuments(filter);
+    const walletLedger = await WalletLedger.aggregate(dataPipeline);
 
     // ===============================
-    // 🔥 BUSINESS LOGIC STARTS HERE
+    // 📊 TOTAL COUNT
     // ===============================
+    const countPipeline = [...basePipeline, { $count: "total" }];
+    const totalAgg = await WalletLedger.aggregate(countPipeline);
+    const total = totalAgg[0]?.total || 0;
 
-    const grouped = {};
-
-    // ✅ Group by referenceId
-    for (const item of walletLedger) {
-      const ref = item.referenceId;
-      if (!grouped[ref]) grouped[ref] = [];
-      grouped[ref].push(item);
-    }
-
-    const finalData = [];
-
-    for (const ref in grouped) {
-      const entries = grouped[ref];
-
-      // ✅ Case 1: single entry
-      if (entries.length === 1) {
-        finalData.push(entries[0]);
-        continue;
-      }
-
-      // ❌ Case 2: REFUND present → don't merge
-      const hasRefund = entries.some((e) => e.serviceType === "REFUND");
-      if (hasRefund) {
-        finalData.push(...entries);
-        continue;
-      }
-
-      // ❌ Case 3: debit + credit → don't merge
-      const types = new Set(entries.map((e) => e.type));
-      if (types.has("debit") && types.has("credit")) {
-        finalData.push(...entries);
-        continue;
-      }
-
-      // ✅ Case 4: merge
-      const base = entries[0];
-
-      const merged = { ...base };
-
-      for (const e of entries) {
-        const key = e.serviceType.toLowerCase(); // dynamic key
-        merged[key] = paiseToRupee(e.amount);
-      }
-
-      finalData.push(merged);
-    }
-
-    // ✅ Format amounts
-    const formattedData = finalData.map((item) => ({
+    // ===============================
+    // 💰 FORMAT
+    // ===============================
+    const formattedData = walletLedger.map((item) => ({
       ...item,
       amount: paiseToRupee(item?.amount),
       openingBalance: paiseToRupee(item?.openingBalance),
       closingBalance: paiseToRupee(item?.closingBalance),
+      commission: item?.commission ? paiseToRupee(item.commission) : 0,
+      tdsAmount: item?.tdsAmount ? paiseToRupee(item.tdsAmount) : 0,
+      // commissionAmount: item?.commissionAmount
+      //   ? paiseToRupee(item.commissionAmount)
+      //   : undefined,
+
+      // netCommission: item?.netCommission
+      //   ? paiseToRupee(item.netCommission)
+      //   : undefined,
+
+      gstAmount: item?.gstAmount ? paiseToRupee(item.gstAmount) : 0,
+
+      totalCharges: item?.totalCharge ? paiseToRupee(item.totalCharge) : 0,
     }));
 
-    // ===============================
-    // 🔥 RESPONSE
-    // ===============================
     return res.status(200).json({
       success: true,
       message: "Wallet Ledger fetched successfully",

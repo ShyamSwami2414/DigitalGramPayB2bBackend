@@ -412,11 +412,15 @@ exports.creditDebitAmount = async (req, res, next) => {
     closingBalance = updatedUserWallet[field];
     openingBalance = closingBalance - transactionAmount;
 
+    const entryType =
+      type?.toLowerCase() === "credit" ? "CREDIT_WALLET" : "DEBIT_WALLET";
+
     await WalletLedger.create(
       [
         {
           userId: new mongoose.Types.ObjectId(userId),
           referenceId: referenceId,
+          entryType: entryType,
           wallet: walletType,
           type: type,
           amount: amountInPaise,

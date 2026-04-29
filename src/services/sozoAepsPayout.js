@@ -76,6 +76,7 @@ exports.initiateAepsPayoutTransfer = async ({
       userId: userId,
       amount: amount, //paise
       serviceType: "AEPS_PAYOUT",
+      serviceCategory: "PAYOUT",
       referenceId: referenceId,
       description: `Aeps Payout for ${purpose}`,
       session: session,

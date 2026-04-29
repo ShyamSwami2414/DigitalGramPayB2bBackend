@@ -7,6 +7,8 @@ const processRefund = async ({
   userId,
   amount, //paise
   referenceId,
+  serviceType = null,
+  serviceCategory = null,
   walletType = "main",
   reportModel = null,
   description,
@@ -45,11 +47,19 @@ const processRefund = async ({
     closingBalance = wallet[walletField];
     openingBalance = closingBalance - amount;
 
+    await WalletLedger.updateOne(
+      { referenceId: referenceId, serviceType: serviceType },
+      { status: "FAILED" },
+      { session: session },
+    );
+
     await WalletLedger.create(
       [
         {
           userId,
-          serviceType: "REFUND",
+          serviceType: serviceType,
+          serviceCategory: serviceCategory,
+          entryType: "REFUND",
           wallet: walletType,
           type: "credit",
           amount, //paise
@@ -59,14 +69,14 @@ const processRefund = async ({
           description,
         },
       ],
-      { session },
+      { session: session },
     );
 
     if (reportModel) {
       await reportModel.updateOne(
         { referenceId },
         { $set: { status: "FAILED", isRefunded: true } },
-        { session },
+        { session: session },
       );
 
       await Transaction.updateOne(
@@ -79,7 +89,7 @@ const processRefund = async ({
             "meta.response": apiResponse,
           },
         },
-        { session },
+        { session: session },
       );
     }
 

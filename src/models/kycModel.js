@@ -4,6 +4,8 @@ const kycSchema = new mongoose.Schema(
   {
     userId: {
       type: mongoose.Schema.Types.ObjectId,
+      unique: true,
+      index: true,
       ref: "User",
       required: true,
     },
@@ -40,12 +42,16 @@ const kycSchema = new mongoose.Schema(
       required: [true, "Email is required"],
       lowercase: true,
       trim: true,
+      unique: [true, "Email Is already tied up with another user"],
+      index: true,
       match: [/^\S+@\S+\.\S+$/, "Invalid email format"],
     },
 
     phone: {
       type: String,
       required: [true, "Mobile Number is required"],
+      unique: [true, "Mobile Number already taken by another user"],
+      index: true,
       trim: true,
       match: [/^[6-9]\d{9}$/, "Invalid Indian phone number"],
     },
@@ -107,7 +113,7 @@ const kycSchema = new mongoose.Schema(
       minLength: 5,
       maxLength: 100,
     },
-    
+
     shopImageUrl: { type: String, required: true },
 
     businessAddress: {
@@ -190,6 +196,8 @@ const kycSchema = new mongoose.Schema(
     aadharNumber: {
       type: String,
       required: [true, "Aadhar number is required"],
+      unique: [true, "Aadhar number already tied up with another user"],
+      index: true,
       match: [/^\d{12}$/, "Invalid Aadhaar number"],
     },
 
@@ -198,6 +206,8 @@ const kycSchema = new mongoose.Schema(
     panNumber: {
       type: String,
       required: [true, "Pan number is required"],
+      unique: [true, "Pan number Is already tied up with another user"],
+      index: true,
       match: [/^[A-Z]{5}[0-9]{4}[A-Z]{1}$/, "Invalid PAN number"],
     },
 

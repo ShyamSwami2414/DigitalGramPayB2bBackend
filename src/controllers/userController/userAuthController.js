@@ -132,7 +132,18 @@ exports.userLogin = async (req, res, next) => {
         .json({ success: false, message: "All Details are required" });
     }
 
-    const user = await User.findOne({ email, userName });
+    const user = await User.findOne({
+      email,
+      userName,
+      isActive: true,
+      isDeleted: false,
+    });
+
+    if (!user) {
+      return res
+        .status(400)
+        .json({ success: false, message: "User not found or not active" });
+    }
 
     const log = new loginLogs({
       userId: user?._id || null,

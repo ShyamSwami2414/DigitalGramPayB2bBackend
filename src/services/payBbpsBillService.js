@@ -1,6 +1,7 @@
 const { fetchBbpsBill } = require("../client/cspl/apis/fetchBbpsBill");
 const { payBbpsBill } = require("../client/cspl/apis/payBbpsBill");
 const User = require("../models/userModel");
+const WalletLedger = require("../models/walletLedgerModel");
 const BbpsReport = require("../models/bbpsReportModel");
 const BbpsBiller = require("../models/bbpsBillersModel");
 const BbpsCategory = require("../models/bbpsCategoryModel");
@@ -99,47 +100,48 @@ exports.payBbpsBillService = async ({
           mobileNumber: customerMobile, //customer mobile number not users
           amount: billamount, //paise
           referenceId: referenceId,
+          status: "INITIATED",
         },
       ],
-      { session },
+      { session: session },
     );
 
-    // await Transaction.create(
-    //   [
-    //     {
-    //       userId: userId,
-    //       referenceId: referenceId,
-    //       serviceType: "BBPS",
-    //       amount: amount,
-    //       wallet: "main",
-    //       type: "debit",
-    //       status: "PENDING",
-    //       meta: {
-    //         request: {
-    //           ...(refId?.trim() && { refId: refId.trim() }),
-    //           ...(billerId !== undefined && billerId !== null && { billerId }),
-    //           ...(customerName?.trim() && {
-    //             customerName: customerName.trim(),
-    //           }),
-    //           ...(customerMobile?.trim() && {
-    //             customerMobile: customerMobile.trim(),
-    //           }),
-    //           ...(dueDate && { dueDate }),
-    //           ...(billamount !== undefined &&
-    //             billamount !== null && { billamount }),
-    //           ...(billDate && { billDate }),
-    //           ...(billPeriod && { billPeriod }),
-    //           ...(billNumber && { billNumber }),
-    //           ...(placeholderValue && { placeholderValue }),
-    //           ...(paramValue && { paramValue }),
-    //           ...(Array.isArray(inputParams) &&
-    //             inputParams.length > 0 && { inputParams }),
-    //         },
-    //       },
-    //     },
-    //   ],
-    //   { session },
-    // );
+    await Transaction.create(
+      [
+        {
+          userId: userId,
+          referenceId: referenceId,
+          serviceType: "BBPS",
+          amount: billamount, //paise
+          wallet: "main",
+          type: "debit",
+          status: "INITIATED",
+          meta: {
+            request: {
+              ...(refId?.trim() && { refId: refId.trim() }),
+              ...(billerId !== undefined && billerId !== null && { billerId }),
+              ...(customerName?.trim() && {
+                customerName: customerName.trim(),
+              }),
+              ...(customerMobile?.trim() && {
+                customerMobile: customerMobile.trim(),
+              }),
+              ...(dueDate && { dueDate }),
+              ...(billamount !== undefined &&
+                billamount !== null && { billamount }),
+              ...(billDate && { billDate }),
+              ...(billPeriod && { billPeriod }),
+              ...(billNumber && { billNumber }),
+              ...(placeholderValue && { placeholderValue }),
+              ...(paramValue && { paramValue }),
+              ...(Array.isArray(inputParams) &&
+                inputParams.length > 0 && { inputParams }),
+            },
+          },
+        },
+      ],
+      { session: session },
+    );
 
     await session.commitTransaction();
 
@@ -180,10 +182,49 @@ exports.payBbpsBillService = async ({
     console.log("Status", result.status);
 
     if (result.status === "PENDING") {
-      await BbpsReport.updateOne({ referenceId }, { status: "PENDING" });
-    }
+      console.log("Entered Pending Block");
+      const pendingSession = await mongoose.startSession();
+      try {
+        pendingSession.startTransaction();
 
-    if (result.status === "SUCCESS") {
+        await WalletLedger.updateOne(
+          { referenceId: referenceId, serviceType: "BBPS" },
+          { status: "PENDING" },
+          { session: pendingSession },
+        );
+
+        await BbpsReport.updateOne(
+          { referenceId: referenceId },
+          { status: "PENDING" },
+          { session: pendingSession },
+        );
+
+        await Transaction.updateOne(
+          {
+            referenceId: referenceId,
+          },
+          {
+            $set: {
+              status: "PENDING",
+              providerTxnId: result?.txn_ref,
+              remark: result ? result?.message : "",
+              "meta.response": result,
+            },
+          },
+          { session: pendingSession },
+        );
+
+        await pendingSession.commitTransaction();
+        return result;
+      } catch (error) {
+        if (pendindSession.inTransaction()) {
+          await pendingSession.abortTransaction();
+        }
+        throw error;
+      } finally {
+        pendingSession.endSession();
+      }
+    } else if (result.status === "SUCCESS") {
       const { commission, tdsAmount, netCommission } = await processCommission({
         userId: userId,
         amount: billamount, //paise

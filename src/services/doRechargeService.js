@@ -45,8 +45,9 @@ exports.doRechargeService = async ({
 
     const { openingBalance, closingBalance } = await debitWallet({
       userId: userId,
-      amount: amount,
+      amount: amount, //paise
       serviceType: "RECHARGE",
+      serviceCategory: operatorName,
       referenceId: referenceId,
       description: "Mobile Prepaid Recharge",
       session: session,
@@ -59,35 +60,35 @@ exports.doRechargeService = async ({
           operatorId: operatorId,
           operatorName: operatorName,
           mobileNumber: number,
-          amount: amount,
+          amount: amount, //paise
           referenceId: referenceId,
           status: "INITIATED",
         },
       ],
-      { session },
+      { session: session },
     );
 
-    // await Transaction.create(
-    //   [
-    //     {
-    //       userId: userId,
-    //       referenceId: referenceId,
-    //       serviceType: "RECHARGE",
-    //       amount: amount,
-    //       wallet: "main",
-    //       type: "debit",
-    //       status: "PENDING",
-    //       meta: {
-    //         request: {
-    //           operatorId: operatorId,
-    //           operatorName: operatorName,
-    //           mobileNumber: number,
-    //         },
-    //       },
-    //     },
-    //   ],
-    //   { session },
-    // );
+    await Transaction.create(
+      [
+        {
+          userId: userId,
+          referenceId: referenceId,
+          serviceType: "RECHARGE",
+          amount: amount, //paise
+          wallet: "main",
+          type: "debit",
+          status: "INITIATED",
+          meta: {
+            request: {
+              operatorId: operatorId,
+              operatorName: operatorName,
+              mobileNumber: number,
+            },
+          },
+        },
+      ],
+      { session: session },
+    );
 
     await session.commitTransaction();
 
@@ -115,8 +116,47 @@ exports.doRechargeService = async ({
 
     if (result?.status === "PENDING") {
       console.log("Entered Pending Block");
-      await RechargeReport.updateOne({ referenceId }, { status: "PENDING" });
-      return result;
+      const pendingSession = await mongoose.startSession();
+      try {
+        pendingSession.startTransaction();
+
+        await WalletLedger.updateOne(
+          { referenceId: referenceId, serviceType: "RECHARGE" },
+          { status: "PENDING" },
+          { session: pendingSession },
+        );
+
+        await RechargeReport.updateOne(
+          { referenceId: referenceId },
+          { status: "PENDING" },
+          { session: pendingSession },
+        );
+
+        await Transaction.updateOne(
+          {
+            referenceId: referenceId,
+          },
+          {
+            $set: {
+              status: "PENDING",
+              providerTxnId: result?.txn_ref,
+              remark: result ? result?.message : "",
+              "meta.response": result,
+            },
+          },
+          { session: pendingSession },
+        );
+
+        await pendingSession.commitTransaction();
+        return result;
+      } catch (error) {
+        if (pendindSession.inTransaction()) {
+          await pendingSession.abortTransaction();
+        }
+        throw error;
+      } finally {
+        pendingSession.endSession();
+      }
     } else if (result?.status === "SUCCESS") {
       console.log("Entered Success Block");
 
@@ -127,6 +167,8 @@ exports.doRechargeService = async ({
             amount: amount, //paise
             packageId: packageId,
             serviceId: serviceId,
+            serviceType: "RECHARGE",
+            serviceCategory: operatorName,
             operatorId: operatorId,
             pipeline: "recharge1",
             referenceId: referenceId,
@@ -148,6 +190,8 @@ exports.doRechargeService = async ({
           userId: userId,
           amount: amount, //paise
           referenceId: referenceId,
+          serviceType: "RECHARGE",
+          serviceCategory: operatorName,
           walletType: "main",
           reportModel: RechargeReport,
           description: "Recharge Failed Refund",

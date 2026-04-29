@@ -30,7 +30,7 @@ exports.payBbpsBill = async ({
         customerName,
         customerMobile,
         dueDate,
-        billamount,
+        billamount, //paise always
         billDate,
         billPeriod,
         billNumber,

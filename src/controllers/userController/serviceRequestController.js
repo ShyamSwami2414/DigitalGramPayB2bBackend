@@ -61,7 +61,7 @@ exports.addServiceRequest = async (req, res, next) => {
       _id: serviceId,
       "pipeline.code": pipeline,
     })
-      .select("name")
+      .select("name status")
       .lean();
 
     if (!isServiceExist) {
@@ -71,18 +71,28 @@ exports.addServiceRequest = async (req, res, next) => {
       });
     }
 
-    const isRequestExist = await ServiceRequest.findOne({
+    const existingRequest = await ServiceRequest.findOne({
       userId: req.user.id,
       serviceId: serviceId,
       pipelineCode: pipeline,
-      status: { $ne: "rejected" },
     });
 
-    if (isRequestExist) {
+    if (existingRequest) {
+      if (existingRequest.status === "rejected") {
+        //  Reuse old request
+        existingRequest.status = "pending";
+        existingRequest.rejectionReason = ""; // optional reset
+        await existingRequest.save();
+
+        return res.status(200).json({
+          success: true,
+          message: "Request resubmitted successfully",
+        });
+      }
+
       return res.status(200).json({
         success: true,
-        message:
-          "Request already exist for this User waiting for further reviews",
+        message: "Request already exists for this user and is under review",
       });
     }
 

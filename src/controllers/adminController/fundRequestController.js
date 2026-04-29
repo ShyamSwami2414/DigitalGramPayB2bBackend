@@ -571,14 +571,13 @@ exports.approveFundRequest = async (req, res, next) => {
       [
         {
           userId: fundRequest.userId,
-          serviceType: "FUNDREQUEST",
+          entryType: "FUND_REQUEST",
           referenceId: fundRequest?.referenceId,
           wallet: "main",
           type: "credit",
           amount: fundRequest.amount,
           openingBalance: openingBalance,
           closingBalance: closingBalance,
-
           description: "Fund request approved",
         },
       ],
