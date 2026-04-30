@@ -12,6 +12,13 @@ const { debitWallet } = require("./common/walletService");
 const mongoose = require("mongoose");
 const { processRefund } = require("../services/common/refundService");
 const PayoutTransaction = require("../models/sozopayoutTransactionModel");
+const {
+  validateUserPackageAndService,
+} = require("./common/validateUserPackageAndService");
+const Transaction = require("../models/transactionModel");
+const WalletLedger = require("../models/walletLedgerModel");
+const { processCharges } = require("./common/chargeService");
+const { applyChargeHierarchy } = require("../helpers/applyChargeHierarchy");
 
 exports.initiateXpressPayoutTransfer = async ({
   userId,
@@ -35,43 +42,14 @@ exports.initiateXpressPayoutTransfer = async ({
     const amountInRupee = paiseToRupee(amount);
     console.log("bankProfle ID", bankProfileId);
 
-    let payoutTxn;
+    const { packageId, serviceId } = await validateUserPackageAndService({
+      userId: userId,
+      serviceName: "xpress-payout",
+      pipeline: "xpress-payout1",
+      amount: amount, //paise
+    });
 
-    try {
-      payoutTxn = await PayoutTransaction.create(
-        [
-          {
-            userId: userId,
-            idempotencyKey: requestId,
-            serviceType: "XPRESS_PAYOUT",
-            referenceId: referenceId,
-            bankAccount: bankAccountNumber,
-            ifsc: ifsc,
-            beneficiaryName: name,
-            beneficiaryPhone: phone,
-            amount: amount,
-            totalDebit: amount,
-            status: "INITIATED",
-          },
-        ],
-
-        { session },
-      );
-    } catch (err) {
-      if (err.code === 11000) {
-        // duplicate request → fetch existing txn
-        const existing = await PayoutTransaction.findOne({
-          idempotencyKey: requestId,
-        });
-
-        await session.abortTransaction();
-        session.endSession();
-
-        return existing;
-      }
-      throw err;
-    }
-
+    //for main amount
     const { openingBalance, closingBalance } = await debitWallet({
       userId: userId,
       amount: amount, //paise
@@ -80,6 +58,62 @@ exports.initiateXpressPayoutTransfer = async ({
       description: `Xpress Payout for ${purpose}`,
       session: session,
     });
+
+    const { charges, gstAmount, totalCharges } = await processCharges({
+      userId: userId,
+      amount: amount, //paise
+      packageId: packageId,
+      serviceId: serviceId,
+      serviceType: "XPRESS_PAYOUT",
+
+      pipeline: "xpress-payout1",
+      referenceId: referenceId,
+      providerTxnId: result?.txn_ref,
+      reportModel: PayoutTransaction,
+      description: "Payout Charges",
+      apiResponse: result,
+      status: result?.data?.status,
+
+      requestId: requestId,
+      bankAccountNumber: bankAccountNumber,
+      ifsc: ifsc,
+      name: name,
+      phone: phone,
+
+      session: session,
+    });
+
+    await Transaction.create(
+      [
+        {
+          userId: userId,
+          referenceId: referenceId,
+          serviceType: "XPRESS_PAYOUT",
+          amount: amount, //paise
+          wallet: "main",
+          type: "debit",
+          status: "INITIATED",
+          meta: {
+            request: {
+              userId: userId,
+              requestId: requestId, //client send idempotency
+              amount: amount, //paise
+              bankAccount: bankAccountNumber,
+              ifsc: ifsc,
+              name: name,
+              email: email,
+              phone: phone,
+              bankProfileId: bankProfileId,
+              address: address,
+              latitude: latitude,
+              longitude: longitude,
+              remarks: purpose,
+            },
+          },
+        },
+      ],
+      { session: session },
+    );
 
     await session.commitTransaction();
 
@@ -122,39 +156,94 @@ exports.initiateXpressPayoutTransfer = async ({
       result?.data?.status === "SUCCESS" ||
       result?.data?.status === "PENDING"
     ) {
+      console.log("Entered Success/Pending Block");
+
+      const successSesion = await mongoose.startSession();
+
       try {
-        await PayoutTransaction.findOneAndUpdate(
-          { referenceId: referenceId },
-          {
-            $set: {
-              status: result?.data?.status,
-            },
-          },
-          { new: true },
+        successSesion.startTransaction();
+        await WalletLedger.updateOne(
+          { referenceId: referenceId, serviceType: "XPRESS_PAYOUT" },
+          { $set: { status: result?.data?.status } },
+          { session: successSesion },
         );
 
-        console.log(result, "result");
+        await PayoutTransaction.updateOne(
+          { referenceId: referenceId, serviceType: "XPRESS_PAYOUT" },
+          { $set: { status: result?.data?.status } },
+          { session: successSesion },
+        );
+
+        await Transaction.updateOne(
+          {
+            referenceId: referenceId,
+          },
+          {
+            $set: {
+              status: status,
+              providerTxnId: result?.txn_ref,
+              remark: result ? result?.message : "",
+              "meta.response": result,
+            },
+          },
+          { session: successSesion },
+        );
+
+        await applyChargeHierarchy({
+          userId: userId,
+          amount: amount, //paise
+          serviceId: serviceId,
+          pipeline: pipeline,
+          referenceId: referenceId,
+          session: successSesion,
+        });
+
+        await successSesion.commitTransaction();
+
         return result;
       } catch (error) {
-        throw error;
+        if (successSesion.inTransaction()) {
+          await successSesion.abortTransaction();
+          console.error("Charges Processing failed:", error);
+        }
+      } finally {
+        successSesion.endSession();
       }
     } else if (result?.status === "FAILED") {
       const refundSession = await mongoose.startSession();
       try {
+        const amountInPaiseWithChargeGst = amount + totalCharges;
         refundSession.startTransaction();
 
         await processRefund({
           userId: userId,
-          amount: amount, //paise
+          amount: amountInPaiseWithChargeGst, //paise amount including charge with gst
           referenceId: referenceId,
+          serviceType: "XPRESS_PAYOUT",
+
           walletType: "main",
-          description: `Refund: Xpress Payout Failed`,
+          // reportModel = PayoutTransaction,
+          description: `Complete Refund With Charges: Xpress Payout Failed`,
+          apiResponse: result,
           session: refundSession,
         });
 
         await PayoutTransaction.findOneAndUpdate(
           { referenceId },
           { $set: { status: "REVERSED" } },
+          { session: refundSession },
+        );
+
+        await Transaction.updateOne(
+          { referenceId: referenceId },
+          {
+            $set: {
+              status: "FAILED",
+              isRefunded: true,
+              remark: result ? result?.message : "",
+              "meta.response": result,
+            },
+          },
           { session: refundSession },
         );
 

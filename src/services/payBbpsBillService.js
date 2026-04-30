@@ -88,6 +88,7 @@ exports.payBbpsBillService = async ({
       userId: userId,
       amount: billamount, //paise
       serviceType: "BBPS",
+      serviceCategory: biller?.billerCategory,
       referenceId: referenceId,
       description: "BBPS Bill Payment",
       session: session,
@@ -112,6 +113,7 @@ exports.payBbpsBillService = async ({
           userId: userId,
           referenceId: referenceId,
           serviceType: "BBPS",
+          serviceCategory: biller?.billerCategory,
           amount: billamount, //paise
           wallet: "main",
           type: "debit",
@@ -217,7 +219,7 @@ exports.payBbpsBillService = async ({
         await pendingSession.commitTransaction();
         return result;
       } catch (error) {
-        if (pendindSession.inTransaction()) {
+        if (pendingSession.inTransaction()) {
           await pendingSession.abortTransaction();
         }
         throw error;
@@ -230,6 +232,8 @@ exports.payBbpsBillService = async ({
         amount: billamount, //paise
         packageId: packageId,
         serviceId: serviceId,
+        serviceType: "BBPS",
+        serviceCategory: biller?.billerCategory,
         categoryId: billerCategory?._id,
         referenceId: referenceId,
         providerTxnId: result?.billerstatus?.txnRefId,
@@ -240,12 +244,14 @@ exports.payBbpsBillService = async ({
       });
     }
 
-    if (result?.status === "FAILED") {
+    if (result?.status === "FAILED" || result?.status === "ERROR") {
       console.log("Entered");
       const { openingBalance, closingBalance } = await processRefund({
         userId: userId,
         amount: billamount, //paise
         referenceId: referenceId,
+        serviceType: "BBPS",
+        serviceCategory: biller?.billerCategory,
         walletType: "main",
         reportModel: BbpsReport,
         description: "Bbps Bill Failed Refund",

@@ -18,7 +18,8 @@ exports.payBbpsBill = async ({
   paramValue,
   inputParams,
 }) => {
-  return console.log(billamount, "billamount  in paise");
+
+  // return console.log(billamount, "billamount  in paise");
   const timestamp = new Date().toISOString();
   const startTime = Date.now();
   try {
@@ -51,12 +52,12 @@ exports.payBbpsBill = async ({
       },
     );
 
-    console.log(response.data, "response");
+    console.log(response?.data, "response");
 
     const responseTime = Date.now() - startTime;
 
     let providerStatus =
-      response.data.status === "SUCCESS" ? "SUCCESS" : "FAILED";
+      response?.data?.status === "SUCCESS" ? "SUCCESS" : "FAILED";
 
     await ProviderLogs.create({
       providerTxnId: response?.data?.billerstatus?.txnRefId || undefined,

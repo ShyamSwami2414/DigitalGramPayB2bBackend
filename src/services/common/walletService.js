@@ -124,7 +124,7 @@ const debitWallet = async ({
         status: "INITIATED",
       },
     ],
-    { session },
+    { session: session },
   );
 
   return { openingBalance, closingBalance };

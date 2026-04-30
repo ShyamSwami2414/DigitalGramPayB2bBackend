@@ -28,6 +28,8 @@ const walletLedgerSchema = new mongoose.Schema(
       type: "String",
       enum: [
         "COMMISSION",
+        "CHARGES",
+        "BONUS", //upline earns when doenline pwrform charge based transaction
         "REFUND",
         "WALLET_REFILL",
         "AEPS_TO_MAIN",

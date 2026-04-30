@@ -1,10 +1,12 @@
 const mongoose = require("mongoose");
 const FundRequest = require("../../models/fundRequestModel");
+const User = require("../../models/userModel");
 const WalletTopupBank = require("../../models/walletTopupBankModel");
 const { rupeeToPaise, paiseToRupee } = require("../../utils/money");
 const {
   generateUniqueRefernceId,
 } = require("../../utils/generateUniqueReferenceId");
+const { sendEmail } = require("../../utils/email");
 
 exports.getTopupRequestStats = async (req, res, next) => {
   try {
@@ -468,7 +470,10 @@ exports.getAllOfflineTopupRequests = async (req, res, next) => {
 };
 
 exports.addOfflineTopupRequest = async (req, res, next) => {
+  const session = await mongoose.startSession();
+
   try {
+    session.startTransaction();
     console.log(req.body, "body");
     let { amount, mode, receiverBank, utrNumber, paymentDate } = req.body;
     amount = Number(amount);
@@ -502,53 +507,71 @@ exports.addOfflineTopupRequest = async (req, res, next) => {
     });
 
     if (missingFields.length > 0) {
-      return res.status(400).json({
-        success: false,
-        message: `Missing required fields: ${missingFields.join(", ")}`,
-      });
+      const err = new Error(
+        `Missing required fields: ${missingFields.join(", ")}`,
+      );
+      err.statusCode = 400;
+      throw err;
     }
 
     if (!Number.isFinite(amount)) {
-      return res.status(400).json({ message: "Invalid amount" });
+      const err = new Error("Invalid amount");
+      err.statusCode = 400;
+      throw err;
     }
 
     if (amount <= 0) {
-      return res.status(400).json({ message: "Amount must be greater than 0" });
+      const err = new Error("Amount must be greater than 0");
+      err.statusCode = 400;
+      throw err;
     }
 
     if (new Date(paymentDate) > new Date()) {
-      return res.status(400).json({
-        message: "Payment date cannot be in the future",
-      });
+      const err = new Error("Payment date cannot be in the future");
+      err.statusCode = 400;
+      throw err;
     }
 
     if (!mongoose.Types.ObjectId.isValid(receiverBank)) {
-      return res.status(400).json({
-        success: false,
-        message: "Invalid receiver bank ID",
-      });
+      const err = new Error("Invalid receiver bank ID");
+      err.statusCode = 400;
+      throw err;
     }
 
-    const receiverBankExist = await WalletTopupBank.findOne({
-      _id: receiverBank,
-      isDeleted: false,
-      isActive: true,
-    });
+    const [userExist, receiverBankExist, requestExist] = await Promise.all([
+      User.findOne({
+        _id: req.user.id,
+        isActive: true,
+        isDeleted: false,
+      })
+        .select("email userName")
+        .lean(),
+
+      WalletTopupBank.findOne({
+        _id: receiverBank,
+        isDeleted: false,
+        isActive: true,
+      }).lean(),
+
+      FundRequest.findOne({ utrNumber }).lean(),
+    ]);
+
+    if (!userExist) {
+      const err = new Error("No active user found");
+      err.statusCode = 404;
+      throw err;
+    }
 
     if (!receiverBankExist) {
-      return res.status(400).json({
-        success: false,
-        message: "Receiver bank not found or disabled",
-      });
+      const err = new Error("Receiver bank not found or disabled");
+      err.statusCode = 404;
+      throw err;
     }
 
-    const requestExist = await FundRequest.findOne({ utrNumber: utrNumber });
-
     if (requestExist) {
-      return res.status(400).json({
-        success: false,
-        message: "Topup request already exist",
-      });
+      const err = new Error("Topup request already exists");
+      err.statusCode = 409;
+      throw err;
     }
 
     const offlineTopupRequest = new FundRequest({
@@ -564,12 +587,26 @@ exports.addOfflineTopupRequest = async (req, res, next) => {
 
     await offlineTopupRequest.save();
 
+    await session.commitTransaction();
+
+    await sendEmail(
+      userExist.email,
+      [],
+      [],
+      "New Topup request",
+      `A new topup request is received by ${userExist?.userName} for ${amount} rupees`,
+    );
+
     return res.status(201).json({
       success: true,
       message: "Offline topup request added successfully",
-      data: offlineTopupRequest,
     });
   } catch (error) {
+    if (session.inTransaction()) {
+      await session.abortTransaction();
+    }
     next(error);
+  } finally {
+    session.endSession;
   }
 };

@@ -62,11 +62,11 @@ const processRefund = async ({
           entryType: "REFUND",
           wallet: walletType,
           type: "credit",
-          amount, //paise
-          referenceId,
-          openingBalance,
-          closingBalance,
-          description,
+          amount: amount, //paise (including charge and gst in charges like xpress and dmt)
+          referenceId: referenceId,
+          openingBalance: openingBalance,
+          closingBalance: closingBalance,
+          description: description,
         },
       ],
       { session: session },

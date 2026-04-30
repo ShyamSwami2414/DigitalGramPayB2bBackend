@@ -74,6 +74,7 @@ exports.doRechargeService = async ({
           userId: userId,
           referenceId: referenceId,
           serviceType: "RECHARGE",
+          serviceCategory: operatorName,
           amount: amount, //paise
           wallet: "main",
           type: "debit",
@@ -150,7 +151,7 @@ exports.doRechargeService = async ({
         await pendingSession.commitTransaction();
         return result;
       } catch (error) {
-        if (pendindSession.inTransaction()) {
+        if (pendingSession.inTransaction()) {
           await pendingSession.abortTransaction();
         }
         throw error;

@@ -21,6 +21,12 @@ const transactionSchema = new mongoose.Schema(
       enum: ["RECHARGE", "BBPS", "DMT", "AEPS", "PAYOUT", "WALLET_TRANSFER"],
     },
 
+    serviceCategory: {
+      type: String,
+      trim: true,
+      uppercase: true,
+    },
+
     amount: {
       type: Number,
       required: true,

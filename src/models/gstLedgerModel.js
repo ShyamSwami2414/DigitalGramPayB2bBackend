@@ -18,7 +18,7 @@ const gstLedgerSchema = new mongoose.Schema(
 
     serviceType: {
       type: String,
-      enum: ["DMT", "PAYOUT"], //xpress, aeps both
+      enum: ["DMT", "XPRESS_PAYOUT", "AEPS_PAYOUT"], //xpress, aeps both
     },
 
     chargesAmount: {

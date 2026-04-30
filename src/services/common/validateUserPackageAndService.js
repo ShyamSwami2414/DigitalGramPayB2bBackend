@@ -86,7 +86,7 @@ const validateUserPackageAndService = async ({
   );
 
   if (!validPlan) {
-    throw new Error(`No commission slab found for this amount`);
+    throw new Error(`No valid slab found for this amount`);
   }
 
   return { packageId: user.packageId, serviceId: service._id };
