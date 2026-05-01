@@ -8,12 +8,14 @@ const {
 } = require("../../controllers/userController/orderController");
 const checkUserPaymentAndKYC = require("../../middleware/kycPaymentCheckMiddleware");
 const idempotencyMiddleware = require("../../middleware/idempotencyMiddleware");
+const apiLogger = require("../../middleware/apiLogger");
 
 router.post(
   "/create-order",
   authenticateUser,
   checkUserPaymentAndKYC,
   idempotencyMiddleware,
+  apiLogger,
   createOrder,
 );
 

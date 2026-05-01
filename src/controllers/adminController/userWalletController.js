@@ -76,12 +76,14 @@ exports.getAllUserWallet = async (req, res, next) => {
       },
       {
         $addFields: {
-          userName: { $concat: ["$user.firstName", " ", "$user.lastName"] },
+          userName: "$user.userName",
+          fullName: { $concat: ["$user.firstName", " ", "$user.lastName"] },
           phone: "$user.phone",
         },
       },
       {
         $project: {
+          fullName: 1,
           userName: 1,
           phone: 1,
           aepsWallet: 1,
@@ -410,11 +412,15 @@ exports.creditDebitAmount = async (req, res, next) => {
     closingBalance = updatedUserWallet[field];
     openingBalance = closingBalance - transactionAmount;
 
+    const entryType =
+      type?.toLowerCase() === "credit" ? "CREDIT_WALLET" : "DEBIT_WALLET";
+
     await WalletLedger.create(
       [
         {
           userId: new mongoose.Types.ObjectId(userId),
           referenceId: referenceId,
+          entryType: entryType,
           wallet: walletType,
           type: type,
           amount: amountInPaise,

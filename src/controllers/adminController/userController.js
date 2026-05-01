@@ -1,4 +1,5 @@
 const User = require("../../models/userModel");
+const ServiceRequest = require("../../models/serviceRequestModel");
 const Role = require("../../models/roleModel");
 const Package = require("../../models/packageModel");
 const Service = require("../../models/serviceModel");
@@ -17,6 +18,8 @@ const userWallet = require("../../models/userWallet");
 exports.getParticularUserDetail = async (req, res, next) => {
   try {
     const { id } = req.params;
+
+    console.log(id, "id");
 
     if (!id) {
       return res
@@ -98,13 +101,25 @@ exports.getParticularUserDetail = async (req, res, next) => {
             pkgId: "$packageId",
             assignedServices: "$assignedServices",
           },
+
           pipeline: [
             {
               $match: {
                 $expr: {
                   $and: [
-                    { $eq: ["$packageId", "$$pkgId"] },
-                    { $in: ["$serviceId", "$$assignedServices"] },
+                    { $eq: ["$packageId", { $toObjectId: "$$pkgId" }] },
+                    {
+                      $in: [
+                        "$serviceId",
+                        {
+                          $map: {
+                            input: { $ifNull: ["$$assignedServices", []] },
+                            as: "as",
+                            in: { $toObjectId: "$$as.serviceId" },
+                          },
+                        },
+                      ],
+                    },
                   ],
                 },
               },
@@ -442,7 +457,7 @@ exports.getAllUsers = async (req, res, next) => {
     let { page = 1, limit = 10, status = "", search = "" } = req.query;
     page = Number(page);
     limit = Number(limit);
-    status = status.trim();
+    status = status?.trim();
 
     const skip = (page - 1) * limit;
     const filter = { isDeleted: false };
@@ -785,73 +800,138 @@ exports.assignPackageToUser = async (req, res, next) => {
 };
 
 exports.assignServiceToUser = async (req, res, next) => {
+  const session = await mongoose.startSession();
   try {
+    session.startTransaction();
     const { services } = req.body;
     const { userId } = req.params;
 
-    const missingFields = [];
-
-    if (!services || !Array.isArray(services)) missingFields.push("services");
-
-    if (!userId) missingFields.push("userId");
-
-    if (missingFields.length > 0) {
-      return res.status(400).json({
-        success: false,
-        message: `${missingFields.join(", ")} is missing`,
-        missingFields,
-      });
+    //  Basic validation
+    if (!userId || !mongoose.Types.ObjectId.isValid(userId)) {
+      const err = new Error("Invalid userId");
+      err.statusCode = 400;
+      throw err;
     }
 
-    if (!mongoose.Types.ObjectId.isValid(userId)) {
-      return res.status(400).json({
-        success: false,
-        message: "Invalid userId",
-      });
+    if (!Array.isArray(services) || services.length === 0) {
+      const err = new Error("Services must be a non-empty array");
+      err.statusCode = 400;
+      throw err;
     }
 
-    const invalidIds = services.filter(
-      (id) => !mongoose.Types.ObjectId.isValid(id),
-    );
+    //  Validate each service object
+    for (let i = 0; i < services.length; i++) {
+      const { serviceId, pipelineCodes } = services[i];
 
-    if (invalidIds.length > 0) {
-      return res.status(400).json({
-        success: false,
-        message: "Invalid service IDs",
-        invalidIds,
-      });
+      if (!serviceId || !mongoose.Types.ObjectId.isValid(serviceId)) {
+        const err = new Error(`Invalid serviceId at index ${i}`);
+        err.statusCode = 400;
+        throw err;
+      }
+
+      if (!Array.isArray(pipelineCodes) || pipelineCodes.length === 0) {
+        const err = new Error(`pipelineCodes required at index ${i}`);
+        err.statusCode = 400;
+        throw err;
+      }
+
+      //  Fetch service with pipelines
+      const service = await Service.findOne({
+        _id: serviceId,
+        isActive: true,
+        isDeleted: false,
+      }).select("pipeline");
+
+      if (!service) {
+        const err = new Error(`Service not found at index ${i}`);
+        err.statusCode = 404;
+        throw err;
+      }
+
+      //  Validate pipelines
+      const validPipelines = service.pipeline
+        .filter((p) => p.isActive)
+        .map((p) => p.code);
+
+      console.log(validPipelines, "validPipelines");
+      console.log(pipelineCodes, "pipelineCodes");
+
+      const invalidPipelines = pipelineCodes.filter(
+        (code) => !validPipelines.includes(code),
+      );
+
+      if (invalidPipelines.length > 0) {
+        const err = new Error(`Invalid pipelineCodes at index ${i}`);
+        err.statusCode = 400;
+        throw err;
+      }
     }
 
-    const validServices = await Service.find({
-      _id: { $in: services },
-      isActive: true,
+    const user = await User.findOne({
+      _id: userId,
       isDeleted: false,
-    }).select("_id");
+    });
 
-    const serviceIds = validServices.map((s) => s._id);
-
-    const existingUser = await User.findOneAndUpdate(
-      { _id: userId, isDeleted: false },
-      {
-        assignedServices: serviceIds,
-      },
-      { new: true },
-    );
-
-    if (!existingUser) {
-      return res.status(404).json({
-        success: false,
-        message: "User not found",
-      });
+    if (!user) {
+      const err = new Error("User not found");
+      err.statusCode = 404;
+      throw err;
     }
+
+    const assignedServices = user.assignedServices || [];
+
+    // existing services
+    const updatedServices = [];
+
+    services.forEach((newService) => {
+      const existing = assignedServices.find(
+        (s) => s.serviceId.toString() === newService.serviceId,
+      );
+
+      if (existing) {
+        // replace pipelines (NOT merge)
+        updatedServices.push({
+          serviceId: newService.serviceId,
+          pipelineCodes: newService.pipelineCodes,
+        });
+      } else {
+        updatedServices.push(newService);
+      }
+    });
+
+    //  This removes services not in request
+    user.assignedServices = updatedServices;
+    await user.save({ session: session });
+
+    for (const srv of services) {
+      const { serviceId, pipelineCodes } = srv;
+
+      await ServiceRequest.updateMany(
+        {
+          userId: userId,
+          serviceId: serviceId,
+          pipelineCode: { $in: pipelineCodes },
+          isDeleted: false,
+        },
+        {
+          $set: { status: "assigned" },
+        },
+        { session: session },
+      );
+    }
+
+    await session.commitTransaction();
 
     return res.status(200).json({
       success: true,
       message: "User services updated successfully",
-      data: existingUser,
+      data: user,
     });
   } catch (error) {
+    await session.abortTransaction();
     next(error);
+  } finally {
+    session.endSession();
   }
 };
 

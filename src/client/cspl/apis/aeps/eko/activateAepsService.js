@@ -74,6 +74,13 @@ exports.activateAepsService = async ({
   form.append("address_as_per_proof[pincode]", address.pincode);
   form.append("address_as_per_proof[district]", address.district);
 
+  // console.log("BEFORE AXIOS CALL");
+
+  // csplClient.interceptors.request.use((req) => {
+  //   console.log("REQUEST HIT");
+  //   return req;
+  // });
+
   try {
     const response = await csplClient.post("e1/aeps/activate", form, {
       headers: {
@@ -88,7 +95,7 @@ exports.activateAepsService = async ({
       maxContentLength: Infinity,
 
       // Accept any status code < 500 as "valid" so Axios doesn't throw
-      validateStatus: (status) => status < 400,
+      validateStatus: (status) => status < 500,
     });
 
     console.log(response.data, "response");
@@ -96,13 +103,18 @@ exports.activateAepsService = async ({
     const responseTime = Date.now() - startTime;
 
     const isSuccess =
-      response?.data?.status === true || response?.data?.http_code === 200;
+      response?.data?.http_code === 200 &&
+      (response?.data?.data?.service_status_desc === "Pending" ||
+        response?.data?.data?.service_status_desc === "Activated");
+
+    console.log(isSuccess, "isSuccess");
 
     let providerStatus = isSuccess ? "SUCCESS" : "FAILED";
 
     if (providerStatus !== "SUCCESS") {
       throw {
         providerStatus: providerStatus,
+        error: response?.data?.error,
         message: response?.data?.message,
         reason: response?.data?.data?.data?.reason,
         fullResponse: response?.data,
@@ -139,7 +151,10 @@ exports.activateAepsService = async ({
 
     return response?.data;
   } catch (error) {
-    console.log("API Error Response:", error.response?.data || error.message);
+    console.log(
+      "API Error Response:",
+      error?.error || error.response?.data || error?.message,
+    );
 
     await EkoAepsLogs.create({
       providerTxnId: error?.response?.data?.txn_ref || undefined,

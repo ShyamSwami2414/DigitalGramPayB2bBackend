@@ -2,9 +2,9 @@ const express = require("express");
 const router = express.Router();
 
 const {
-  payoutBankRequests,
-  approveRejectPayoutBankRequest,
-} = require("../../controllers/adminController/payoutBankRequestController");
+  aepsPayoutBankRequests,
+  approveRejectAepsPayoutBankRequest,
+} = require("../../controllers/adminController/instantAepsPayoutBankRequestController");
 const { authenticateUser } = require("../../middleware/authMiddleware");
 const { authorizeRoles } = require("../../middleware/roleMiddleware");
 const checkAllowedPermission = require("../../middleware/adminPermissionCheck");
@@ -14,7 +14,7 @@ router.get(
   authenticateUser,
   authorizeRoles("admin"),
   checkAllowedPermission("PAYOUT_BANK"),
-  payoutBankRequests,
+  aepsPayoutBankRequests,
 );
 
 router.patch(
@@ -22,7 +22,7 @@ router.patch(
   authenticateUser,
   authorizeRoles("admin"),
   checkAllowedPermission("PAYOUT_BANK"),
-  approveRejectPayoutBankRequest,
+  approveRejectAepsPayoutBankRequest,
 );
 
 module.exports = router;

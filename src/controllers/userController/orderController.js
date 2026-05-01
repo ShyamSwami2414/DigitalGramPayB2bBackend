@@ -12,11 +12,10 @@ exports.createOrder = async (req, res, next) => {
   const session = await mongoose.startSession();
 
   try {
-    const userId = req.user.id;
     session.startTransaction();
+    const userId = req.user.id;
 
     let { product, shippingAddress, shippingCharge, gst } = req.body;
-
     shippingCharge = Number(shippingCharge);
 
     gst = Number(gst); //percentage
@@ -100,14 +99,14 @@ exports.createOrder = async (req, res, next) => {
           grandTotal,
         },
       ],
-      { session },
+      { session: session },
     );
 
     // Reduce stock
     await Product.updateOne(
       { _id: product.productId },
       { $inc: { stock: -product.quantity } },
-      { session },
+      { session: session },
     );
 
     let openingBalance = 0;
@@ -130,13 +129,13 @@ exports.createOrder = async (req, res, next) => {
         },
       },
       {
-        session,
+        session: session,
         new: true,
       },
     );
 
     if (!updatedWallet) {
-      const err = new Error("Insufficient Wallet Balance");
+      const err = new Error("Insufficient Wallet Balance, Contact to Admin");
       err.statusCode = 400;
       throw err;
     }
@@ -147,22 +146,21 @@ exports.createOrder = async (req, res, next) => {
     await WalletLedger.create(
       [
         {
-          userId,
+          userId: userId,
           referenceId: referenceId,
+          entryType: "ORDER",
           wallet: "main",
           type: "debit",
           amount: grandTotal,
           openingBalance,
           closingBalance,
-          referenceId: order[0]._id,
           description: "New Order placed",
         },
       ],
-      { session },
+      { session: session },
     );
 
     await session.commitTransaction();
-    session.endSession();
 
     res.status(201).json({
       success: true,
@@ -173,7 +171,6 @@ exports.createOrder = async (req, res, next) => {
     if (session.inTransaction) {
       await session.abortTransaction();
     }
-
     next(error);
   } finally {
     session.endSession();

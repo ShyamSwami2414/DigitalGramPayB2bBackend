@@ -7,8 +7,7 @@ const {
   generateUniqueRefernceId,
 } = require("../../utils/generateUniqueReferenceId");
 
-exports.
-aepsToMainTransfer = async (req, res, next) => {
+exports.aepsToMainTransfer = async (req, res, next) => {
   const session = await mongoose.startSession();
 
   try {
@@ -92,24 +91,24 @@ aepsToMainTransfer = async (req, res, next) => {
       [
         {
           userId: new mongoose.Types.ObjectId(userId),
-          serviceType: "AEPSTOMAIN",
+          entryType: "AEPS_TO_MAIN",
           wallet: "aeps",
           type: "debit",
           amount: amountInPaise,
           openingBalance: aepsOpeningBalance,
           closingBalance: aepsClosingBalance,
-          description: "AEPS to Main Wallet Transfer",
+          description: "AEPS to Main, Debit Aeps Wallet",
           referenceId: referenceId,
         },
         {
           userId: new mongoose.Types.ObjectId(userId),
-          serviceType: "AEPSTOMAIN",
+          entryType: "AEPS_TO_MAIN",
           wallet: "main",
           type: "credit",
           amount: amountInPaise,
           openingBalance: mainOpeningBalance,
           closingBalance: mainClosingBalance,
-          description: "AEPS to Main Wallet Transfer",
+          description: "AEPS to Main, Credit Main Wallet",
           referenceId: referenceId,
         },
       ],

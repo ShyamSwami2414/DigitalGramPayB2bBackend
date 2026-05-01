@@ -4,13 +4,20 @@ const WalletLedger = require("../../models/walletLedgerModel");
 const { calculateCommission } = require("../../helpers/calculateCommission");
 const { calculateTds } = require("../../helpers/calculateTds");
 const Transaction = require("../../models/transactionModel");
+const TdsLedger = require("../../models/tdsLedgerModel");
+const { splitCommission } = require("../../helpers/splitCommission");
+const { paiseToRupee } = require("../../utils/money");
 
 const processCommission = async ({
   userId,
   amount, //paise
   packageId,
   serviceId,
+  serviceType,
+  serviceCategory,
   operatorId = null,
+  categoryId = null,
+  pipeline,
   referenceId,
   providerTxnId = null,
   reportModel, //dynamic (RechargeReport, BBPSReport, etc.)
@@ -27,50 +34,75 @@ const processCommission = async ({
       packageId,
       serviceId,
       operatorId,
+      pipeline,
     });
 
-    console.log("commission", commission);
+    console.log("commission paise", commission);
 
     const tdsAmount = calculateTds(commission); //paise
-    const netCommission = commission - tdsAmount;
+    const netCommission = commission - tdsAmount; //payable to user
 
-    const wallet = await UserWallet.findOneAndUpdate(
-      { userId, isActive: true, isDeleted: false },
-      { $inc: { mainWallet: netCommission } },
-      { new: true, session },
-    );
+    if (paiseToRupee(commission) > 0) {
+      const wallet = await UserWallet.findOneAndUpdate(
+        { userId, isActive: true, isDeleted: false },
+        { $inc: { mainWallet: netCommission } },
+        { new: true, session },
+      );
 
-    closingBalance = wallet.mainWallet;
-    openingBalance = closingBalance - netCommission;
+      closingBalance = wallet.mainWallet;
+      openingBalance = closingBalance - netCommission;
 
-    await WalletLedger.create(
-      [
+      await WalletLedger.updateOne(
+        { referenceId: referenceId, serviceType: serviceType },
+        { status: "SUCCESS" },
+        { session: session },
+      );
+
+      await WalletLedger.create(
+        [
+          {
+            userId,
+            serviceType: serviceType,
+            serviceCategory: serviceCategory,
+            entryType: "COMMISSION",
+            wallet: "main",
+            type: "credit",
+            amount: netCommission,
+            referenceId,
+            openingBalance,
+            closingBalance,
+            description,
+          },
+        ],
+        { session },
+      );
+
+      await reportModel.updateOne(
+        { referenceId },
         {
-          userId,
-          serviceType: "COMMISSION",
-          wallet: "main",
-          type: "credit",
-          amount: netCommission,
-          referenceId,
-          openingBalance,
-          closingBalance,
-          description,
+          status: "SUCCESS",
+          commission,
+          tds: tdsAmount,
+          netCommission,
+          providerTxnId: referenceId,
         },
-      ],
-      { session },
-    );
+        { session },
+      );
 
-    await reportModel.updateOne(
-      { referenceId },
-      {
-        status: "SUCCESS",
-        commission,
-        tds: tdsAmount,
-        netCommission,
-        providerTxnId: providerTxnId,
-      },
-      { session },
-    );
+      await TdsLedger.create(
+        [
+          {
+            userId: userId,
+            referenceId: referenceId,
+            commissionAmount: commission,
+            tdsRate: 5, //percent
+            netCommission: netCommission,
+            tdsAmount: tdsAmount,
+          },
+        ],
+        { session: session },
+      );
+    }
 
     await Transaction.updateOne(
       {
@@ -86,6 +118,18 @@ const processCommission = async ({
       },
       { session },
     );
+
+    await splitCommission({
+      userId: userId,
+      amount: amount, //paise
+      serviceId: serviceId,
+      serviceType: serviceType,
+      serviceCategory: serviceCategory,
+      operatorId: operatorId,
+      pipeline: pipeline,
+      referenceId: referenceId,
+      session: session,
+    });
 
     await session.commitTransaction();
 

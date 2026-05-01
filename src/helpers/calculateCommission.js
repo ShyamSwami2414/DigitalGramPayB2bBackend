@@ -6,11 +6,13 @@ exports.calculateCommission = async ({
   serviceId,
   operatorId = null,
   categoryId = null,
+  pipeline,
 }) => {
   try {
     const commissionPlan = await Commission.findOne({
       packageId,
       serviceId,
+      pipelineCode: pipeline,
       ...(operatorId ? { operatorId } : {}),
       ...(categoryId ? { categoryId } : {}),
     }).lean();

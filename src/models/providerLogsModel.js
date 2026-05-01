@@ -11,7 +11,7 @@ const providerLogsSchema = new mongoose.Schema(
 
     serviceCategory: {
       type: String,
-      enum: ["RECHARGE", "DMT", "BBPS", "AEPS"],
+      enum: ["RECHARGE", "DMT", "BBPS", "AEPS", "PAYOUT"],
       required: true,
       uppercase: true,
       trim: true,

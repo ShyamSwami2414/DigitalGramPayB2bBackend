@@ -10,6 +10,8 @@ const couponSchema = new mongoose.Schema(
       unique: true,
       trim: true,
       uppercase: true,
+      minlength: 3,
+      maxlength: 10,
     },
 
     amount: {

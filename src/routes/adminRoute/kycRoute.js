@@ -10,6 +10,7 @@ const {
 const { authenticateUser } = require("../../middleware/authMiddleware");
 const { authorizeRoles } = require("../../middleware/roleMiddleware");
 const checkAllowedPermission = require("../../middleware/adminPermissionCheck");
+
 const router = express.Router();
 
 router.get("/get-kycs", authenticateUser, authorizeRoles("admin"), getKycData);
@@ -18,6 +19,7 @@ router.get(
   authenticateUser,
   authorizeRoles("admin"),
   checkAllowedPermission("KYC"),
+
   getKycById,
 );
 router.get(

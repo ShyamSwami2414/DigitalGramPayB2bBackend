@@ -80,8 +80,8 @@ const rechargeReportSchema = new mongoose.Schema(
     // Recharge Status
     status: {
       type: String,
-      enum: ["PENDING", "SUCCESS", "FAILED", "REFUNDED"],
-      default: "PENDING",
+      enum: ["INITIATED", "PENDING", "SUCCESS", "FAILED", "REFUNDED"],
+      default: "INITIATED",
       index: true,
     },
 

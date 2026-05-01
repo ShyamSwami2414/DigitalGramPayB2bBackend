@@ -103,14 +103,13 @@ exports.createCoupon = async (req, res, next) => {
       });
     }
 
-    if (!code || amount === undefined) {
+    if (!code || code?.trim().length > 10) {
       return res.status(400).json({
-        success: false,
-        message: "Code and amount are required",
+        message: "Coupon code maximum length is 10 characters",
       });
     }
 
-    if (typeof amount !== "number" || amount < 0) {
+    if (amount === undefined || typeof amount !== "number" || amount < 0) {
       return res.status(400).json({
         success: false,
         message: "Amount must be a positive number",

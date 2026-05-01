@@ -4,6 +4,8 @@ const checkAepsSession = async (req, res, next) => {
   try {
     const userId = req.user.id;
 
+    console.log(userId, "userId");
+
     if (!userId) {
       return res.status(400).json({
         success: false,
@@ -11,7 +13,9 @@ const checkAepsSession = async (req, res, next) => {
       });
     }
 
-    const outlet = await Merchant.findOne({ userId });
+    const outlet = await Merchant.findOne({ userId: userId });
+
+    console.log("outlet", outlet);
 
     if (!outlet) {
       return res.status(404).json({
@@ -40,7 +44,7 @@ const checkAepsSession = async (req, res, next) => {
     if (needsLogin) {
       await Merchant.updateOne({ userId }, { $set: { isLoginRequired: true } });
 
-      return res.status(401).json({
+      return res.status(403).json({
         status: "FAILED",
         message: `AePS Session Expired, Please perform Daily Login.`,
         code: "AEPS_LOGIN_REQUIRED",

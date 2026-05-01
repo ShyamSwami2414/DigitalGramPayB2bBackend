@@ -149,7 +149,7 @@ exports.refillUserWallet = async (req, res, next) => {
     );
 
     if (!uplineWallet) {
-      const err = new Error("Insufficient Balance , Contact Admin");
+      const err = new Error("Insufficient Balance , Contact to Admin");
       err.statusCode = 404;
       throw err;
     }
@@ -162,14 +162,14 @@ exports.refillUserWallet = async (req, res, next) => {
       [
         {
           userId: req.user.id,
-          serviceType: "WALLET_REFILL",
+          entryType: "WALLET_REFILL",
           wallet: "main",
           type: "debit",
           amount: amountInPaise,
           openingBalance: uplineOpeningBalance,
           closingBalance: uplineClosingBalance,
           referenceId: referenceId,
-          description: "WALLET_REFILL",
+          description: "User Wallet Refilled",
         },
       ],
       { session },
@@ -202,14 +202,14 @@ exports.refillUserWallet = async (req, res, next) => {
       [
         {
           userId: userId,
-          serviceType: "WALLET_REFILL",
+          entryType: "WALLET_REFILL",
           wallet: "main",
           type: "credit",
           amount: amountInPaise,
           openingBalance: downlineOpeningBalance,
           closingBalance: downlineClosingBalance,
           referenceId: referenceId,
-          description: "WALLET_REFILL",
+          description: "User Wallet Refilled",
         },
       ],
       { session },

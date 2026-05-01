@@ -31,7 +31,7 @@ const getMyCommissionPlan = async (req, res, next) => {
     }
 
     const serviceIds = user.assignedServices.map(
-      (id) => new mongoose.Types.ObjectId(id),
+      (s) => new mongoose.Types.ObjectId(s.serviceId),
     );
 
     const packageId = new mongoose.Types.ObjectId(user.packageId);
@@ -87,6 +87,7 @@ const getMyCommissionPlan = async (req, res, next) => {
         $project: {
           serviceId: 1,
           serviceName: "$service.name",
+          pipelineCode: 1,
 
           type: {
             $cond: [
@@ -108,7 +109,6 @@ const getMyCommissionPlan = async (req, res, next) => {
           commissionType: "$plan.type",
         },
       },
-
       {
         $sort: {
           serviceId: 1,
@@ -119,7 +119,10 @@ const getMyCommissionPlan = async (req, res, next) => {
 
       {
         $group: {
-          _id: "$serviceId",
+          _id: {
+            serviceId: "$serviceId",
+            pipelineCode: "$pipelineCode",
+          },
           serviceName: { $first: "$serviceName" },
           rows: {
             $push: {
@@ -137,8 +140,9 @@ const getMyCommissionPlan = async (req, res, next) => {
       {
         $project: {
           _id: 0,
-          serviceId: "$_id",
+          serviceId: "$_id.serviceId",
           serviceName: 1,
+          pipeline: "$_id.pipelineCode",
           rows: 1,
         },
       },

@@ -1,6 +1,7 @@
 const { fetchBbpsBill } = require("../client/cspl/apis/fetchBbpsBill");
 const { payBbpsBill } = require("../client/cspl/apis/payBbpsBill");
 const User = require("../models/userModel");
+const WalletLedger = require("../models/walletLedgerModel");
 const BbpsReport = require("../models/bbpsReportModel");
 const BbpsBiller = require("../models/bbpsBillersModel");
 const BbpsCategory = require("../models/bbpsCategoryModel");
@@ -74,6 +75,7 @@ exports.payBbpsBillService = async ({
       ({ packageId, serviceId } = await validateUserPackageAndService({
         userId: userId,
         serviceName: "bbps",
+        pipeline: "bbps1",
         categoryId: billerCategory?._id,
         amount: billamount, //paise
       }));
@@ -86,6 +88,7 @@ exports.payBbpsBillService = async ({
       userId: userId,
       amount: billamount, //paise
       serviceType: "BBPS",
+      serviceCategory: biller?.billerCategory,
       referenceId: referenceId,
       description: "BBPS Bill Payment",
       session: session,
@@ -98,9 +101,10 @@ exports.payBbpsBillService = async ({
           mobileNumber: customerMobile, //customer mobile number not users
           amount: billamount, //paise
           referenceId: referenceId,
+          status: "INITIATED",
         },
       ],
-      { session },
+      { session: session },
     );
 
     await Transaction.create(
@@ -109,10 +113,11 @@ exports.payBbpsBillService = async ({
           userId: userId,
           referenceId: referenceId,
           serviceType: "BBPS",
-          amount: amount,
+          serviceCategory: biller?.billerCategory,
+          amount: billamount, //paise
           wallet: "main",
           type: "debit",
-          status: "PENDING",
+          status: "INITIATED",
           meta: {
             request: {
               ...(refId?.trim() && { refId: refId.trim() }),
@@ -137,7 +142,7 @@ exports.payBbpsBillService = async ({
           },
         },
       ],
-      { session },
+      { session: session },
     );
 
     await session.commitTransaction();
@@ -167,7 +172,7 @@ exports.payBbpsBillService = async ({
           error?.response?.data?.message ||
           error.message ||
           "Something went wrong",
-        data: error?.response?.data || null,
+        // data: error?.response?.data || null,
       };
     }
 
@@ -179,29 +184,75 @@ exports.payBbpsBillService = async ({
     console.log("Status", result.status);
 
     if (result.status === "PENDING") {
-      await BbpsReport.updateOne({ referenceId }, { status: "PENDING" });
-    }
+      console.log("Entered Pending Block");
+      const pendingSession = await mongoose.startSession();
+      try {
+        pendingSession.startTransaction();
 
-    if (result.status === "SUCCESS") {
+        await WalletLedger.updateOne(
+          { referenceId: referenceId, serviceType: "BBPS" },
+          { status: "PENDING" },
+          { session: pendingSession },
+        );
+
+        await BbpsReport.updateOne(
+          { referenceId: referenceId },
+          { status: "PENDING" },
+          { session: pendingSession },
+        );
+
+        await Transaction.updateOne(
+          {
+            referenceId: referenceId,
+          },
+          {
+            $set: {
+              status: "PENDING",
+              providerTxnId: result?.txn_ref,
+              remark: result ? result?.message : "",
+              "meta.response": result,
+            },
+          },
+          { session: pendingSession },
+        );
+
+        await pendingSession.commitTransaction();
+        return result;
+      } catch (error) {
+        if (pendingSession.inTransaction()) {
+          await pendingSession.abortTransaction();
+        }
+        throw error;
+      } finally {
+        pendingSession.endSession();
+      }
+    } else if (result.status === "SUCCESS") {
       const { commission, tdsAmount, netCommission } = await processCommission({
         userId: userId,
         amount: billamount, //paise
         packageId: packageId,
         serviceId: serviceId,
+        serviceType: "BBPS",
+        serviceCategory: biller?.billerCategory,
+        categoryId: billerCategory?._id,
         referenceId: referenceId,
         providerTxnId: result?.billerstatus?.txnRefId,
+        pipeline: "bbps1",
         reportModel: BbpsReport,
         description: "BBPS Commission",
         apiResponse: result,
       });
     }
 
-    if (result?.status === "FAILED") {
+    if (result?.status === "FAILED" || result?.status === "ERROR") {
       console.log("Entered");
       const { openingBalance, closingBalance } = await processRefund({
         userId: userId,
         amount: billamount, //paise
         referenceId: referenceId,
+        serviceType: "BBPS",
+        serviceCategory: biller?.billerCategory,
+        walletType: "main",
         reportModel: BbpsReport,
         description: "Bbps Bill Failed Refund",
         apiResponse: result,
@@ -209,7 +260,7 @@ exports.payBbpsBillService = async ({
     }
 
     if (result?.status === "FAILED" || result?.status === "ERROR") {
-      throw result;
+      return result;
     }
 
     if (result?.billerstatus?.responseCode) {
@@ -220,6 +271,11 @@ exports.payBbpsBillService = async ({
       throw new Error(errorMessage);
     }
   } catch (error) {
+    if (session.inTransaction()) {
+      await session.abortTransaction();
+    }
     throw error;
+  } finally {
+    session.endSession();
   }
 };

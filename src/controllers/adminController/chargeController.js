@@ -373,6 +373,7 @@ exports.getAllIdChargeRequest = async (req, res, next) => {
           fullName: {
             $concat: ["$user.firstName", " ", "$user.lastName"],
           },
+          userName: "$user.userName",
         },
       },
       {

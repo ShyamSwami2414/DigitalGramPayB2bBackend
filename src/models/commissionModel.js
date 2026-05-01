@@ -15,6 +15,11 @@ const commissionSchema = new mongoose.Schema(
       required: true,
     },
 
+    pipelineCode: {
+      type: String,
+      default: null,
+    },
+
     operatorId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Operator",

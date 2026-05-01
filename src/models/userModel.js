@@ -82,8 +82,16 @@ const userSchema = new mongoose.Schema(
 
     assignedServices: [
       {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "Service",
+        _id: false,
+        serviceId: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: "Service",
+        },
+        pipelineCodes: [
+          {
+            type: String, // "aeps1", "aeps2"
+          },
+        ],
       },
     ],
 
@@ -96,11 +104,6 @@ const userSchema = new mongoose.Schema(
       type: String,
       enum: ["pending", "complete", "approved", "rejected", "coupon"],
       default: "pending",
-    },
-
-    isAepsEnabled: {
-      type: Boolean,
-      default: false,
     },
 
     pin: { type: Number, required: true },

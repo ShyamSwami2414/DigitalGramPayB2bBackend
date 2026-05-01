@@ -7,7 +7,6 @@ const dbConnection = require("../src/config/dbConfig");
 const errorHandler = require("./middleware/errorHandler");
 
 dbConnection();
-
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -16,7 +15,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, "../public")));
 
 // Serve user uploads
-console.log("path", path.join(__dirname, "../uploads"))
+console.log("path", path.join(__dirname, "../uploads"));
 
 app.use(
   "/uploads",
@@ -40,4 +39,3 @@ const PORT = process.env.PORT || 8000;
 app.listen(PORT, "0.0.0.0", () => {
   console.log(`Server is listening on PORT : ${PORT}`);
 });
-
