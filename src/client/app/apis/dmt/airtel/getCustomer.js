@@ -29,7 +29,7 @@ exports.getCustomer = async ({
           Authorization: `Bearer ${token}`,
           ApiKey: process.env.APP_API_KEY,
           SecretKey: process.env.APP_SECRET_KEY,
-          UserId: process.env.APP_USERID_AIRTEL_DMT,
+          UserId: process.env.APP_USERID_NOBLE_DMT,
           "X-Timestamp": timestamp,
         },
 

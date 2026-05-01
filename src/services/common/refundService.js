@@ -7,11 +7,20 @@ const processRefund = async ({
   userId,
   amount, //paise
   referenceId,
+  serviceType = null,
+  serviceCategory = null,
+  walletType = "main",
   reportModel = null,
   description,
   apiResponse = null,
   session: providedSession = null,
 }) => {
+  if (!["main", "aeps"].includes(walletType)) {
+    throw new Error("Invalid wallet type");
+  }
+
+  const walletField = walletType === "main" ? "mainWallet" : "aepsWallet";
+
   let session = providedSession;
   let isInternalSession = false;
 
@@ -27,7 +36,7 @@ const processRefund = async ({
   try {
     const wallet = await UserWallet.findOneAndUpdate(
       { userId, isActive: true, isDeleted: false },
-      { $inc: { mainWallet: amount } },
+      { $inc: { [walletField]: amount } },
       { new: true, session },
     );
 
@@ -35,31 +44,39 @@ const processRefund = async ({
       throw new Error("Wallet not found");
     }
 
-    closingBalance = wallet.mainWallet;
+    closingBalance = wallet[walletField];
     openingBalance = closingBalance - amount;
+
+    await WalletLedger.updateOne(
+      { referenceId: referenceId, serviceType: serviceType },
+      { status: "FAILED" },
+      { session: session },
+    );
 
     await WalletLedger.create(
       [
         {
           userId,
-          serviceType: "REFUND",
-          wallet: "main",
+          serviceType: serviceType,
+          serviceCategory: serviceCategory,
+          entryType: "REFUND",
+          wallet: walletType,
           type: "credit",
-          amount, //paise
-          referenceId,
-          openingBalance,
-          closingBalance,
-          description,
+          amount: amount, //paise (including charge and gst in charges like xpress and dmt)
+          referenceId: referenceId,
+          openingBalance: openingBalance,
+          closingBalance: closingBalance,
+          description: description,
         },
       ],
-      { session },
+      { session: session },
     );
 
     if (reportModel) {
       await reportModel.updateOne(
         { referenceId },
         { $set: { status: "FAILED", isRefunded: true } },
-        { session },
+        { session: session },
       );
 
       await Transaction.updateOne(
@@ -72,7 +89,7 @@ const processRefund = async ({
             "meta.response": apiResponse,
           },
         },
-        { session },
+        { session: session },
       );
     }
 

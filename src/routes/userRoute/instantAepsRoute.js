@@ -43,6 +43,20 @@ router.post(
   completetBiometricKyc,
 );
 
+router.get(
+  "/aeps-status",
+  authenticateUser,
+  checkUserPaymentAndKYC,
+  checkAepsSession,
+  (req, res) => {
+    res.json({
+      status: "SUCCESS",
+      message: "AEPS session active",
+      code: "LOGIN_NOT_REQUIRED",
+    });
+  },
+);
+
 router.post(
   "/daily-login",
   authenticateUser,

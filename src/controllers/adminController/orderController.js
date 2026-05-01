@@ -46,6 +46,7 @@ exports.getOrderById = async (req, res, next) => {
           fullName: {
             $concat: ["$user.firstName", " ", "$user.lastName"],
           },
+          userName: "$user.userName",
         },
       },
 
@@ -70,6 +71,7 @@ exports.getOrderById = async (req, res, next) => {
           gst: 1,
           subTotal: 1,
           fullName: 1,
+          userName: 1,
           email: 1,
           shippingAddress: 1,
           p: 1,
@@ -147,6 +149,7 @@ exports.getOrderList = async (req, res, next) => {
           fullName: {
             $concat: ["$user.firstName", " ", "$user.lastName"],
           },
+          userName: "$user.userName",
         },
       },
 
@@ -173,6 +176,7 @@ exports.getOrderList = async (req, res, next) => {
           quantity: "$product.quantity",
           grandTotal: 1,
           fullName: 1,
+          userName: 1,
           productName: 1,
           totalAmount: 1,
           paymentStatus: 1,

@@ -37,7 +37,7 @@ const fundRequestSchema = new mongoose.Schema(
     utrNumber: {
       type: String,
       required: true,
-      unique: [true, "UTR number already exists"],
+      // unique: [true, "UTR number already exists"],
       index: true,
     },
 

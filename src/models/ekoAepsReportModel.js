@@ -8,9 +8,15 @@ const ekoAepsReportSchema = new mongoose.Schema(
       required: true,
     },
 
+    userCode: {
+      type: String,
+      required: true,
+      trim: true,
+    },
+
     serviceType: {
       type: String,
-      enum: ["CASH-WITHDRAW", "BALANCE-INQUIRY", "MINI-STATEMENT"],
+      enum: ["WITHDRAW", "INQUIRY", "STATEMENT"],
       required: true,
       index: true,
     },
@@ -53,6 +59,11 @@ const ekoAepsReportSchema = new mongoose.Schema(
       default: 0,
     },
 
+    miniStatement: {
+      type: Array,
+      default: [],
+    },
+
     bankRefNumber: {
       type: String,
     },
@@ -62,10 +73,6 @@ const ekoAepsReportSchema = new mongoose.Schema(
     },
 
     customerName: {
-      type: String,
-    },
-
-    userCode: {
       type: String,
     },
 

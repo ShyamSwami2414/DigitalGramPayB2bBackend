@@ -46,17 +46,114 @@ exports.createService = async (req, res, next) => {
   }
 };
 
-exports.getActiveServiceList = async (req, res, next) => {
+exports.serviceListWithPipeline = async (req, res, next) => {
   try {
-    const services = await Service.find({ isActive: true, isDeleted: false })
-      .select("name serviceCode hasCategory")
-      .sort({ createdAt: -1 })
-      .lean();
+    const services = await Service.aggregate([
+      {
+        $match: {
+          isActive: true,
+          isDeleted: false,
+        },
+      },
+      {
+        $project: {
+          name: 1,
+          label: "$serviceCode",
+          hasCategory: 1,
+          pipeline: 1,
+        },
+      },
+    ]);
 
     return res.status(200).json({
       success: true,
       message: "Services fetched successfully",
       data: services,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+exports.getActiveServiceList = async (req, res, next) => {
+  try {
+    const services = await Service.aggregate([
+      {
+        $match: {
+          isActive: true,
+          isDeleted: false,
+        },
+      },
+      {
+        $project: {
+          name: 1,
+          label: "$serviceCode",
+          hasCategory: 1,
+          pipelineOption: {
+            $gt: [{ $size: "$pipeline" }, 1],
+          },
+        },
+      },
+    ]);
+
+    return res.status(200).json({
+      success: true,
+      message: "Services fetched successfully",
+      data: services,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+exports.getSelectedServicePipelineList = async (req, res, next) => {
+  try {
+    const { serviceId } = req.query; //serviceId
+
+    if (!serviceId || !mongoose.Types.ObjectId.isValid(serviceId)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid service Id",
+      });
+    }
+
+    const serviceExists = await Service.findOne({
+      _id: serviceId,
+      isActive: true,
+      isDeleted: false,
+    })
+      .select("_id")
+      .lean();
+
+    if (!serviceExists) {
+      return res.status(404).json({
+        success: false,
+        message: "Service not found or inactive",
+      });
+    }
+
+    const services = await Service.aggregate([
+      {
+        $match: {
+          _id: new mongoose.Types.ObjectId(serviceId),
+          isActive: true,
+          isDeleted: false,
+        },
+      },
+      {
+        $project: {
+          _id: 0,
+          pipeline: 1,
+        },
+      },
+    ]);
+
+    console.log(services, "services");
+
+    return res.status(200).json({
+      success: true,
+      message: "Pipeline fetched successfully",
+      data: services?.[0]?.pipeline,
     });
   } catch (error) {
     next(error);

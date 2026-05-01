@@ -2,6 +2,7 @@ const express = require("express");
 const {
   createPackage,
   getAllPackages,
+  getPackagesByRoleId,
   getActivePackageList,
   updatePackage,
   updatePackageStatus,
@@ -26,6 +27,14 @@ router.get(
   authorizeRoles("admin"),
   checkAllowedPermission("PACKAGE"),
   getAllPackages,
+);
+
+router.get(
+  "/get-packages/:roleId",
+  authenticateUser,
+  authorizeRoles("admin"),
+  checkAllowedPermission("PACKAGE"),
+  getPackagesByRoleId,
 );
 
 router.get(

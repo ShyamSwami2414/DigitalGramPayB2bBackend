@@ -3,7 +3,7 @@ const EkoState = require("../../models/ekoStateModel");
 exports.getStateList = async (req, res, next) => {
   try {
     const states = await EkoState.find()
-      .select("label")
+      .select("label value")
       .sort({ label: 1 })
       .lean();
 

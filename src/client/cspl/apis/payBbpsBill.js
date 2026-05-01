@@ -2,6 +2,7 @@ const ProviderLogs = require("../../../models/providerLogsModel");
 const { generateRequestId } = require("../../../utils/requestIdGenerator");
 const csplClient = require("../cspl.client");
 
+//amount of paymnet goes in paise always in bbps
 exports.payBbpsBill = async ({
   client_referenceId,
   requestId,
@@ -17,7 +18,8 @@ exports.payBbpsBill = async ({
   paramValue,
   inputParams,
 }) => {
-  return console.log(billamount, "billamount  in paise");
+
+  // return console.log(billamount, "billamount  in paise");
   const timestamp = new Date().toISOString();
   const startTime = Date.now();
   try {
@@ -29,7 +31,7 @@ exports.payBbpsBill = async ({
         customerName,
         customerMobile,
         dueDate,
-        billamount,
+        billamount, //paise always
         billDate,
         billPeriod,
         billNumber,
@@ -50,15 +52,15 @@ exports.payBbpsBill = async ({
       },
     );
 
-    console.log(response.data, "response");
+    console.log(response?.data, "response");
 
     const responseTime = Date.now() - startTime;
 
     let providerStatus =
-      response.data.status === "SUCCESS" ? "SUCCESS" : "FAILED";
+      response?.data?.status === "SUCCESS" ? "SUCCESS" : "FAILED";
 
     await ProviderLogs.create({
-      providerTxnId: response?.data?.billerstatus?.txnRefId || null,
+      providerTxnId: response?.data?.billerstatus?.txnRefId || undefined,
       serviceCategory: "BBPS",
       referenceId: client_referenceId,
       providerName: "CSPL",
@@ -90,7 +92,7 @@ exports.payBbpsBill = async ({
     console.log("API Error Response:", error.response?.data || error.message);
 
     await ProviderLogs.create({
-      providerTxnId: error.response?.data?.txn_ref || null,
+      providerTxnId: error.response?.data?.txn_ref || undefined,
       serviceCategory: "BBPS",
       referenceId: client_referenceId,
       providerName: "CSPL",

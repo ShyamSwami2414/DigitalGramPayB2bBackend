@@ -9,15 +9,60 @@ exports.getAccountWhitelistRequest = async (req, res, next) => {
     const skip = (page - 1) * limit;
 
     const filter = {
-      status: "pending",
+      // status: "pending",
+      isActive: true,
       isDeleted: false,
     };
 
-    const accountWhitelistRequests = await UserWhitelistAccount.find(filter)
-      .populate("userId", "name email phone")
-      .sort({ createdAt: -1 })
-      .skip(skip)
-      .limit(limit);
+    const accountWhitelistRequests = await UserWhitelistAccount.aggregate([
+      {
+        $match: filter, //  same as find(filter)
+      },
+      {
+        $lookup: {
+          from: "users", //  collection name (not model name)
+          localField: "userId",
+          foreignField: "_id",
+          as: "user",
+        },
+      },
+      {
+        $unwind: {
+          path: "$user",
+          preserveNullAndEmptyArrays: true, // optional
+        },
+      },
+
+      {
+        $project: {
+          // keep all fields + only selected user fields
+
+          userId: "$user._id",
+          name: "$user.name",
+          email: "$user.email",
+          phone: "$user.phone",
+          userName : "$user.userName",
+          // include other fields you want
+          accountNumber: 1,
+          ifscCode: 1,
+          accountHolderName: 1,
+          bankName: 1,
+          createdAt: 1,
+          status: 1,
+          chequeImageUrl: 1,
+          passbookOrBankStatementUrl: 1,
+        },
+      },
+      {
+        $sort: { createdAt: -1 },
+      },
+      {
+        $skip: skip,
+      },
+      {
+        $limit: limit,
+      },
+    ]);
 
     const total = await UserWhitelistAccount.countDocuments(filter);
 

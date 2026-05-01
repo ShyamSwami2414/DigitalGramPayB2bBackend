@@ -1,5 +1,6 @@
 const mongoose = require("mongoose");
 const EkoOnboardAepsUser = require("../models/ekoAepsOnboardUserModel");
+const EkoAepsReport = require("../models/ekoAepsReportModel");
 const DailyEkoAepsLogin = require("../models/dailyEkoAepsLoginModel");
 const User = require("../models/userModel");
 
@@ -90,12 +91,17 @@ exports.onboardEkoAepsUser = async ({
 
     console.log("Status", result?.status);
 
-    if (result?.status === false || result?.data?.response_type_id !== 1290) {
+    if (
+      result?.status === false ||
+      (result?.data?.response_type_id !== 1290 &&
+        result?.data?.response_type_id !== 1307)
+    ) {
       console.log("Entered Error Dealing block");
       const { openingBalance, closingBalance } = await processRefund({
         userId: userId,
         amount: registrationCharges, //paise
         referenceId: referenceId,
+        walletType: "main",
         description: "User Onboard Failed, Charges Refunded",
         apiResponse: result,
       });
@@ -104,7 +110,8 @@ exports.onboardEkoAepsUser = async ({
     if (
       result?.status === "FAILED" ||
       result?.status === false ||
-      result?.data?.response_type_id !== 1290
+      (result?.data?.response_type_id !== 1290 &&
+        result?.data?.response_type_id !== 1307)
     ) {
       throw result;
     }
@@ -112,7 +119,12 @@ exports.onboardEkoAepsUser = async ({
     console.log(result);
     return result;
   } catch (error) {
+    if (session.inTransaction()) {
+      await session.abortTransaction();
+    }
     throw error;
+  } finally {
+    session.endSession();
   }
 };
 
@@ -182,6 +194,7 @@ exports.activateService = async ({
         status: false,
         message:
           error?.response?.data?.message ||
+          error.error ||
           error.message ||
           "Something went wrong",
         data: error?.response?.data || null,
@@ -197,8 +210,9 @@ exports.activateService = async ({
 
     if (
       result?.status === "FAILED" ||
-      result?.status === false ||
-      result?.http_code !== 200
+      result?.http_code !== 200 ||
+      (result?.data?.service_status_desc !== "Pending" &&
+        result?.data?.service_status_desc !== "Activated")
     ) {
       throw result;
     }
@@ -206,7 +220,12 @@ exports.activateService = async ({
     console.log(result);
     return result;
   } catch (error) {
+    if (session.inTransaction()) {
+      await session.abortTransaction();
+    }
     throw error;
+  } finally {
+    session.endSession();
   }
 };
 
@@ -279,7 +298,12 @@ exports.kycOtp = async ({
     console.log(result);
     return result;
   } catch (error) {
+    if (session.inTransaction()) {
+      await session.abortTransaction();
+    }
     throw error;
+  } finally {
+    session.endSession();
   }
 };
 
@@ -353,7 +377,12 @@ exports.verifyOtp = async ({ userId, requestId, otp, latitude, longitude }) => {
     console.log(result);
     return result;
   } catch (error) {
+    if (session.inTransaction()) {
+      await session.abortTransaction();
+    }
     throw error;
+  } finally {
+    session.endSession();
   }
 };
 
@@ -434,7 +463,12 @@ exports.ekycBiometric = async ({
     console.log(result);
     return result;
   } catch (error) {
+    if (session.inTransaction()) {
+      await session.abortTransaction();
+    }
     throw error;
+  } finally {
+    session.endSession();
   }
 };
 
@@ -565,6 +599,7 @@ exports.dailyBiometricLogin = async ({
           userId: userId,
           amount: dailyAepsLoginCharge,
           referenceId: referenceId,
+          walletType: "main",
           description: `Refund: Daily Eko Login Failed `,
           session: refundSession,
         });
@@ -602,7 +637,12 @@ exports.dailyBiometricLogin = async ({
     console.log(result);
     return result;
   } catch (error) {
+    if (session.inTransaction()) {
+      await session.abortTransaction();
+    }
     throw error;
+  } finally {
+    session.endSession();
   }
 };
 
@@ -617,6 +657,7 @@ exports.initiateAepsTransaction = async ({
   amount, //paise
   serviceTypeName,
   bankCode,
+  aadhaar,
 }) => {
   const session = await mongoose.startSession();
   try {
@@ -627,7 +668,9 @@ exports.initiateAepsTransaction = async ({
     const onboardMerchant = await EkoOnboardAepsUser.findOne({
       userId: userId,
     })
-      .select("_id userCode aadhaar mobile temp_otp_ref_id temp_reference_tid")
+      .select(
+        "_id userCode initiatorId aadhaar mobile temp_otp_ref_id temp_reference_tid",
+      )
       .lean()
       .session(session);
 
@@ -638,6 +681,22 @@ exports.initiateAepsTransaction = async ({
     }
 
     console.log(onboardMerchant, "onboardMerchant");
+
+    await EkoAepsReport.create(
+      [
+        {
+          userId: userId,
+          userCode: onboardMerchant?.userCode,
+          serviceType: `${serviceTypeName}`,
+          providerName: "EKO",
+          referenceId: referenceId,
+          txnStatus: "PENDING",
+          amount: amount, //paise
+        },
+      ],
+      { session: session },
+    );
+
     await session.commitTransaction();
 
     let result;
@@ -651,7 +710,7 @@ exports.initiateAepsTransaction = async ({
         initiatorId: onboardMerchant?.initiatorId,
         userCode: onboardMerchant?.userCode,
         mobile: onboardMerchant?.mobile,
-        aadhaar: onboardMerchant?.aadhaar,
+        aadhaar: aadhaar,
         latitude,
         longitude,
         sourceIp: sourceIp,
@@ -681,16 +740,68 @@ exports.initiateAepsTransaction = async ({
     console.log("Status", result?.status);
 
     if (
-      result?.status === "FAILED" ||
-      result?.status === false ||
-      result?.http_code !== 200
+      result?.status === true &&
+      result?.txn_status === "success" &&
+      result?.data?.response_status_id === 0 &&
+      result?.data?.status === 0
     ) {
-      throw result;
+      const data = result?.data?.data;
+      try {
+        await EkoAepsReport.findOneAndUpdate(
+          { referenceId: referenceId },
+          {
+            $set: {
+              txnStatus: "SUCCESS",
+              providerTxnId: data?.tid,
+              accountBalance: data?.customer_balance,
+              miniStatement: data?.mini_statement_list,
+              aadhaar: data?.aadhar,
+              message: result?.data?.message,
+              reason: data?.comment,
+              rawResponse: result,
+            },
+          },
+        );
+
+        console.log(result);
+        return {
+          ...result,
+          referenceId: referenceId,
+        };
+      } catch (error) {
+        throw error;
+      }
+    } else {
+      try {
+        const data = result?.data?.data;
+        await EkoAepsReport.findOneAndUpdate(
+          { referenceId: referenceId },
+          {
+            $set: {
+              txnStatus: "FAILED",
+              providerTxnId: data?.tid,
+              accountBalance: data?.customer_balance,
+              bankName: data?.bankName,
+              aadhaar: data?.aadhar,
+              message: result?.data?.message,
+              reason: data?.comment,
+              rawResponse: result,
+            },
+          },
+        );
+      } catch (error) {
+        throw result;
+      }
     }
 
     console.log(result);
     return result;
   } catch (error) {
+    if (session.inTransaction()) {
+      await session.abortTransaction();
+    }
     throw error;
+  } finally {
+    session.endSession();
   }
 };

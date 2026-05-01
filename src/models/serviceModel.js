@@ -18,6 +18,14 @@ const serviceSchema = new mongoose.Schema(
       trim: true,
     },
 
+    pipeline: [
+      {
+        code: { type: String, required: true }, // aeps1, aeps2
+        label: { type: String },
+        isActive: { type: Boolean, default: true },
+      },
+    ],
+
     hasCategory: {
       type: Boolean,
       default: false,

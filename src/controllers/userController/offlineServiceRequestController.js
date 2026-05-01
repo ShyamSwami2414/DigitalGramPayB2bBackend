@@ -1,6 +1,7 @@
 const OfflineServiceRequest = require("../../models/offlineServiceRequestModel");
 const OfflineService = require("../../models/offlineServiceModel");
 const mongoose = require("mongoose");
+const { rupeeToPaise, paiseToRupee } = require("../../utils/money");
 
 exports.createOfflineServiceRequest = async (req, res, next) => {
   try {
@@ -92,13 +93,14 @@ exports.createOfflineServiceRequest = async (req, res, next) => {
     const newRequest = await OfflineServiceRequest.create({
       userId,
       offlineServiceId,
+      amount: offlineService?.amount,
       fieldData,
       documentData,
     });
 
     res.status(201).json({
       success: true,
-      data: newRequest,
+      message: "Request Created Successfully",
     });
   } catch (error) {
     next(error);
@@ -181,10 +183,17 @@ exports.listOfflineServiceRequests = async (req, res, next) => {
       userId: new mongoose.Types.ObjectId(userId),
     });
 
+    const formattedData =
+      offlineServiceRequests &&
+      offlineServiceRequests?.map((request) => ({
+        ...request,
+        amount: paiseToRupee(request?.amount),
+      }));
+
     return res.status(200).json({
       success: true,
       message: "Offline Service Request Fetched Successfully",
-      data: offlineServiceRequests,
+      data: formattedData,
       pagination: {
         page,
         limit,

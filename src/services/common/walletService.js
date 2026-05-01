@@ -1,10 +1,75 @@
 const UserWallet = require("../../models/userWallet");
 const WalletLedger = require("../../models/walletLedgerModel");
 
+const debitAepsWallet = async ({
+  userId,
+  amount, //paise
+  serviceType = null,
+  serviceCategory = null,
+  referenceId,
+  description,
+  session,
+}) => {
+  let openingBalance = 0;
+  let closingBalance = 0;
+
+  console.log(amount, "aeps debit wallet amount value");
+
+  const wallet = await UserWallet.findOneAndUpdate(
+    {
+      userId,
+      isActive: true,
+      isDeleted: false,
+      $expr: {
+        $gte: [{ $subtract: ["$aepsWallet", "$aepsHoldAmount"] }, amount],
+      },
+    },
+    {
+      $inc: {
+        aepsWallet: -amount,
+      },
+    },
+    {
+      new: true,
+      session,
+    },
+  );
+
+  console.log("wallet from db", wallet);
+
+  if (!wallet) {
+    throw new Error("Insufficient Aeps Wallet Balance Contact to Admin");
+  }
+
+  closingBalance = wallet.aepsWallet;
+  openingBalance = closingBalance + amount;
+
+  await WalletLedger.create(
+    [
+      {
+        userId,
+        serviceType: serviceType,
+        serviceCategory: serviceCategory,
+        wallet: "aeps",
+        type: "debit",
+        amount: amount,
+        openingBalance,
+        closingBalance,
+        referenceId,
+        description,
+      },
+    ],
+    { session },
+  );
+
+  return { openingBalance, closingBalance };
+};
+
 const debitWallet = async ({
   userId,
   amount, //paise
-  serviceType,
+  serviceType = null,
+  serviceCategory = null,
   referenceId,
   description,
   session,
@@ -37,7 +102,7 @@ const debitWallet = async ({
   console.log("wallet from db", wallet);
 
   if (!wallet) {
-    throw new Error("Insufficient Wallet Balance Contact Admin");
+    throw new Error("Insufficient Wallet Balance, Contact to Admin");
   }
 
   closingBalance = wallet.mainWallet;
@@ -46,18 +111,20 @@ const debitWallet = async ({
   await WalletLedger.create(
     [
       {
-        userId,
-        serviceType,
+        userId: userId,
+        serviceType: serviceType,
+        serviceCategory: serviceCategory, //dynamic like operator for recharge, aeps withdraw service types, bbps categories etc
         wallet: "main",
         type: "debit",
         amount: amount,
-        openingBalance,
-        closingBalance,
-        referenceId,
-        description,
+        openingBalance: openingBalance,
+        closingBalance: closingBalance,
+        referenceId: referenceId,
+        description: description,
+        status: "INITIATED",
       },
     ],
-    { session },
+    { session: session },
   );
 
   return { openingBalance, closingBalance };
@@ -67,7 +134,8 @@ const creditWallet = async ({
   userId,
   amount, // paise
   walletType,
-  serviceType,
+  serviceType = null,
+  serviceCategory = null,
   referenceId,
   description,
   session,
@@ -112,7 +180,8 @@ const creditWallet = async ({
     [
       {
         userId,
-        serviceType,
+        serviceType: serviceType,
+        serviceCategory: serviceCategory,
         wallet: walletType,
         type: "credit", // Type is credit
         amount: amount,
@@ -131,4 +200,5 @@ const creditWallet = async ({
 module.exports = {
   debitWallet,
   creditWallet,
+  debitAepsWallet,
 };

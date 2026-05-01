@@ -9,7 +9,7 @@ module.exports = (app) => {
   app.use(`${apiPrefix}/offlineTopup`, require("./offlineTopupRequestRoute"));
   app.use(`${apiPrefix}/topupBank`, require("./topupBankRoute"));
   app.use(`${apiPrefix}/wallet`, require("./walletRoute"));
-  app.use(`${apiPrefix}/aepsPayoutBank`, require("./aepsPayoutBankRoute"));
+
   app.use(`${apiPrefix}/enquiry`, require("./enquiryRoute"));
   app.use(`${apiPrefix}/support`, require("./supportRoute"));
   app.use(`${apiPrefix}/service`, require("./serviceRoute"));
@@ -20,6 +20,7 @@ module.exports = (app) => {
   app.use(`${apiPrefix}/ebank`, require("./ekoBankList"));
   app.use(`${apiPrefix}/shopping`, require("./ecommerceRoute"));
   app.use(`${apiPrefix}/offlineService`, require("./offlineServiceRoute"));
+  app.use(`${apiPrefix}/onlineService`, require("./onlineServiceRoute"));
   app.use(
     `${apiPrefix}/offlineServiceRequest`,
     require("./offlineServiceRequestRoute"),
@@ -40,7 +41,36 @@ module.exports = (app) => {
   app.use(`${apiPrefix}/dmtReport`, require("./dmtReportRoute"));
   app.use(`${apiPrefix}/search`, require("./transactionSearchRoute"));
   app.use(`${apiPrefix}/charge`, require("./idChargeRequest"));
+  app.use(`${apiPrefix}/serviceRequest`, require("./serviceRequestRoute"));
   app.use(`${apiPrefix}/policy`, require("./policyRoute"));
   app.use(`${apiPrefix}/aepsbank`, require("./instantAepsBankRoute"));
+
   app.use(`${apiPrefix}/aepsInstant`, require("./instantAepsRoute"));
+
+  app.use(`${apiPrefix}/dmt`, require("./nobleFinoDmtRoute"));
+  app.use(`${apiPrefix}/dmt-ben`, require("./nobleDmtBeneficiaryRoute"));
+
+  app.use(
+    `${apiPrefix}/aepsPayoutBank`,
+    require("./sozoAepsPayoutBankRequestRoute"),
+  );
+  app.use(`${apiPrefix}/payout-bank`, require("./sozoAepsPayoutBankRoute"));
+  app.use(`${apiPrefix}/aepsPayout`, require("./sozoAepsPayoutRoute"));
+  app.use(
+    `${apiPrefix}/aepsPayoutReport`,
+    require("./sozoAepsPayoutReportRoute"),
+  );
+  app.use(
+    `${apiPrefix}/xpressPayoutBank`,
+    require("./sozoXpressPayoutBankRoute"),
+  );
+  app.use(`${apiPrefix}/xpressPayout`, require("./sozoXpressPayoutRoute"));
+  app.use(
+    `${apiPrefix}/xpressPayoutReport`,
+    require("./sozoXpressPayoutReportRoute"),
+  );
+  app.use(
+    `${apiPrefix}/dashboard`,
+    require("./dashboardRoute"),
+  );
 };

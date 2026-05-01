@@ -21,6 +21,7 @@ const {
   dailyBiometricLogin,
 } = require("../../services/ekoAepsService");
 const { rupeeToPaise } = require("../../utils/money");
+const { encryptEkoAadhar } = require("../../helpers/encryptEkoAadhar");
 
 const validateAddress = (address, type = "address") => {
   const errors = {};
@@ -209,23 +210,28 @@ const onboardAepsUser = async (req, res, next) => {
 
     console.log(response, "response");
 
-    if (response && response?.data?.response_type_id === 1290) {
+    if ([1290, 1307].includes(response?.data?.response_type_id)) {
       const data = response?.data?.data;
-      const ekoUserOnboard = new EkoOnboardAepsUser({
-        userId: userId,
-        userCode: data?.user_code,
-        initiatorId: data?.initiator_id,
-        firstName: firstName,
-        lastName: lastName,
-        email: email,
-        mobile: mobile,
-        panNumber: panNumber,
-        dateOfBirth: dateOfBirth,
-        address: address,
-      });
 
-      await ekoUserOnboard.save();
-      return res.status(201).json({
+      await EkoOnboardAepsUser.findOneAndUpdate(
+        { userId },
+        {
+          $set: {
+            userCode: data?.user_code,
+            initiatorId: data?.initiator_id,
+            firstName,
+            lastName,
+            email,
+            mobile,
+            panNumber,
+            dateOfBirth,
+            address,
+          },
+        },
+        { upsert: true, new: true },
+      );
+
+      return res.status(200).json({
         success: true,
         data: {
           message: response?.data?.message,
@@ -262,6 +268,8 @@ const activateUser = async (req, res, next) => {
     longitude = Number(longitude);
     deviceNumber = deviceNumber?.trim();
     modelName = modelName?.trim();
+
+    console.log(req.body);
 
     const userId = req.user.id;
     const idempotency = req.headers["idempotency-key"];
@@ -481,8 +489,10 @@ const activateUser = async (req, res, next) => {
 
     console.log(response, "response");
 
-    if (response && response?.status === true) {
-      const data = response?.data?.data;
+    if (response && response?.http_code === 200) {
+      const data = response?.data;
+      const isServiceActivated =
+        response?.data?.service_status_desc === "Activated";
 
       await EkoOnboardAepsUser.findOneAndUpdate(
         { userId: userId },
@@ -497,13 +507,14 @@ const activateUser = async (req, res, next) => {
             longitude,
             deviceNumber,
             modelName,
-            isActivated: true,
+            isActivated: isServiceActivated ? true : false,
           },
         },
       );
-      return res.status(201).json({
+      return res.status(200).json({
         success: true,
         data: {
+          status: response?.data?.service_status_desc,
           message: response?.message,
         },
       });
@@ -778,8 +789,13 @@ const doEkycBiometric = async (req, res, next) => {
 
     console.log(response, "response");
 
-    if (response && response?.status === true) {
-      const data = response?.data?.data;
+    if (
+      response &&
+      response?.status === true &&
+      response?.data?.response_status_id === 0 &&
+      response?.data?.status === 0
+    ) {
+      const data = response?.data;
 
       await EkoOnboardAepsUser.findOneAndUpdate(
         { userId: userId },
@@ -791,7 +807,7 @@ const doEkycBiometric = async (req, res, next) => {
       return res.status(201).json({
         success: true,
         data: {
-          message: response?.message,
+          message: data?.message,
         },
       });
     } else {
@@ -897,6 +913,7 @@ const doAepsTransaction = async (req, res, next) => {
     let {
       sourceIp,
       serviceType,
+      aadhaar,
       bankId,
       amount = 0,
       latitude,
@@ -920,6 +937,7 @@ const doAepsTransaction = async (req, res, next) => {
       "latitude",
       "longitude",
       "pidData",
+      "aadhaar",
     ];
 
     const missingFields = [];
@@ -972,6 +990,8 @@ const doAepsTransaction = async (req, res, next) => {
 
     const serviceCode = getServiceType(serviceType);
     const amountInPaise = rupeeToPaise(amount);
+
+    // const encryptAadhaar = encryptEkoAadhar(aadhaar);
 
     //rupee comparison 100 rupee
     if (serviceType === "withdraw" && amount < 100) {
@@ -1032,24 +1052,29 @@ const doAepsTransaction = async (req, res, next) => {
       amount: amountInPaise,
       serviceTypeName: serviceType?.toUpperCase(), //just for logs type
       bankCode: isBankExist?.bankCode,
+      aadhaar: aadhaar,
     });
 
     console.log(response, "response");
 
-    if (response && response?.status === true) {
+    if (
+      response &&
+      response?.status === true &&
+      response?.txn_status === "success"
+    ) {
       const data = response?.data?.data;
 
-      await EkoOnboardAepsUser.findOneAndUpdate(
-        { userId: userId },
-        {
-          $set: { isActivated: true },
-        },
-      );
-
-      return res.status(201).json({
+      return res.status(200).json({
         success: true,
         data: {
-          message: response?.message,
+          referenceId: response?.referenceId,
+          message: response?.data?.message,
+          date: data?.transaction_date,
+          merchantName: data?.merchantname,
+          aadhar: data?.aadhar,
+          customerBalance: data?.customer_balance,
+          amount: data?.amount,
+          miniStatement: data?.mini_statement_list,
         },
       });
     } else {

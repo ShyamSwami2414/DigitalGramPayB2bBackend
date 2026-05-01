@@ -132,7 +132,18 @@ exports.userLogin = async (req, res, next) => {
         .json({ success: false, message: "All Details are required" });
     }
 
-    const user = await User.findOne({ email, userName });
+    const user = await User.findOne({
+      email,
+      userName,
+      isActive: true,
+      isDeleted: false,
+    });
+
+    if (!user) {
+      return res
+        .status(400)
+        .json({ success: false, message: "User not found or not active" });
+    }
 
     const log = new loginLogs({
       userId: user?._id || null,
@@ -285,6 +296,7 @@ exports.forgotPassword = async (req, res, next) => {
     return res.status(200).json({
       success: true,
       message: "OTP sent for password reset",
+      data: { otp: otp.otp },
     });
   } catch (error) {
     next(error);
@@ -431,17 +443,40 @@ exports.changePassword = async (req, res, next) => {
       _id: new mongoose.Types.ObjectId(userId),
       isDeleted: false,
     });
+
     if (!user) {
       return res
         .status(404)
         .json({ success: false, message: "User not found" });
     }
+
     const { currentPassword, newPassword } = req.body;
 
-    if (!currentPassword || !newPassword) {
+    const requiredFields = ["currentPassword", "newPassword"];
+    const missingFields = [];
+
+    requiredFields.forEach((field) => {
+      if (!req.body[field]) {
+        missingFields.push(field);
+      }
+    });
+
+    if (missingFields.length > 0) {
+      return res.status(400).json({
+        success: false,
+        message: `Missing required fields: ${missingFields.join(", ")}`,
+      });
+    }
+
+    const isOldPasswordValid = await bcrypt.comparePassword(
+      currentPassword,
+      user.password,
+    );
+
+    if (!isOldPasswordValid) {
       return res
         .status(400)
-        .json({ success: false, message: "All fields are required" });
+        .json({ success: false, message: "Invalid Old Password" });
     }
 
     if (currentPassword === newPassword) {
@@ -449,15 +484,6 @@ exports.changePassword = async (req, res, next) => {
         success: false,
         message: "New password must be different from old password",
       });
-    }
-    const isOldPasswordValid = await bcrypt.comparePassword(
-      currentPassword,
-      user.password,
-    );
-    if (!isOldPasswordValid) {
-      return res
-        .status(400)
-        .json({ success: false, message: "Invalid Old Password" });
     }
 
     const hashedPassword = await bcrypt.hashPassword(newPassword);
@@ -529,6 +555,32 @@ exports.fetchProfile = async (req, res, next) => {
         },
       },
 
+      // id charge populate
+      {
+        $lookup: {
+          from: "idcharges",
+          localField: "_id",
+          foreignField: "userId",
+          pipeline: [
+            {
+              $project: { rejectionReason: 1 },
+            },
+          ],
+          as: "idcharges",
+        },
+      },
+      {
+        $unwind: {
+          path: "$idcharges",
+          preserveNullAndEmptyArrays: true,
+        },
+      },
+      {
+        $addFields: {
+          idChargeRejectionReason: "$idcharges.rejectionReason",
+        },
+      },
+
       // package populate
       {
         $lookup: {
@@ -554,17 +606,52 @@ exports.fetchProfile = async (req, res, next) => {
       {
         $lookup: {
           from: "services",
-          localField: "assignedServices",
+          localField: "assignedServices.serviceId",
           foreignField: "_id",
           pipeline: [
             {
               $project: { name: 1 },
             },
           ],
-          as: "assignedServices",
+          as: "serviceDetails",
         },
       },
 
+      {
+        $addFields: {
+          assignedServices: {
+            $map: {
+              input: "$assignedServices",
+              as: "service",
+              in: {
+                serviceId: "$$service.serviceId",
+                pipelineCodes: "$$service.pipelineCodes",
+                name: {
+                  $let: {
+                    vars: {
+                      matchedService: {
+                        $arrayElemAt: [
+                          {
+                            $filter: {
+                              input: "$serviceDetails",
+                              as: "sd",
+                              cond: {
+                                $eq: ["$$sd._id", "$$service.serviceId"],
+                              },
+                            },
+                          },
+                          0,
+                        ],
+                      },
+                    },
+                    in: "$$matchedService.name",
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
       {
         $lookup: {
           from: "instantaepsoutlets",
@@ -573,6 +660,7 @@ exports.fetchProfile = async (req, res, next) => {
           pipeline: [
             {
               $project: {
+                isKycDone: 1,
                 isAepsEnabled: 1,
                 isLoginRequired: 1,
                 action: 1,
@@ -590,14 +678,89 @@ exports.fetchProfile = async (req, res, next) => {
       },
       {
         $addFields: {
-          isAepsEnabled: "$merchant.isAepsEnabled",
-          isLoginRequired: "$merchant.isLoginRequired",
-          action: "$merchant.action",
+          "aeps1.isVerified": "$merchant.isKycDone",
+          "aeps1.isAepsEnabled": "$merchant.isAepsEnabled",
+          "aeps1.isLoginRequired": "$merchant.isLoginRequired",
+          "aeps1.action": "$merchant.action",
+        },
+      },
+      {
+        $lookup: {
+          from: "ekoonboardaepsusers",
+          localField: "_id",
+          foreignField: "userId",
+          pipeline: [
+            {
+              $project: {
+                isActivated: 1,
+                isLoginRequired: 1,
+                action: 1,
+              },
+            },
+          ],
+          as: "onboardUser",
+        },
+      },
+      {
+        $unwind: {
+          path: "$onboardUser",
+          preserveNullAndEmptyArrays: true,
+        },
+      },
+      {
+        $addFields: {
+          "aeps2.isActivated": "$onboardUser.isActivated",
+          "aeps2.isLoginRequired": "$onboardUser.isLoginRequired",
+        },
+      },
+      {
+        $lookup: {
+          from: "servicerequests",
+          localField: "_id",
+          foreignField: "userId",
+          pipeline: [
+            {
+              $project: {
+                pipelineCode: 1,
+                status: 1,
+                rejectionReason: 1,
+              },
+            },
+          ],
+          as: "serviceRequest",
+        },
+      },
+      {
+        $addFields: {
+          requestedService: {
+            $map: {
+              input: {
+                $filter: {
+                  input: "$serviceRequest",
+                  as: "sr",
+                  cond: {
+                    $in: ["$$sr.status", ["pending", "rejected"]],
+                  },
+                },
+              },
+              as: "sr",
+              in: {
+                serviceName: "$$sr.pipelineCode",
+                status: "$$sr.status",
+                reason: {
+                  $ifNull: ["$$sr.rejectionReason", ""],
+                },
+              },
+            },
+          },
         },
       },
       {
         $project: {
+          onboardUser: 0,
           merchant: 0,
+          serviceDetails: 0,
+          serviceRequest: 0,
         },
       },
     ]);

@@ -19,20 +19,21 @@ exports.getSubmittedKyc = async (req, res, next) => {
 };
 
 exports.offlineKycSubmission = async (req, res, next) => {
+  console.log("Entered New KYC Submission");
+  const session = await mongoose.startSession();
   try {
+    session.startTransaction();
     const setting = await Setting.findOne();
     if (!setting) {
-      return res.status(404).json({
-        success: false,
-        message: "Setting not found",
-      });
+      const err = new Error("Setting not found");
+      err.statusCode = 404;
+      throw err;
     }
 
     if (setting.isKycOnline) {
-      return res.status(400).json({
-        success: false,
-        message: "Offline KYC is not enabled",
-      });
+      const err = new Error("Offline KYC is not enabled");
+      err.statusCode = 400;
+      throw err;
     }
 
     console.log(
@@ -46,6 +47,7 @@ exports.offlineKycSubmission = async (req, res, next) => {
     const aadharFile = req.files?.aadharFile?.[0];
     const panFile = req.files?.panFile?.[0];
     const shopImage = req.files?.shopImage?.[0];
+    const blankCheque = req.files?.blankCheque?.[0];
 
     const {
       firstName,
@@ -73,7 +75,7 @@ exports.offlineKycSubmission = async (req, res, next) => {
 
       accountHolderName,
       bankName,
-      branchName,
+
       accountNumber,
       ifscCode,
     } = req.body;
@@ -139,85 +141,152 @@ exports.offlineKycSubmission = async (req, res, next) => {
     if (!aadharFile) missingFields.push("aadharFile");
     if (!panFile) missingFields.push("panFile");
     if (!shopImage) missingFields.push("shopImage");
+    if (!blankCheque) missingFields.push("blankCheque");
 
     // check bank details
     if (!accountHolderName) missingFields.push("accountHolderName");
     if (!bankName) missingFields.push("bankName");
     if (!accountNumber) missingFields.push("accountNumber");
     if (!ifscCode) missingFields.push("ifscCode");
-    if (!branchName) missingFields.push("branchName");
 
     if (missingFields.length > 0) {
-      return res.status(400).json({
-        success: false,
-        message: `${missingFields.join(", ")} are required`,
-        missingFields,
-      });
+      const err = new Error(`${missingFields.join(", ")} are required`);
+      err.statusCode = 400;
+      err.missingFields = missingFields;
+      throw err;
     }
 
     const today = new Date();
 
     if (new Date(dob) > today) {
-      return res.status(400).json({ message: "DOB cannot be future" });
+      const err = new Error("DOB cannot be future");
+      err.statusCode = 400;
+      throw err;
     }
 
-    const kycData = new Kyc({
-      userId: req.user.id,
+    // const kycData = new Kyc({
+    //   userId: req.user.id,
 
-      firstName: firstName?.trim(),
-      lastName: lastName?.trim(),
-      fatherName: fatherName?.trim(),
-      gender: gender?.trim().toLowerCase(),
+    //   firstName: firstName?.trim(),
+    //   lastName: lastName?.trim(),
+    //   fatherName: fatherName?.trim(),
+    //   gender: gender?.trim().toLowerCase(),
 
-      email: email?.trim(),
-      phone: phone?.trim(),
-      dob,
+    //   email: email?.trim(),
+    //   phone: phone?.trim(),
+    //   dob,
 
-      personalAddress: {
-        address: personalAddress,
-        city: personalCity,
-        state: personalState,
-        pincode: personalPincode,
+    //   personalAddress: {
+    //     address: personalAddress,
+    //     city: personalCity,
+    //     state: personalState,
+    //     pincode: personalPincode,
+    //   },
+
+    //   shopName: shopName?.trim(),
+
+    //   businessAddress: {
+    //     address: businessAddress,
+    //     city: businessCity,
+    //     state: businessState,
+    //     pincode: businessPincode,
+    //   },
+
+    //   businessPanNumber,
+    //   gstNumber,
+
+    //   aadharNumber,
+    //   panNumber,
+
+    //   accountHolderName: accountHolderName?.trim(),
+    //   bankName: bankName?.trim(),
+    //   accountNumber: accountNumber?.trim(),
+    //   ifscCode: ifscCode?.trim(),
+
+    //   aadharFileUrl: `/uploads/kyc/${aadharFile.filename}`,
+    //   panFileUrl: `/uploads/kyc/${panFile.filename}`,
+    //   shopImageUrl: `/uploads/kyc/${shopImage.filename}`,
+    //   blankChequeUrl: `/uploads/kyc/${blankCheque.filename}`,
+    // });
+
+    const kyc = await Kyc.findOneAndUpdate(
+      { userId: req.user.id },
+      {
+        $set: {
+          firstName,
+          lastName,
+          fatherName,
+          gender: gender?.toLowerCase(),
+
+          email,
+          phone,
+          dob,
+
+          personalAddress: {
+            address: personalAddress,
+            city: personalCity,
+            state: personalState,
+            pincode: personalPincode,
+          },
+
+          shopName,
+
+          businessAddress: {
+            address: businessAddress,
+            city: businessCity,
+            state: businessState,
+            pincode: businessPincode,
+          },
+
+          businessPanNumber,
+          gstNumber,
+
+          aadharNumber,
+          panNumber,
+
+          accountHolderName,
+          bankName,
+          accountNumber,
+          ifscCode,
+
+          aadharFileUrl: `/uploads/kyc/${aadharFile.filename}`,
+          panFileUrl: `/uploads/kyc/${panFile.filename}`,
+          shopImageUrl: `/uploads/kyc/${shopImage.filename}`,
+          blankChequeUrl: `/uploads/kyc/${blankCheque.filename}`,
+
+          status: "pending",
+          rejectionReason: null,
+        },
       },
-
-      shopName: shopName?.trim(),
-
-      businessAddress: {
-        address: businessAddress,
-        city: businessCity,
-        state: businessState,
-        pincode: businessPincode,
+      {
+        new: true,
+        upsert: true,
+        runValidators: true,
+        session: session,
       },
+    );
 
-      businessPanNumber,
-      gstNumber,
+    await User.findByIdAndUpdate(
+      req.user.id,
+      {
+        $set: { kycStatus: "submitted" },
+      },
+      { session: session },
+    );
 
-      aadharNumber,
-      panNumber,
-
-      accountHolderName: accountHolderName?.trim(),
-      bankName: bankName?.trim(),
-      branchName: branchName?.trim(),
-      accountNumber: accountNumber?.trim(),
-      ifscCode: ifscCode?.trim(),
-
-      aadharFileUrl: `/uploads/kyc/${aadharFile.filename}`,
-      panFileUrl: `/uploads/kyc/${panFile.filename}`,
-      shopImageUrl: `/uploads/kyc/${shopImage.filename}`,
-    });
-
-    await kycData.save();
-
-    await User.findByIdAndUpdate(req.user.id, {
-      kycStatus: "submitted",
-    });
+    await session.commitTransaction();
 
     return res.status(200).json({
       success: true,
       message: "KYC submitted successfully and is pending for review",
     });
   } catch (error) {
+    if (session.inTransaction()) {
+      await session.abortTransaction();
+    }
     next(error);
+  } finally {
+    session.endSession();
   }
 };
 
@@ -386,7 +455,6 @@ exports.onlineKycSubmission = async (req, res, next) => {
 
       accountHolderName,
       bankName,
-      branchName,
       accountNumber,
       ifscCode,
     } = req.body;
@@ -432,7 +500,6 @@ exports.onlineKycSubmission = async (req, res, next) => {
     if (!bankName) missingFields.push("bankName");
     if (!accountNumber) missingFields.push("accountNumber");
     if (!ifscCode) missingFields.push("ifscCode");
-    if (!branchName) missingFields.push("branchName");
 
     if (missingFields.length > 0) {
       return res.status(400).json({
@@ -480,7 +547,6 @@ exports.onlineKycSubmission = async (req, res, next) => {
 
       accountHolderName,
       bankName,
-      branchName,
       accountNumber,
       ifscCode,
 
@@ -505,6 +571,7 @@ exports.onlineKycSubmission = async (req, res, next) => {
 };
 
 exports.reuploadKycSections = async (req, res, next) => {
+  console.log("Entered reupload Kyc Submission");
   try {
     const userId = req.user.id;
     let { sections } = req.body;
@@ -656,7 +723,7 @@ exports.reuploadKycSections = async (req, res, next) => {
           businessAddress,
           businessPanNumber: data.businessPanNumber || null,
           gstNumber: data.gstNumber || null,
-          shopImageUrl: `/uploads/kyc/${shopImage.filename}`,
+          shopImageUrl: `/uploads/kyc/${shopImage?.filename}`,
           businessDetailStatus: "pending",
         });
 
@@ -673,7 +740,6 @@ exports.reuploadKycSections = async (req, res, next) => {
         const required = [
           "accountHolderName",
           "bankName",
-          "branchName",
           "accountNumber",
           "ifscCode",
         ];
@@ -711,8 +777,8 @@ exports.reuploadKycSections = async (req, res, next) => {
         Object.assign(updateFields, {
           aadharNumber: data.aadharNumber,
           panNumber: data.panNumber,
-          aadharFileUrl: `/uploads/kyc/${aadharFile.filename}`,
-          panFileUrl: `/uploads/kyc/${panFile.filename}`,
+          aadharFileUrl: `/uploads/kyc/${aadharFile?.filename}`,
+          panFileUrl: `/uploads/kyc/${panFile?.filename}`,
           identityDetailStatus: "pending",
         });
 
