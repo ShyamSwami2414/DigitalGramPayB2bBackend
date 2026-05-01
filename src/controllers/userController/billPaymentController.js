@@ -334,18 +334,18 @@ exports.payBbpsBill = async (req, res, next) => {
 
     console.log(response, "controller response");
 
-    if (response.responseCode !== "000" || response.status === "ERROR") {
-      return res.status(500).json({
-        data: response,
-      });
-    }
-
     if (response?.status === "FAILED" || response?.status === "ERROR") {
       const data = response?.data?.errorInfo?.error?.[0];
       return res.status(500).json({
         success: false,
         message: data?.errorMessage || "Bill Payment Failed",
         // data: response?.data || null,
+      });
+    }
+
+    if (response?.data?.responseCode !== "000" || response.status === "ERROR") {
+      return res.status(500).json({
+        data: response,
       });
     }
 

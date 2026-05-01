@@ -16,19 +16,19 @@ exports.getAccountWhitelistRequest = async (req, res, next) => {
 
     const accountWhitelistRequests = await UserWhitelistAccount.aggregate([
       {
-        $match: filter, // 🔍 same as find(filter)
+        $match: filter, //  same as find(filter)
       },
       {
         $lookup: {
-          from: "users", // ⚠️ collection name (not model name)
+          from: "users", //  collection name (not model name)
           localField: "userId",
           foreignField: "_id",
-          as: "userId",
+          as: "user",
         },
       },
       {
         $unwind: {
-          path: "$userId",
+          path: "$user",
           preserveNullAndEmptyArrays: true, // optional
         },
       },
@@ -41,6 +41,7 @@ exports.getAccountWhitelistRequest = async (req, res, next) => {
           name: "$user.name",
           email: "$user.email",
           phone: "$user.phone",
+          userName : "$user.userName",
           // include other fields you want
           accountNumber: 1,
           ifscCode: 1,

@@ -331,7 +331,7 @@ exports.getAllLedgetEntryList = async (req, res, next) => {
     if (referenceId) filter.referenceId = referenceId;
 
     // ===============================
-    // ✅ VALIDATIONS
+    //  VALIDATIONS
     // ===============================
     if (isNaN(page) || page < 1)
       return res.status(400).json({ success: false, message: "Invalid page" });
@@ -368,7 +368,7 @@ exports.getAllLedgetEntryList = async (req, res, next) => {
     }
 
     // ===============================
-    // 🚀 BASE PIPELINE
+    //  BASE PIPELINE
     // ===============================
     const basePipeline = [
       { $match: filter },
@@ -397,7 +397,7 @@ exports.getAllLedgetEntryList = async (req, res, next) => {
 
       { $unset: ["user"] },
 
-      // 🔥 GROUP
+      //  GROUP
       {
         $group: {
           _id: "$referenceId",
@@ -405,7 +405,7 @@ exports.getAllLedgetEntryList = async (req, res, next) => {
         },
       },
 
-      // 🔥 FLAGS
+      //  FLAGS
       {
         $addFields: {
           hasRefund: {
@@ -450,7 +450,7 @@ exports.getAllLedgetEntryList = async (req, res, next) => {
         },
       },
 
-      // 🔥 MERGE CONDITION
+      //  MERGE CONDITION
       {
         $addFields: {
           shouldMerge: {
@@ -464,7 +464,7 @@ exports.getAllLedgetEntryList = async (req, res, next) => {
         },
       },
 
-      // 🔥 MERGE LOGIC
+      //  MERGE LOGIC
       {
         $project: {
           data: {
@@ -517,7 +517,7 @@ exports.getAllLedgetEntryList = async (req, res, next) => {
       { $replaceRoot: { newRoot: "$data" } },
 
       // ===============================
-      // 🔥 TDS LOOKUP (NO tdsRate)
+      //  TDS LOOKUP (NO tdsRate)
       // ===============================
       {
         $lookup: {
@@ -581,7 +581,7 @@ exports.getAllLedgetEntryList = async (req, res, next) => {
       {
         $unwind: {
           path: "$gst",
-          preserveNullAndEmptyArrays: true, // ✅ IMPORTANT
+          preserveNullAndEmptyArrays: true, //  IMPORTANT
         },
       },
       {
@@ -597,7 +597,7 @@ exports.getAllLedgetEntryList = async (req, res, next) => {
     ];
 
     // ===============================
-    // 📊 DATA WITH PAGINATION
+    //  DATA WITH PAGINATION
     // ===============================
     const dataPipeline = [
       ...basePipeline,
@@ -609,14 +609,14 @@ exports.getAllLedgetEntryList = async (req, res, next) => {
     const walletLedger = await WalletLedger.aggregate(dataPipeline);
 
     // ===============================
-    // 📊 TOTAL COUNT
+    //  TOTAL COUNT
     // ===============================
     const countPipeline = [...basePipeline, { $count: "total" }];
     const totalAgg = await WalletLedger.aggregate(countPipeline);
     const total = totalAgg[0]?.total || 0;
 
     // ===============================
-    // 💰 FORMAT
+    //  FORMAT
     // ===============================
     const formattedData = walletLedger.map((item) => ({
       ...item,

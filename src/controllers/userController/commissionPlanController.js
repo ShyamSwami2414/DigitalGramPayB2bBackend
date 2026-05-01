@@ -119,9 +119,11 @@ const getMyCommissionPlan = async (req, res, next) => {
 
       {
         $group: {
-          _id: "$serviceId",
+          _id: {
+            serviceId: "$serviceId",
+            pipelineCode: "$pipelineCode",
+          },
           serviceName: { $first: "$serviceName" },
-          pipelineCode: { $first: "$pipelineCode" },
           rows: {
             $push: {
               name: "$name",
@@ -138,9 +140,9 @@ const getMyCommissionPlan = async (req, res, next) => {
       {
         $project: {
           _id: 0,
-          serviceId: "$_id",
+          serviceId: "$_id.serviceId",
           serviceName: 1,
-          pipeline: "$pipelineCode",
+          pipeline: "$_id.pipelineCode",
           rows: 1,
         },
       },

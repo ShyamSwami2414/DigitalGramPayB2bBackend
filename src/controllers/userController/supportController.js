@@ -191,6 +191,8 @@ exports.createSupportRequest = async (req, res, next) => {
     const requiredFields = ["serviceId", "supportDetails"];
     const missingFields = [];
 
+    console.log(serviceId, "serviceId");
+
     requiredFields.forEach((field) => {
       if (!req.body[field]) {
         missingFields.push(field);

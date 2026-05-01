@@ -68,11 +68,8 @@ exports.initiateXpressPayoutTransfer = async ({
 
       pipeline: "xpress-payout1",
       referenceId: referenceId,
-      providerTxnId: result?.txn_ref,
       reportModel: PayoutTransaction,
       description: "Payout Charges",
-      apiResponse: result,
-      status: result?.data?.status,
 
       requestId: requestId,
       bankAccountNumber: bankAccountNumber,
@@ -124,7 +121,7 @@ exports.initiateXpressPayoutTransfer = async ({
         client_referenceId: referenceId,
         userId,
         requestId, //client send idempotency
-        amount, //paise
+        amount: amount, //paise
         bankAccount: bankAccountNumber,
         ifsc,
         name,
@@ -180,7 +177,7 @@ exports.initiateXpressPayoutTransfer = async ({
           },
           {
             $set: {
-              status: status,
+              status: result?.data?.status,
               providerTxnId: result?.txn_ref,
               remark: result ? result?.message : "",
               "meta.response": result,
@@ -193,7 +190,8 @@ exports.initiateXpressPayoutTransfer = async ({
           userId: userId,
           amount: amount, //paise
           serviceId: serviceId,
-          pipeline: pipeline,
+          serviceType: "XPRESS_PAYOUT",
+          pipeline: "xpress-payout1",
           referenceId: referenceId,
           session: successSesion,
         });

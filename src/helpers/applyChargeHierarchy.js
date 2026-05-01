@@ -71,8 +71,14 @@ exports.applyChargeHierarchy = async ({
       console.log(uplineUserCharges, "uplineUserCharges from charge hierarchy");
 
       // Margin calculation
-      const margin = uplineUserCharges - previousUserCharge;
+      const margin = previousUserCharge - uplineUserCharges;
       console.log(margin, "margin from charge hierarchy");
+
+      if (margin < 0) {
+        console.log(
+          `Invalid commission structure: upline (${uplineUserCharges}) < downline (${previousUserCharge})`,
+        );
+      }
 
       // Skip if no earning
       if (margin > 0) {

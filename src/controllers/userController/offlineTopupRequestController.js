@@ -553,7 +553,10 @@ exports.addOfflineTopupRequest = async (req, res, next) => {
         isActive: true,
       }).lean(),
 
-      FundRequest.findOne({ utrNumber }).lean(),
+      FundRequest.findOne({
+        utrNumber: utrNumber,
+        status: { $ne: "rejected" },
+      }).lean(),
     ]);
 
     if (!userExist) {

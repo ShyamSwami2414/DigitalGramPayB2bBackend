@@ -555,6 +555,32 @@ exports.fetchProfile = async (req, res, next) => {
         },
       },
 
+      // id charge populate
+      {
+        $lookup: {
+          from: "idcharges",
+          localField: "_id",
+          foreignField: "userId",
+          pipeline: [
+            {
+              $project: { rejectionReason: 1 },
+            },
+          ],
+          as: "idcharges",
+        },
+      },
+      {
+        $unwind: {
+          path: "$idcharges",
+          preserveNullAndEmptyArrays: true,
+        },
+      },
+      {
+        $addFields: {
+          idChargeRejectionReason: "$idcharges.rejectionReason",
+        },
+      },
+
       // package populate
       {
         $lookup: {

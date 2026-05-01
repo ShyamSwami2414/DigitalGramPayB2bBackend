@@ -260,7 +260,7 @@ exports.payBbpsBillService = async ({
     }
 
     if (result?.status === "FAILED" || result?.status === "ERROR") {
-      throw result;
+      return result;
     }
 
     if (result?.billerstatus?.responseCode) {

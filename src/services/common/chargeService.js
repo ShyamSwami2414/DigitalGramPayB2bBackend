@@ -25,12 +25,8 @@ const processCharges = async ({
   categoryId = null,
   pipeline,
   referenceId,
-  providerTxnId = null,
   reportModel, //dynamic (RechargeReport, BBPSReport, etc.)
   description,
-  apiResponse = null,
-  status,
-
   requestId,
   bankAccountNumber,
   ifsc,
@@ -64,6 +60,7 @@ const processCharges = async ({
 
     const gstAmount = calculateGst(charges); //paise
     const totalCharges = charges + gstAmount; //payable by user
+    const totalDebitAmount = amount + totalCharges; //payable by user
 
     if (paiseToRupee(charges) > 0) {
       const wallet = await UserWallet.findOneAndUpdate(
@@ -108,27 +105,6 @@ const processCharges = async ({
         { session: session },
       );
 
-      let payoutTxn = await PayoutTransaction.create(
-        [
-          {
-            userId: userId,
-            serviceType: serviceType,
-            referenceId: referenceId,
-            idempotencyKey: requestId,
-            bankAccount: bankAccountNumber,
-            ifsc: ifsc,
-            beneficiaryName: name,
-            beneficiaryPhone: phone,
-            amount: amount,
-            charge: charges,
-            gst: gstAmount,
-            totalDebit: totalCharges,
-            status: "INITIATED",
-          },
-        ],
-        { session: session },
-      );
-
       await GstLedger.create(
         [
           {
@@ -144,6 +120,27 @@ const processCharges = async ({
         { session: session },
       );
     }
+
+    let payoutTxn = await PayoutTransaction.create(
+      [
+        {
+          userId: userId,
+          serviceType: serviceType,
+          referenceId: referenceId,
+          idempotencyKey: requestId,
+          bankAccount: bankAccountNumber,
+          ifsc: ifsc,
+          beneficiaryName: name,
+          beneficiaryPhone: phone,
+          amount: amount,
+          charge: charges,
+          gst: gstAmount,
+          totalDebit: totalDebitAmount,
+          status: "INITIATED",
+        },
+      ],
+      { session: session },
+    );
 
     if (isInternalSession) {
       await session.commitTransaction();

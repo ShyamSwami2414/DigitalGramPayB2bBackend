@@ -18,7 +18,15 @@ const transactionSchema = new mongoose.Schema(
     serviceType: {
       type: String,
       required: true,
-      enum: ["RECHARGE", "BBPS", "DMT", "AEPS", "PAYOUT", "WALLET_TRANSFER"],
+      enum: [
+        "RECHARGE",
+        "BBPS",
+        "DMT",
+        "AEPS",
+        "XPRESS_PAYOUT",
+        "AEPS_PAYOUT",
+        "WALLET_TRANSFER",
+      ],
     },
 
     serviceCategory: {

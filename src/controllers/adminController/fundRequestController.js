@@ -581,7 +581,7 @@ exports.approveFundRequest = async (req, res, next) => {
           description: "Fund request approved",
         },
       ],
-      { session },
+      { session: session },
     );
 
     await session.commitTransaction();
