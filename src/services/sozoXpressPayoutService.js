@@ -65,11 +65,12 @@ exports.initiateXpressPayoutTransfer = async ({
       packageId: packageId,
       serviceId: serviceId,
       serviceType: "XPRESS_PAYOUT",
+      walletType: "main",
 
       pipeline: "xpress-payout1",
       referenceId: referenceId,
       reportModel: PayoutTransaction,
-      description: "Payout Charges",
+      description: "Xpress Payout Charges",
 
       requestId: requestId,
       bankAccountNumber: bankAccountNumber,

@@ -225,7 +225,7 @@ exports.updateServiceStatus = async (req, res, next) => {
     }
 
     const existingService = await Service.findOne({
-      _id: id,
+      "pipeline._id": id,
       isDeleted: false,
     });
 
@@ -235,7 +235,16 @@ exports.updateServiceStatus = async (req, res, next) => {
         .json({ success: false, message: "Service not found" });
     }
 
-    existingService.isActive = !existingService.isActive;
+    const pipelineItem = existingService.pipeline.id(id);
+
+    if (!pipelineItem) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Pipeline not found" });
+    }
+
+    pipelineItem.isActive = !pipelineItem.isActive;
+
     await existingService.save();
 
     return res.status(200).json({

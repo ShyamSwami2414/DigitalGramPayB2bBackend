@@ -38,6 +38,12 @@ const {
 const {
   initiateTransfer,
 } = require("../client/app/apis/dmt/fino/initiateTransaction");
+const {
+  validateUserPackageAndService,
+} = require("./common/validateUserPackageAndService");
+const { processCharges } = require("./common/chargeService");
+const PayoutTransaction = require("../models/sozopayoutTransactionModel");
+const Transaction = require("../models/transactionModel");
 
 exports.searchCustomer = async ({
   userId,
@@ -543,7 +549,6 @@ exports.transferFund = async ({
   const session = await mongoose.startSession();
   try {
     session.startTransaction();
-
     const referenceId = generateUniqueRefernceId();
 
     const [user, dmtCustomer] = await Promise.all([
@@ -567,6 +572,13 @@ exports.transferFund = async ({
     console.log(dmtCustomer, "dmtCustomer");
     console.log(user, "user");
 
+    const { packageId, serviceId } = await validateUserPackageAndService({
+      userId: userId,
+      serviceName: "dmt",
+      pipeline: "dmt1",
+      amount: amount, //paise
+    });
+
     const { openingBalance, closingBalance } = await debitWallet({
       userId: userId,
       amount: amount, //paise
@@ -575,6 +587,64 @@ exports.transferFund = async ({
       description: "DMT - Money Transfer",
       session: session,
     });
+
+    const { charges, gstAmount, totalCharges } = await processCharges({
+      userId: userId,
+      amount: amount, //paise
+      packageId: packageId,
+      serviceId: serviceId,
+      serviceType: "DMT",
+      walletType: "main",
+
+      pipeline: "dmt1",
+      referenceId: referenceId,
+      reportModel: PayoutTransaction,
+      description: "Dmt Payout Charges",
+
+      requestId: requestId,
+      bankAccountNumber: beneficiaryAccount,
+      ifsc: beneficiaryIfsc,
+      name: beneficiaryName,
+      phone: dmtCustomer?.mobile,
+
+      session: session,
+    });
+
+    await Transaction.create(
+      [
+        {
+          userId: userId,
+          referenceId: referenceId,
+          serviceType: "DMT",
+          amount: amount, //paise
+          wallet: "main",
+          type: "debit",
+          status: "INITIATED",
+          meta: {
+            request: {
+              userId,
+              requestId, //client send idempotency
+
+              merchantMobileNumber: user?.phone,
+              customerName: dmtCustomer?.customerName,
+              mobileNumber: dmtCustomer?.mobile,
+              otp: otp,
+
+              beneficiaryName: beneficiaryName,
+              beneficiaryAccount: beneficiaryAccount,
+              beneficiaryIfsc: beneficiaryIfsc,
+              amount: amount, //paise
+
+              tOtpRequestId: dmtCustomer?.tOtpRequestId,
+              latitude,
+              longitude,
+              publicIp,
+            },
+          },
+        },
+      ],
+      { session: session },
+    );
 
     await session.commitTransaction();
 
