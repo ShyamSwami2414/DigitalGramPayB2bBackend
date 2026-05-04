@@ -1,17 +1,17 @@
-const RechargeReport = require("../../models/rechargeReportModel");
+const EkoAepsReport = require("../../models/ekoAepsReportModel");
 const mongoose = require("mongoose");
 const User = require("../../models/userModel");
 const { paiseToRupee } = require("../../utils/money");
 
-//last 5 my recharge history
-const getMyLastRechargeHistory = async (req, res, next) => {
+//last 5 my aeps transaction history
+const getMyLastAepsHistory = async (req, res, next) => {
   try {
     let { search = "" } = req.query;
     search = search?.trim();
 
     const userId = req.user.id;
 
-    const result = await RechargeReport.aggregate([
+    const result = await EkoAepsReport.aggregate([
       {
         $match: {
           userId: new mongoose.Types.ObjectId(userId),
@@ -57,12 +57,16 @@ const getMyLastRechargeHistory = async (req, res, next) => {
       {
         $project: {
           amount: 1,
+          accountBalance: 1,
+          miniStatement: 1,
+          serviceType: 1,
           commission: 1,
           netCommission: 1,
           tds: 1,
           operatorName: 1,
+          message: "$reason" || "$message",
           mobileNumber: 1,
-          status: 1,
+          status: "$txnStatus",
           createdAt: 1,
           referenceId: 1,
         },
@@ -79,7 +83,7 @@ const getMyLastRechargeHistory = async (req, res, next) => {
 
     return res.status(200).json({
       success: true,
-      message: "Last recharge history fetched",
+      message: "Last transaction history fetched",
       data: formattedData,
     });
   } catch (error) {
@@ -87,7 +91,7 @@ const getMyLastRechargeHistory = async (req, res, next) => {
   }
 };
 
-const getRechargeStats = async (req, res, next) => {
+const getAepsStats = async (req, res, next) => {
   try {
     let { user = "", status = "", from = "", to = "", range = "" } = req.query;
     console.log(req.query);
@@ -144,7 +148,7 @@ const getRechargeStats = async (req, res, next) => {
     }
 
     if (status) {
-      filter.status = status?.toUpperCase();
+      filter.txnStatus = status?.toUpperCase();
     }
 
     if (range) {
@@ -271,7 +275,7 @@ const getRechargeStats = async (req, res, next) => {
         });
       }
 
-      // ✅ ONLY check if NOT self
+      //  ONLY check if NOT self
       if (!userObjectId.equals(currentUserId)) {
         const downlineData = await User.aggregate([
           { $match: { _id: currentUserId } },
@@ -409,7 +413,7 @@ const getRechargeStats = async (req, res, next) => {
         },
         {
           $lookup: {
-            from: "rechargereports",
+            from: "ekoaepsreports",
             let: { userIds: "$allUserIds" },
             pipeline: [
               {
@@ -431,29 +435,29 @@ const getRechargeStats = async (req, res, next) => {
                   totalCommission: { $sum: "$netCommission" },
 
                   successCount: {
-                    $sum: { $cond: [{ $eq: ["$status", "SUCCESS"] }, 1, 0] },
+                    $sum: { $cond: [{ $eq: ["$txnStatus", "SUCCESS"] }, 1, 0] },
                   },
                   successAmount: {
                     $sum: {
-                      $cond: [{ $eq: ["$status", "SUCCESS"] }, "$amount", 0],
+                      $cond: [{ $eq: ["$txnStatus", "SUCCESS"] }, "$amount", 0],
                     },
                   },
 
                   pendingCount: {
-                    $sum: { $cond: [{ $eq: ["$status", "PENDING"] }, 1, 0] },
+                    $sum: { $cond: [{ $eq: ["$txnStatus", "PENDING"] }, 1, 0] },
                   },
                   pendingAmount: {
                     $sum: {
-                      $cond: [{ $eq: ["$status", "PENDING"] }, "$amount", 0],
+                      $cond: [{ $eq: ["$txnStatus", "PENDING"] }, "$amount", 0],
                     },
                   },
 
                   failedCount: {
-                    $sum: { $cond: [{ $eq: ["$status", "FAILED"] }, 1, 0] },
+                    $sum: { $cond: [{ $eq: ["$txnStatus", "FAILED"] }, 1, 0] },
                   },
                   failedAmount: {
                     $sum: {
-                      $cond: [{ $eq: ["$status", "FAILED"] }, "$amount", 0],
+                      $cond: [{ $eq: ["$txnStatus", "FAILED"] }, "$amount", 0],
                     },
                   },
                 },
@@ -465,7 +469,7 @@ const getRechargeStats = async (req, res, next) => {
       );
     }
 
-    const Model = isSpecificUser ? RechargeReport : User;
+    const Model = isSpecificUser ? EkoAepsReport : User;
     const [result] = await Model.aggregate(pipeline);
 
     const statsData = isSpecificUser ? result : result?.stats?.[0];
@@ -519,7 +523,7 @@ const getRechargeStats = async (req, res, next) => {
   }
 };
 
-const getCompleteRechargeReport = async (req, res, next) => {
+const getCompleteAepsReport = async (req, res, next) => {
   try {
     let {
       page = 1,
@@ -595,7 +599,7 @@ const getCompleteRechargeReport = async (req, res, next) => {
     }
 
     if (status) {
-      filter.status = status?.toUpperCase();
+      filter.txnStatus = status?.toUpperCase();
     }
 
     if (range) {
@@ -758,7 +762,7 @@ const getCompleteRechargeReport = async (req, res, next) => {
     //   }
     // }
 
-    const rechargeReport = await User.aggregate([
+    const aepsReport = await User.aggregate([
       {
         $match: { _id: new mongoose.Types.ObjectId(userId) },
       },
@@ -787,7 +791,7 @@ const getCompleteRechargeReport = async (req, res, next) => {
       //  Lookup recharge reports
       {
         $lookup: {
-          from: "rechargereports",
+          from: "ekoaepsreports",
           let: { userIds: "$allUserIds" },
           pipeline: [
             {
@@ -798,7 +802,9 @@ const getCompleteRechargeReport = async (req, res, next) => {
               },
             },
 
-            ...(status ? [{ $match: { status: status.toUpperCase() } }] : []),
+            ...(status
+              ? [{ $match: { txnStatus: status.toUpperCase() } }]
+              : []),
 
             ...(operator
               ? [
@@ -829,21 +835,21 @@ const getCompleteRechargeReport = async (req, res, next) => {
               ? [{ $match: { createdAt: filter.createdAt } }]
               : []),
           ],
-          as: "recharges",
+          as: "aeps",
         },
       },
 
       //  IMPORTANT: unwind BEFORE pagination
       {
         $unwind: {
-          path: "$recharges",
+          path: "$aeps",
           preserveNullAndEmptyArrays: false,
         },
       },
 
       //  Replace root (flatten)
       {
-        $replaceRoot: { newRoot: "$recharges" },
+        $replaceRoot: { newRoot: "$aeps" },
       },
 
       //  Apply user filter (IMPORTANT FIX)
@@ -879,12 +885,14 @@ const getCompleteRechargeReport = async (req, res, next) => {
 
             {
               $project: {
-                mobileNumber: 1,
-                operatorId: 1,
-                operatorName: 1,
                 amount: 1,
+                accountBalance: 1,
+                miniStatement: 1,
+                serviceType: 1,
                 type: 1,
-                status: 1,
+                message: "$reason" || "$message",
+                mobileNumber: 1,
+                status: "$txnStatus",
                 commission: 1,
                 tds: 1,
                 netCommission: 1,
@@ -892,7 +900,6 @@ const getCompleteRechargeReport = async (req, res, next) => {
                 isRefunded: 1,
                 description: 1,
                 createdAt: 1,
-
                 user: {
                   _id: "$user._id",
                   firstName: "$user.firstName",
@@ -909,8 +916,8 @@ const getCompleteRechargeReport = async (req, res, next) => {
       },
     ]);
 
-    const data = rechargeReport[0]?.data || [];
-    const total = rechargeReport[0]?.totalCount[0]?.count || 0;
+    const data = aepsReport[0]?.data || [];
+    const total = aepsReport[0]?.totalCount[0]?.count || 0;
 
     const formattedData = data.map((item) => ({
       ...item,
@@ -922,7 +929,7 @@ const getCompleteRechargeReport = async (req, res, next) => {
 
     return res.status(200).json({
       success: true,
-      message: "Recharge reports fetched successfully",
+      message: "Aeps reports fetched successfully",
 
       data: formattedData,
       pagination: {
@@ -937,7 +944,7 @@ const getCompleteRechargeReport = async (req, res, next) => {
   }
 };
 
-const getRechargeReportById = async (req, res, next) => {
+const getAepsReportById = async (req, res, next) => {
   try {
     const { id } = req.params;
 
@@ -955,7 +962,7 @@ const getRechargeReportById = async (req, res, next) => {
       });
     }
 
-    const [report] = await RechargeReport.aggregate([
+    const [report] = await EkoAepsReport.aggregate([
       {
         $match: {
           _id: new mongoose.Types.ObjectId(id),
@@ -995,16 +1002,22 @@ const getRechargeReportById = async (req, res, next) => {
           userName: "$user.userName",
           email: "$user.email",
           phone: "$user.phone",
-          serviceName: "RECHARGE",
+          serviceName: "AEPS",
           providerTxnId: "$provider.providerTxnId",
-          // requestBody: "$provider.request",
-          // responseBody: "$provider.response",
+          requestBody: "$provider.request",
+          responseBody: "$provider.response",
         },
       },
       {
         $project: {
           user: 0,
           provider: 0,
+          outletId: 0,
+          providerName: 0,
+          providerName: 0,
+          updatedAt: 0,
+          aadhaar: 0,
+          rawResponse: 0,
         },
       },
     ]);
@@ -1012,7 +1025,7 @@ const getRechargeReportById = async (req, res, next) => {
     if (!report) {
       return res.status(404).json({
         success: false,
-        message: "Recharge Report not found",
+        message: "Aeps Report not found",
       });
     }
 
@@ -1028,7 +1041,7 @@ const getRechargeReportById = async (req, res, next) => {
 
     return res.status(200).json({
       success: true,
-      message: "Recharge report fetched successfully",
+      message: "Aeps report fetched successfully",
       data: formattedData,
     });
   } catch (error) {
@@ -1037,8 +1050,8 @@ const getRechargeReportById = async (req, res, next) => {
 };
 
 module.exports = {
-  getMyLastRechargeHistory,
-  getRechargeStats,
-  getCompleteRechargeReport,
-  getRechargeReportById,
+  getMyLastAepsHistory,
+  getAepsStats,
+  getCompleteAepsReport,
+  getAepsReportById,
 };

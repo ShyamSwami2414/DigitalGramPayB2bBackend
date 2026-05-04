@@ -142,26 +142,28 @@ const processCharges = async ({
       );
     }
 
-    let payoutTxn = await PayoutTransaction.create(
-      [
-        {
-          userId: userId,
-          serviceType: serviceType,
-          referenceId: referenceId,
-          idempotencyKey: requestId,
-          bankAccount: bankAccountNumber,
-          ifsc: ifsc,
-          beneficiaryName: name,
-          beneficiaryPhone: phone,
-          amount: amount,
-          charge: charges,
-          gst: gstAmount,
-          totalDebit: totalDebitAmount,
-          status: "INITIATED",
-        },
-      ],
-      { session: session },
-    );
+    if (serviceType !== "DMT") {
+      await PayoutTransaction.create(
+        [
+          {
+            userId: userId,
+            serviceType: serviceType,
+            referenceId: referenceId,
+            idempotencyKey: requestId,
+            bankAccount: bankAccountNumber,
+            ifsc: ifsc,
+            beneficiaryName: name,
+            beneficiaryPhone: phone,
+            amount: amount,
+            charge: charges,
+            gst: gstAmount,
+            totalDebit: totalDebitAmount,
+            status: "INITIATED",
+          },
+        ],
+        { session: session },
+      );
+    }
 
     if (isInternalSession) {
       await session.commitTransaction();

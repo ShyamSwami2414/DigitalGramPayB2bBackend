@@ -42,8 +42,11 @@ const {
   validateUserPackageAndService,
 } = require("./common/validateUserPackageAndService");
 const { processCharges } = require("./common/chargeService");
-const PayoutTransaction = require("../models/sozopayoutTransactionModel");
+const DmtReport = require("../models/dmtReportModel");
 const Transaction = require("../models/transactionModel");
+const WalletLedger = require("../models/walletLedgerModel");
+const NobleDmtBeneficiary = require("../models/nobleDmtBeneficiaryModel");
+const { applyChargeHierarchy } = require("../helpers/applyChargeHierarchy");
 
 exports.searchCustomer = async ({
   userId,
@@ -267,7 +270,6 @@ exports.generateRegOtp = async ({
     const [user, dmtCustomer] = await Promise.all([
       User.findById(userId).select("phone").lean(),
       NobleDmtFinoCustomer.findOne({
-        userId: userId,
         mobile: mobileNumber,
       })
         .select("customerName")
@@ -348,7 +350,6 @@ exports.registerCustomer = async ({
     const [user, dmtCustomer] = await Promise.all([
       User.findById(userId).select("phone").lean(),
       NobleDmtFinoCustomer.findOne({
-        userId: userId,
         mobile: mobileNumber,
       })
         .select(" ekycRequestId otpRequestId")
@@ -470,12 +471,25 @@ exports.generateTOtp = async ({
     const [user, dmtCustomer] = await Promise.all([
       User.findById(userId).select("phone").lean(),
       NobleDmtFinoCustomer.findOne({
-        userId: userId,
         mobile: mobileNumber,
       })
         .select("customerName ekycRequestId otpRequestId")
         .lean(),
     ]);
+
+    if (!user) {
+      const err = new Error("Dmt User not Found");
+      err.statusCode = 404;
+      throw err;
+    }
+
+    if (!dmtCustomer) {
+      const err = new Error(
+        "Customer not Found,complete previous steps properly",
+      );
+      err.statusCode = 404;
+      throw err;
+    }
 
     console.log(dmtCustomer, "dmtCustomer");
     console.log(user, "user");
@@ -508,7 +522,7 @@ exports.generateTOtp = async ({
       };
     }
 
-    console.log("customer ekyc fino service", JSON.stringify(result, null, 2));
+    console.log("customer totp fino service", JSON.stringify(result, null, 2));
 
     console.log("Status", result?.status_code || result?.status);
 
@@ -542,6 +556,7 @@ exports.transferFund = async ({
   publicIp,
   otp,
   amount, //paise
+  beneficiaryId,
   beneficiaryName,
   beneficiaryAccount,
   beneficiaryIfsc,
@@ -554,7 +569,6 @@ exports.transferFund = async ({
     const [user, dmtCustomer] = await Promise.all([
       User.findById(userId).select("phone").lean(),
       NobleDmtFinoCustomer.findOne({
-        userId: userId,
         mobile: mobileNumber,
       })
         .select("customerName mobile tOtpRequestId")
@@ -565,6 +579,12 @@ exports.transferFund = async ({
       const err = new Error(
         "Customer not found, complete previous steps properly",
       );
+      err.statusCode = 404;
+      throw err;
+    }
+
+    if (!user) {
+      const err = new Error("User not found");
       err.statusCode = 404;
       throw err;
     }
@@ -598,8 +618,8 @@ exports.transferFund = async ({
 
       pipeline: "dmt1",
       referenceId: referenceId,
-      reportModel: PayoutTransaction,
-      description: "Dmt Payout Charges",
+      reportModel: DmtReport,
+      description: "Dmt  Charges",
 
       requestId: requestId,
       bankAccountNumber: beneficiaryAccount,
@@ -609,6 +629,28 @@ exports.transferFund = async ({
 
       session: session,
     });
+
+    const totalDebitAmount = amount + totalCharges;
+
+    await DmtReport.create(
+      [
+        {
+          userId: userId,
+          referenceId: referenceId,
+          customerId: dmtCustomer?._id,
+          beneficiaryId: beneficiaryId,
+          beneficiaryAccount: beneficiaryAccount,
+          beneficiaryIfsc: beneficiaryIfsc,
+          beneficiaryName: beneficiaryName,
+          amount: amount, //paise
+          charge: charges,
+          gst: gstAmount,
+          totalDebit: totalDebitAmount,
+          status: "INITIATED",
+        },
+      ],
+      { session: session },
+    );
 
     await Transaction.create(
       [
@@ -679,7 +721,7 @@ exports.transferFund = async ({
           error?.response?.data?.message ||
           error.message ||
           "Something went wrong",
-        // data: error?.response?.data || error?.fullResponse || null,
+        data: error?.response?.data || error?.fullResponse || null,
       };
     }
 
@@ -689,27 +731,88 @@ exports.transferFund = async ({
     );
 
     console.log("Status", result?.status_code || result?.status);
+    console.log(result);
 
     if (result?.data?.status === 1 && result?.data?.statusCode === "DB0031") {
-      console.log(result);
-      return result;
-    } else {
+      console.log("Entered Success/Pending Block");
+
+      const successSesion = await mongoose.startSession();
+
+      try {
+        successSesion.startTransaction();
+        await WalletLedger.updateOne(
+          { referenceId: referenceId, serviceType: "DMT" },
+          { $set: { status: "SUCCESS" } },
+          { session: successSesion },
+        );
+
+        await DmtReport.updateOne(
+          { referenceId: referenceId },
+          { $set: { status: "SUCCESS" } },
+          { session: successSesion },
+        );
+
+        await Transaction.updateOne(
+          {
+            referenceId: referenceId,
+          },
+          {
+            $set: {
+              status: "SUCCESS",
+              providerTxnId: result?.data?.responseData?.[0]?.transactionId,
+              remark: result ? result?.message : "",
+              "meta.response": result,
+            },
+          },
+          { session: successSesion },
+        );
+
+        await applyChargeHierarchy({
+          userId: userId,
+          amount: amount, //paise
+          serviceId: serviceId,
+          serviceType: "DMT",
+          pipeline: "dmt1",
+          referenceId: referenceId,
+          session: successSesion,
+        });
+
+        await successSesion.commitTransaction();
+
+        return result;
+      } catch (error) {
+        if (successSesion.inTransaction()) {
+          await successSesion.abortTransaction();
+          console.error("Charges Processing failed:", error);
+        }
+      } finally {
+        successSesion.endSession();
+      }
+    } else if (result?.status === "FAILED") {
       const refundSession = await mongoose.startSession();
       try {
         refundSession.startTransaction();
 
         await processRefund({
           userId: userId,
-          amount: amount, //paise
+          amount: totalDebitAmount, //paise including gst
           referenceId: referenceId,
+          serviceType: "DMT",
           walletType: "main",
           description: `Refund: DMT - Money Transfer `,
           session: refundSession,
         });
 
+        await DmtReport.findOneAndUpdate(
+          { referenceId: referenceId },
+          {
+            $set: { status: "FAILED", message: result ? result?.message : "" },
+          },
+          { session: refundSession },
+        );
+
         await refundSession.commitTransaction();
 
-        console.log(result);
         return result;
       } catch (refundError) {
         if (refundSession.inTransaction()) {
@@ -719,6 +822,24 @@ exports.transferFund = async ({
       } finally {
         refundSession.endSession();
       }
+    } else {
+      await DmtReport.findOneAndUpdate(
+        { referenceId: referenceId },
+        { $set: { status: "PENDING", message: result ? result?.message : "" } },
+      );
+
+      await Transaction.updateOne(
+        { referenceId: referenceId },
+        {
+          $set: {
+            status: "PENDING",
+            remark: result ? result?.message : "",
+            "meta.response": result,
+          },
+        },
+      );
+
+      return result;
     }
   } catch (error) {
     if (session.inTransaction()) {
@@ -762,9 +883,9 @@ exports.listBeneficiary = async ({ userId, requestId, remitterMobile }) => {
       };
     }
 
-    console.log("add ben dmt service", JSON.stringify(result, null, 2));
+    console.log("list ben dmt service", JSON.stringify(result, null, 2));
 
-    console.log("Status", result?.status_code || result?.status);
+    console.log("Status", result?.data?.status || result?.status);
 
     if (
       result?.status === "FAILED" ||
@@ -898,7 +1019,7 @@ exports.deleteBeneficiary = async ({
       };
     }
 
-    console.log("add ben dmt service", JSON.stringify(result, null, 2));
+    console.log("delete ben dmt service", JSON.stringify(result, null, 2));
 
     console.log("Status", result?.status_code || result?.status);
 

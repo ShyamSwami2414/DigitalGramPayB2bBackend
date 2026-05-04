@@ -25,7 +25,6 @@ exports.aepsTransaction = async ({
 
   const amountInRupee = paiseToRupee(amount);
   console.log("amountInRupee", amountInRupee);
-  return;
 
   try {
     const response = await csplClient.post(

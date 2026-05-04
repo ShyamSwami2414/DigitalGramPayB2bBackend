@@ -95,7 +95,7 @@ const debitWallet = async ({
     },
     {
       new: true,
-      session,
+      session: session,
     },
   );
 

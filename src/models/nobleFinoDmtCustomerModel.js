@@ -2,12 +2,6 @@ const mongoose = require("mongoose");
 
 const nobleFinoDmtCustomerSchema = new mongoose.Schema(
   {
-    userId: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "User",
-      required: true,
-    },
-
     customerName: {
       type: String,
       trim: true,

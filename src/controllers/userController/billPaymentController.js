@@ -335,7 +335,9 @@ exports.payBbpsBill = async (req, res, next) => {
     console.log(response, "controller response");
 
     if (response?.status === "FAILED" || response?.status === "ERROR") {
-      const data = response?.data?.errorInfo?.error?.[0];
+      const data =
+        response?.data?.errorInfo?.error ||
+        response?.data?.errorInfo?.error?.[0];
       return res.status(500).json({
         success: false,
         message: data?.errorMessage || "Bill Payment Failed",

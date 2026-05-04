@@ -265,6 +265,22 @@ exports.initiateXpressPayoutTransfer = async ({
         { referenceId },
         { $set: { status: "PENDING" } },
       );
+
+      await Transaction.updateOne(
+        { referenceId: referenceId },
+        {
+          $set: {
+            status: "PENDING",
+            remark: result ? result?.message : "",
+            "meta.response": result,
+          },
+        },
+      );
+
+      const err = new Error(result?.message || "API Failed");
+      err.statusCode = 400;
+      err.data = result?.data;
+      throw err;
     }
   } catch (error) {
     if (session.inTransaction()) {

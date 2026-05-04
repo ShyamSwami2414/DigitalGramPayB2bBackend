@@ -1,17 +1,17 @@
-const RechargeReport = require("../../models/rechargeReportModel");
+const DmtReport = require("../../models/dmtReportModel");
 const mongoose = require("mongoose");
 const User = require("../../models/userModel");
 const { paiseToRupee } = require("../../utils/money");
 
-//last 5 my recharge history
-const getMyLastRechargeHistory = async (req, res, next) => {
+//last 5 my dmt transaction history
+const getMyLastDmtHistory = async (req, res, next) => {
   try {
     let { search = "" } = req.query;
     search = search?.trim();
 
     const userId = req.user.id;
 
-    const result = await RechargeReport.aggregate([
+    const result = await DmtReport.aggregate([
       {
         $match: {
           userId: new mongoose.Types.ObjectId(userId),
@@ -56,15 +56,20 @@ const getMyLastRechargeHistory = async (req, res, next) => {
       },
       {
         $project: {
+          beneficiaryName: 1,
+          beneficiaryIfsc: 1,
+          beneficiaryAccount: 1,
           amount: 1,
-          commission: 1,
-          netCommission: 1,
+          charge: 1,
+          gst: 1,
           tds: 1,
-          operatorName: 1,
+          totalCharges: "$totalDebit",
+          message: "$reason" || "$message",
           mobileNumber: 1,
-          status: 1,
+          status: "$status",
           createdAt: 1,
           referenceId: 1,
+          message: 1,
         },
       },
     ]);
@@ -72,14 +77,15 @@ const getMyLastRechargeHistory = async (req, res, next) => {
     const formattedData = result.map((item) => ({
       ...item,
       amount: paiseToRupee(item?.amount),
-      commission: paiseToRupee(item?.commission),
+      totalCharges: paiseToRupee(item?.totalCharges),
+      charge: paiseToRupee(item?.charge),
       tds: paiseToRupee(item?.tds),
-      netCommission: paiseToRupee(item?.netCommission),
+      gst: paiseToRupee(item?.gst),
     }));
 
     return res.status(200).json({
       success: true,
-      message: "Last recharge history fetched",
+      message: "Last transaction history fetched",
       data: formattedData,
     });
   } catch (error) {
@@ -87,7 +93,7 @@ const getMyLastRechargeHistory = async (req, res, next) => {
   }
 };
 
-const getRechargeStats = async (req, res, next) => {
+const getDmtStats = async (req, res, next) => {
   try {
     let { user = "", status = "", from = "", to = "", range = "" } = req.query;
     console.log(req.query);
@@ -271,7 +277,7 @@ const getRechargeStats = async (req, res, next) => {
         });
       }
 
-      // ✅ ONLY check if NOT self
+      //  ONLY check if NOT self
       if (!userObjectId.equals(currentUserId)) {
         const downlineData = await User.aggregate([
           { $match: { _id: currentUserId } },
@@ -330,7 +336,7 @@ const getRechargeStats = async (req, res, next) => {
             _id: null,
             totalCount: { $sum: 1 },
             totalAmount: { $sum: "$amount" },
-            totalCommission: { $sum: "$netCommission" },
+            totalCharges: { $sum: "$netCharges" },
 
             successCount: {
               $sum: { $cond: [{ $eq: ["$status", "SUCCESS"] }, 1, 0] },
@@ -366,7 +372,7 @@ const getRechargeStats = async (req, res, next) => {
             total: {
               count: "$totalCount",
               amount: "$totalAmount",
-              commission: "$totalCommission",
+              charges: "$totalDebit",
             },
             success: {
               count: "$successCount",
@@ -409,7 +415,7 @@ const getRechargeStats = async (req, res, next) => {
         },
         {
           $lookup: {
-            from: "rechargereports",
+            from: "dmtreports",
             let: { userIds: "$allUserIds" },
             pipeline: [
               {
@@ -428,7 +434,7 @@ const getRechargeStats = async (req, res, next) => {
                   _id: null,
                   totalCount: { $sum: 1 },
                   totalAmount: { $sum: "$amount" },
-                  totalCommission: { $sum: "$netCommission" },
+                  totalCharges: { $sum: "$totalDebit" },
 
                   successCount: {
                     $sum: { $cond: [{ $eq: ["$status", "SUCCESS"] }, 1, 0] },
@@ -465,7 +471,7 @@ const getRechargeStats = async (req, res, next) => {
       );
     }
 
-    const Model = isSpecificUser ? RechargeReport : User;
+    const Model = isSpecificUser ? DmtReport : User;
     const [result] = await Model.aggregate(pipeline);
 
     const statsData = isSpecificUser ? result : result?.stats?.[0];
@@ -473,7 +479,7 @@ const getRechargeStats = async (req, res, next) => {
     //aggregation start ---------------------------------
 
     const defaultStats = {
-      total: { count: 0, amount: 0, commission: 0 },
+      total: { count: 0, amount: 0, charges: 0 },
       success: { count: 0, amount: 0 },
       pending: { count: 0, amount: 0 },
       failed: { count: 0, amount: 0 },
@@ -486,8 +492,8 @@ const getRechargeStats = async (req, res, next) => {
             amount: paiseToRupee(
               statsData.totalAmount ?? statsData.total?.amount ?? 0,
             ),
-            commission: paiseToRupee(
-              statsData.totalCommission ?? statsData.total?.commission ?? 0,
+            charges: paiseToRupee(
+              statsData.totalCharges ?? statsData.total?.charges ?? 0,
             ),
           },
           success: {
@@ -519,7 +525,7 @@ const getRechargeStats = async (req, res, next) => {
   }
 };
 
-const getCompleteRechargeReport = async (req, res, next) => {
+const getCompleteDmtReport = async (req, res, next) => {
   try {
     let {
       page = 1,
@@ -758,7 +764,7 @@ const getCompleteRechargeReport = async (req, res, next) => {
     //   }
     // }
 
-    const rechargeReport = await User.aggregate([
+    const dmtReport = await User.aggregate([
       {
         $match: { _id: new mongoose.Types.ObjectId(userId) },
       },
@@ -787,7 +793,7 @@ const getCompleteRechargeReport = async (req, res, next) => {
       //  Lookup recharge reports
       {
         $lookup: {
-          from: "rechargereports",
+          from: "dmtreports",
           let: { userIds: "$allUserIds" },
           pipeline: [
             {
@@ -829,21 +835,21 @@ const getCompleteRechargeReport = async (req, res, next) => {
               ? [{ $match: { createdAt: filter.createdAt } }]
               : []),
           ],
-          as: "recharges",
+          as: "dmt",
         },
       },
 
       //  IMPORTANT: unwind BEFORE pagination
       {
         $unwind: {
-          path: "$recharges",
+          path: "$dmt",
           preserveNullAndEmptyArrays: false,
         },
       },
 
       //  Replace root (flatten)
       {
-        $replaceRoot: { newRoot: "$recharges" },
+        $replaceRoot: { newRoot: "$dmt" },
       },
 
       //  Apply user filter (IMPORTANT FIX)
@@ -879,20 +885,18 @@ const getCompleteRechargeReport = async (req, res, next) => {
 
             {
               $project: {
-                mobileNumber: 1,
-                operatorId: 1,
-                operatorName: 1,
                 amount: 1,
-                type: 1,
-                status: 1,
-                commission: 1,
+                message: "$reason" || "$message",
+                beneficiaryName: 1,
+                beneficiaryIfsc: 1,
+                beneficiaryAccount: 1,
+                status: "$status",
+                charge: 1,
                 tds: 1,
-                netCommission: 1,
+                gst: 1,
+                totalCharges: "$totalDebit",
                 referenceId: 1,
-                isRefunded: 1,
-                description: 1,
                 createdAt: 1,
-
                 user: {
                   _id: "$user._id",
                   firstName: "$user.firstName",
@@ -909,20 +913,21 @@ const getCompleteRechargeReport = async (req, res, next) => {
       },
     ]);
 
-    const data = rechargeReport[0]?.data || [];
-    const total = rechargeReport[0]?.totalCount[0]?.count || 0;
+    const data = dmtReport[0]?.data || [];
+    const total = dmtReport[0]?.totalCount[0]?.count || 0;
 
     const formattedData = data.map((item) => ({
       ...item,
       amount: paiseToRupee(item.amount),
-      commission: paiseToRupee(item.commission),
+      charge: paiseToRupee(item.charge),
       tds: paiseToRupee(item.tds),
-      netCommission: paiseToRupee(item.netCommission),
+      gst: paiseToRupee(item.gst),
+      totalCharges: paiseToRupee(item.totalCharges),
     }));
 
     return res.status(200).json({
       success: true,
-      message: "Recharge reports fetched successfully",
+      message: "Dmt reports fetched successfully",
 
       data: formattedData,
       pagination: {
@@ -937,7 +942,7 @@ const getCompleteRechargeReport = async (req, res, next) => {
   }
 };
 
-const getRechargeReportById = async (req, res, next) => {
+const getDmtReportById = async (req, res, next) => {
   try {
     const { id } = req.params;
 
@@ -955,7 +960,7 @@ const getRechargeReportById = async (req, res, next) => {
       });
     }
 
-    const [report] = await RechargeReport.aggregate([
+    const [report] = await DmtReport.aggregate([
       {
         $match: {
           _id: new mongoose.Types.ObjectId(id),
@@ -995,16 +1000,33 @@ const getRechargeReportById = async (req, res, next) => {
           userName: "$user.userName",
           email: "$user.email",
           phone: "$user.phone",
-          serviceName: "RECHARGE",
+          serviceName: "DMT",
           providerTxnId: "$provider.providerTxnId",
-          // requestBody: "$provider.request",
-          // responseBody: "$provider.response",
+          requestBody: "$provider.request",
+          responseBody: "$provider.response",
         },
       },
       {
         $project: {
-          user: 0,
-          provider: 0,
+          amount: 1,
+          message: "$reason" || "$message",
+          beneficiaryName: 1,
+          beneficiaryIfsc: 1,
+          beneficiaryAccount: 1,
+          status: "$status",
+          charge: 1,
+          tds: 1,
+          gst: 1,
+          totalCharges: "$totalDebit",
+          referenceId: 1,
+          createdAt: 1,
+          user: {
+            _id: "$user._id",
+            firstName: "$user.firstName",
+            lastName: "$user.lastName",
+            userName: "$user.userName",
+            level: "$user.level",
+          },
         },
       },
     ]);
@@ -1012,7 +1034,7 @@ const getRechargeReportById = async (req, res, next) => {
     if (!report) {
       return res.status(404).json({
         success: false,
-        message: "Recharge Report not found",
+        message: "Dmt Report not found",
       });
     }
 
@@ -1020,15 +1042,16 @@ const getRechargeReportById = async (req, res, next) => {
       ? {
           ...report,
           amount: paiseToRupee(report?.amount),
-          commission: paiseToRupee(report?.commission),
+          charge: paiseToRupee(report?.charge),
           tds: paiseToRupee(report?.tds),
-          netCommission: paiseToRupee(report?.netCommission),
+          gst: paiseToRupee(report?.gst),
+          totalCharges: paiseToRupee(report?.totalCharges),
         }
       : null;
 
     return res.status(200).json({
       success: true,
-      message: "Recharge report fetched successfully",
+      message: "DMT report fetched successfully",
       data: formattedData,
     });
   } catch (error) {
@@ -1037,8 +1060,8 @@ const getRechargeReportById = async (req, res, next) => {
 };
 
 module.exports = {
-  getMyLastRechargeHistory,
-  getRechargeStats,
-  getCompleteRechargeReport,
-  getRechargeReportById,
+  getMyLastDmtHistory,
+  getDmtStats,
+  getCompleteDmtReport,
+  getDmtReportById,
 };
