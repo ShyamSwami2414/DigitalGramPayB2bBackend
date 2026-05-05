@@ -68,7 +68,7 @@ exports.initiateTransfer = async ({
     const responseTime = Date.now() - startTime;
 
     const isSuccess =
-      response?.data?.data?.statusCode === "DB0031" ||
+      response?.data?.data?.statusCode === "DB0031" &&
       response?.data?.data?.status === 1;
 
     let providerStatus = isSuccess ? "SUCCESS" : "FAILED";
@@ -76,7 +76,7 @@ exports.initiateTransfer = async ({
     if (providerStatus !== "SUCCESS") {
       throw {
         providerStatus: providerStatus,
-        message: response?.data.message,
+        message: response?.data?.message || response?.data?.description,
         reason: response?.data?.data?.description,
         fullResponse: response?.data,
       };

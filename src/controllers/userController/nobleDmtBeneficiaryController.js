@@ -63,12 +63,37 @@ const getNobleDmtBeneficiary = async (req, res, next) => {
       response?.data?.status === 1 &&
       response?.data?.statusCode === "SS0011"
     ) {
-      const data = response?.data?.responseData;
+      const dataArray = response?.data?.responseData || [];
+
+      if (dataArray.length) {
+        const operations = dataArray.map((data) => ({
+          updateOne: {
+            filter: {
+              userId: userId,
+              accountNumber: data?.account_no,
+            },
+            update: {
+              $setOnInsert: {
+                userId: userId,
+                remitterMobile: mobile,
+                bankName: data?.bank,
+                ifsc: data?.ifsc,
+                accountHolderName: data?.account_name,
+                accountNumber: data?.account_no,
+                beneficiaryMobile: data?.bene_mobile,
+              },
+            },
+            upsert: true,
+          },
+        }));
+
+        await NobleDmtBeneficiary.bulkWrite(operations);
+      }
 
       return res.status(201).json({
         success: true,
         message: response?.message,
-        data: data,
+        data: response?.data?.responseData,
       });
     } else {
       throw Error(response?.message || response?.data?.message);

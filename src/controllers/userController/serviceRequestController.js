@@ -77,6 +77,9 @@ exports.addServiceRequest = async (req, res, next) => {
       pipelineCode: pipeline,
     });
 
+    console.log(req.body, "body");
+    console.log(existingRequest, "existingRequest");
+
     if (existingRequest) {
       if (existingRequest.status === "rejected") {
         //  Reuse old request
@@ -87,6 +90,11 @@ exports.addServiceRequest = async (req, res, next) => {
         return res.status(200).json({
           success: true,
           message: "Request resubmitted successfully",
+        });
+      } else if (existingRequest.status === "assigned") {
+        return res.status(400).json({
+          success: false,
+          message: "Service already assigned to you",
         });
       }
 

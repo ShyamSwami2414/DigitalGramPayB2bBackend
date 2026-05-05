@@ -306,7 +306,7 @@ exports.approveServiceRequest = async (req, res, next) => {
       },
       {
         $set: {
-          status: "approved",
+          status: "assigned",
         },
       },
       {

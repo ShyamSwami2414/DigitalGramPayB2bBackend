@@ -16,6 +16,7 @@ module.exports = (app) => {
   app.use(`${apiPrefix}/accountWhitelist`, require("./accountWhitelistRoute"));
   app.use(`${apiPrefix}/order`, require("./orderRoute"));
   app.use(`${apiPrefix}/aeps`, require("./ekoAepsRoute"));
+  app.use(`${apiPrefix}/aepsReport`, require("./ekoAepsReportRoute"));
   app.use(`${apiPrefix}/state`, require("./ekoStateRoute"));
   app.use(`${apiPrefix}/ebank`, require("./ekoBankList"));
   app.use(`${apiPrefix}/shopping`, require("./ecommerceRoute"));
@@ -38,7 +39,7 @@ module.exports = (app) => {
   app.use(`${apiPrefix}/walletLedger`, require("./walletLedgerRoute"));
   app.use(`${apiPrefix}/rechargeReport`, require("./rechargeReportRoute"));
   app.use(`${apiPrefix}/bbpsReport`, require("./billPaymentReportRoute"));
-  app.use(`${apiPrefix}/dmtReport`, require("./dmtReportRoute"));
+  app.use(`${apiPrefix}/dmtReport`, require("./nobleDmtReportRoute"));
   app.use(`${apiPrefix}/search`, require("./transactionSearchRoute"));
   app.use(`${apiPrefix}/charge`, require("./idChargeRequest"));
   app.use(`${apiPrefix}/serviceRequest`, require("./serviceRequestRoute"));
@@ -46,6 +47,7 @@ module.exports = (app) => {
   app.use(`${apiPrefix}/aepsbank`, require("./instantAepsBankRoute"));
 
   app.use(`${apiPrefix}/aepsInstant`, require("./instantAepsRoute"));
+  app.use(`${apiPrefix}/insAepsReport`, require("./instantAepsReportRoute"));
 
   app.use(`${apiPrefix}/dmt`, require("./nobleFinoDmtRoute"));
   app.use(`${apiPrefix}/dmt-ben`, require("./nobleDmtBeneficiaryRoute"));
@@ -69,8 +71,5 @@ module.exports = (app) => {
     `${apiPrefix}/xpressPayoutReport`,
     require("./sozoXpressPayoutReportRoute"),
   );
-  app.use(
-    `${apiPrefix}/dashboard`,
-    require("./dashboardRoute"),
-  );
+  app.use(`${apiPrefix}/dashboard`, require("./dashboardRoute"));
 };

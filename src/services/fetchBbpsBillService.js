@@ -23,7 +23,10 @@ exports.fetchBbpsBillService = async (userId, billerId, inputParams) => {
       inputParams: inputParams,
     });
 
-    console.log("Bbps bill result service", result);
+    console.log(
+      "Bbps bill fetch result service:",
+      JSON.stringify(result, null, 2),
+    );
 
     if (result?.status === "FAILED" || result?.status === "ERROR") {
       throw result;

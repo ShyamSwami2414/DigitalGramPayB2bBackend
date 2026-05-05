@@ -21,12 +21,12 @@ exports.doRecharge = async ({
   const amountInRupee = paiseToRupee(amount); //rupee
   console.log(amountInRupee, "amountInRupee");
 
-  return {
-    status: "FAILED",
-    txn_ref: "RCHG20260320153342533099",
-    utr: null,
-    message: "Transaction Failed",
-  };
+  // return {
+  //   status: "FAILED",
+  //   txn_ref: "RCHG20260320153342533099",
+  //   utr: null,
+  //   message: "Transaction Failed",
+  // };
 
   try {
     const response = await csplClient.post(
@@ -93,7 +93,8 @@ exports.doRecharge = async ({
     console.log("API Error Response:", error.response?.data || error.message);
 
     await ProviderLogs.create({
-      providerTxnId: error.response?.data?.txn_ref || error?.txn_ref || undefined,
+      providerTxnId:
+        error.response?.data?.txn_ref || error?.txn_ref || undefined,
       serviceCategory: "RECHARGE",
       referenceId: client_referenceId,
       providerName: "CSPL",

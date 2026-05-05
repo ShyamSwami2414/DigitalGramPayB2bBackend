@@ -362,7 +362,7 @@ exports.verifyOtp = async ({ userId, requestId, otp, latitude, longitude }) => {
       };
     }
 
-    console.log("aeps eko ekyc otp service", JSON.stringify(result, null, 2));
+    console.log("aeps eko verify otp service", JSON.stringify(result, null, 2));
 
     console.log("Status", result?.status);
 
@@ -448,7 +448,10 @@ exports.ekycBiometric = async ({
       };
     }
 
-    console.log("aeps eko ekyc otp service", JSON.stringify(result, null, 2));
+    console.log(
+      "aeps eko ekyc biometric service",
+      JSON.stringify(result, null, 2),
+    );
 
     console.log("Status", result?.status);
 
@@ -735,7 +738,10 @@ exports.initiateAepsTransaction = async ({
       };
     }
 
-    console.log("aeps eko ekyc otp service", JSON.stringify(result, null, 2));
+    console.log(
+      "aeps eko initiate transaction service",
+      JSON.stringify(result, null, 2),
+    );
 
     console.log("Status", result?.status);
 

@@ -821,7 +821,7 @@ exports.doCashWithdraw = async ({
           providerName: "INSTANT",
           referenceId: referenceId,
           txnStatus: "PENDING",
-          amount: paiseToRupee(amount),
+          amount: amount,
         },
       ],
       { session: session },
