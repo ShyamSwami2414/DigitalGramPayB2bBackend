@@ -1,9 +1,9 @@
 const {
   initiatePayout,
-} = require("../client/sozoWallet/apis/payout/aeronpay/payout");
+} = require("../client/cspl/apis/payout/aeronpay/payout");
 const {
   aepsPayoutStatus,
-} = require("../client/sozoWallet/apis/payout/aeronpay/checkPayoutStatus");
+} = require("../client/cspl/apis/payout/aeronpay/checkPayoutStatus");
 const {
   generateUniqueRefernceId,
 } = require("../utils/generateUniqueReferenceId");

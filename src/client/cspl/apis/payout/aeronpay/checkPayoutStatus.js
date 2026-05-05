@@ -6,55 +6,29 @@ const {
 } = require("../../../../../utils/requestIdGenerator");
 const SozoPayoutLog = require("../../../../../models/sozoPayoutLogsModel");
 const { paiseToRupee } = require("../../../../../utils/money");
-const sozoClient = require("../../../sozo.clent");
+const csplClient = require("../../../cspl.client");
 
-exports.initiatePayout = async ({
+exports.aepsPayoutStatus = async ({
   client_referenceId,
   userId,
   requestId,
-  amount, //paise
-  bankAccount,
-  ifsc,
-  name,
-  email,
-  phone,
-  bankProfileId,
-  address,
-  latitude,
-  longitude,
-  remarks,
+  transactionId,
 }) => {
   const timestamp = new Date().toISOString();
   const startTime = Date.now();
 
-  const amountInRupee = paiseToRupee(amount); //rupee
-
-  console.log(amountInRupee, "amountInRupee");
-
   try {
-    const response = await sozoClient.post(
-      "v1/payout/s/imps-payout",
-      // "aer/payout/imps-payout",
-
+    const response = await csplClient.post(
+      "aer/payout/check-status",
       {
-        amount: amountInRupee, //rupee
-        reference: client_referenceId,
-        bankAccount: bankAccount,
-        ifsc: ifsc,
-        name: name,
-        email: email,
-        phone: phone,
-        bankProfileId: bankProfileId,
-        address: address,
-        latitude: latitude,
-        longitude: longitude,
-        remarks: remarks,
+        txn_id: transactionId,
       },
       {
         headers: {
-          ApiKey: process.env.SOZO_API_KEY,
-          SecretKey: process.env.SOZO_SECRET_KEY,
-          UserId: process.env.SOZO_USER_ID,
+          "X-TIMESTAMP": timestamp,
+          "X-REQUEST-ID": client_referenceId,
+          "X-API-KEY": process.env.CSPL_API_KEY,
+          "X-Forwarded-For": process.env.SERVER_IP,
         },
 
         // Accept any status code < 500 as "valid" so Axios doesn't throw
@@ -66,16 +40,12 @@ exports.initiatePayout = async ({
 
     const responseTime = Date.now() - startTime;
 
-    let apiStatus = response?.data?.data?.status;
-
     let providerStatus =
-      apiStatus === "SUCCESS"
+      response?.data?.success === true && response?.data?.code === 200
         ? "SUCCESS"
-        : apiStatus === "PENDING"
-          ? "PENDING"
-          : "FAILED";
+        : "FAILED";
 
-    if (providerStatus === "FAILED") {
+    if (providerStatus !== "SUCCESS") {
       throw {
         providerStatus: providerStatus,
         error: response?.data?.errors,
@@ -87,25 +57,14 @@ exports.initiatePayout = async ({
     await SozoPayoutLog.create({
       providerTxnId: response?.data?.data?.transactionId || undefined,
       userId: userId,
-      type: "PAYOUT",
+      type: "PAYOUT_STATUS",
       referenceId: client_referenceId,
       providerName: "SOZO_WALLET",
-      endPoint: "v1/payout/s/imps-payout",
+      endPoint: "payout/s/check-status",
       method: "POST",
 
       request: {
-        amount: amountInRupee, //rupee
-        reference: client_referenceId,
-        bankAccount: bankAccount,
-        ifsc: ifsc,
-        name: name,
-        email: email,
-        phone: phone,
-        bankProfileId: bankProfileId,
-        address: address,
-        latitude: latitude,
-        longitude: longitude,
-        remarks: remarks,
+        txn_id: transactionId,
       },
 
       response: response.data,
@@ -120,27 +79,16 @@ exports.initiatePayout = async ({
       error?.errors || error.response?.data || error?.message,
     );
 
-    await SozoPayoutLog.create({
+    await ProviderLogs.create({
       providerTxnId: error.response?.data?.transactionId || undefined,
       userId: userId,
-      type: "PAYOUT",
+      type: "PAYOUT_STATUS",
       referenceId: client_referenceId,
       providerName: "SOZO_WALLET",
-      endPoint: "v1/payout/s/imps-payout",
+      endPoint: "payout/s/check-status",
       method: "POST",
       request: {
-        amount: amountInRupee, //rupee
-        reference: client_referenceId,
-        bankAccount: bankAccount,
-        ifsc: ifsc,
-        name: name,
-        email: email,
-        phone: phone,
-        bankProfileId: bankProfileId,
-        address: address,
-        latitude: latitude,
-        longitude: longitude,
-        remarks: remarks,
+        txn_id: transactionId,
       },
       response: error.fullResponse ||
         error.response?.data || { message: error.message },
