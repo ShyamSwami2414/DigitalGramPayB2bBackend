@@ -1,8 +1,8 @@
-const apiPrefix = "/api/admin";
+const apiPrefix = "/api1/admin";
 console.log("Admin Route Index Loaded");
 
 module.exports = (app) => {
-  app.use(`/api`, require("./adminAuthRoute"));
+  app.use(`/api1`, require("./adminAuthRoute"));
   app.use(`${apiPrefix}/role`, require("./roleRoute"));
   app.use(`${apiPrefix}/kyc`, require("./kycRoute"));
   app.use(`${apiPrefix}/package`, require("./packageRoute"));

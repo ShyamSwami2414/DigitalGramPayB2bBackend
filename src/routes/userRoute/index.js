@@ -1,6 +1,7 @@
-const apiPrefix = "/api/user";
+const apiPrefix = "/api1/user";
+
 module.exports = (app) => {
-  app.use(`/api`, require("./userAuthRoute"));
+  app.use(`/api1`, require("./userAuthRoute"));
 
   app.use(`${apiPrefix}/role`, require("./roleRoute"));
   app.use(`${apiPrefix}/kyc`, require("./kycRoute"));

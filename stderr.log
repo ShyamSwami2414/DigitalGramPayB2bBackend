@@ -692,3 +692,2659 @@ Error Occured MW: Error: Insufficient Balance , Contact Admin
 (node:3746919) [MONGOOSE] Warning: Duplicate schema index on {"packageCode":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
 (node:3746919) [MONGOOSE] Warning: Duplicate schema index on {"name":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
 (node:3746919) [MONGOOSE] Warning: Duplicate schema index on {"serviceCode":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+node:internal/modules/cjs/loader:1210
+  throw err;
+  ^
+
+Error: Cannot find module 'string-similarity'
+Require stack:
+- /home/oseuqxlt/camlenio.co.in/B2BBackend/src/controllers/userController/sozoAepsPayoutBankRequestController.js
+- /home/oseuqxlt/camlenio.co.in/B2BBackend/src/routes/userRoute/sozoAepsPayoutBankRequestRoute.js
+- /home/oseuqxlt/camlenio.co.in/B2BBackend/src/routes/userRoute/index.js
+- /home/oseuqxlt/camlenio.co.in/B2BBackend/app.js
+- /usr/local/lsws/fcgi-bin/lsnode.js
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1207:15)
+    at Module._load (node:internal/modules/cjs/loader:1038:27)
+    at Module.require (node:internal/modules/cjs/loader:1289:19)
+    at require (node:internal/modules/helpers:182:18)
+    at Object.<anonymous> (/home/oseuqxlt/camlenio.co.in/B2BBackend/src/controllers/userController/sozoAepsPayoutBankRequestController.js:6:26)
+    at Module._compile (node:internal/modules/cjs/loader:1521:14)
+    at Module._extensions..js (node:internal/modules/cjs/loader:1623:10)
+    at Module.load (node:internal/modules/cjs/loader:1266:32)
+    at Module._load (node:internal/modules/cjs/loader:1091:12)
+    at Module.require (node:internal/modules/cjs/loader:1289:19) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [
+    '/home/oseuqxlt/camlenio.co.in/B2BBackend/src/controllers/userController/sozoAepsPayoutBankRequestController.js',
+    '/home/oseuqxlt/camlenio.co.in/B2BBackend/src/routes/userRoute/sozoAepsPayoutBankRequestRoute.js',
+    '/home/oseuqxlt/camlenio.co.in/B2BBackend/src/routes/userRoute/index.js',
+    '/home/oseuqxlt/camlenio.co.in/B2BBackend/app.js',
+    '/usr/local/lsws/fcgi-bin/lsnode.js'
+  ]
+}
+
+Node.js v20.20.2
+node:internal/modules/cjs/loader:1210
+  throw err;
+  ^
+
+Error: Cannot find module 'string-similarity'
+Require stack:
+- /home/oseuqxlt/camlenio.co.in/B2BBackend/src/controllers/userController/sozoAepsPayoutBankRequestController.js
+- /home/oseuqxlt/camlenio.co.in/B2BBackend/src/routes/userRoute/sozoAepsPayoutBankRequestRoute.js
+- /home/oseuqxlt/camlenio.co.in/B2BBackend/src/routes/userRoute/index.js
+- /home/oseuqxlt/camlenio.co.in/B2BBackend/app.js
+- /usr/local/lsws/fcgi-bin/lsnode.js
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1207:15)
+    at Module._load (node:internal/modules/cjs/loader:1038:27)
+    at Module.require (node:internal/modules/cjs/loader:1289:19)
+    at require (node:internal/modules/helpers:182:18)
+    at Object.<anonymous> (/home/oseuqxlt/camlenio.co.in/B2BBackend/src/controllers/userController/sozoAepsPayoutBankRequestController.js:6:26)
+    at Module._compile (node:internal/modules/cjs/loader:1521:14)
+    at Module._extensions..js (node:internal/modules/cjs/loader:1623:10)
+    at Module.load (node:internal/modules/cjs/loader:1266:32)
+    at Module._load (node:internal/modules/cjs/loader:1091:12)
+    at Module.require (node:internal/modules/cjs/loader:1289:19) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [
+    '/home/oseuqxlt/camlenio.co.in/B2BBackend/src/controllers/userController/sozoAepsPayoutBankRequestController.js',
+    '/home/oseuqxlt/camlenio.co.in/B2BBackend/src/routes/userRoute/sozoAepsPayoutBankRequestRoute.js',
+    '/home/oseuqxlt/camlenio.co.in/B2BBackend/src/routes/userRoute/index.js',
+    '/home/oseuqxlt/camlenio.co.in/B2BBackend/app.js',
+    '/usr/local/lsws/fcgi-bin/lsnode.js'
+  ]
+}
+
+Node.js v20.20.2
+node:internal/modules/cjs/loader:1210
+  throw err;
+  ^
+
+Error: Cannot find module 'string-similarity'
+Require stack:
+- /home/oseuqxlt/camlenio.co.in/B2BBackend/src/controllers/userController/sozoAepsPayoutBankRequestController.js
+- /home/oseuqxlt/camlenio.co.in/B2BBackend/src/routes/userRoute/sozoAepsPayoutBankRequestRoute.js
+- /home/oseuqxlt/camlenio.co.in/B2BBackend/src/routes/userRoute/index.js
+- /home/oseuqxlt/camlenio.co.in/B2BBackend/app.js
+- /usr/local/lsws/fcgi-bin/lsnode.js
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1207:15)
+    at Module._load (node:internal/modules/cjs/loader:1038:27)
+    at Module.require (node:internal/modules/cjs/loader:1289:19)
+    at require (node:internal/modules/helpers:182:18)
+    at Object.<anonymous> (/home/oseuqxlt/camlenio.co.in/B2BBackend/src/controllers/userController/sozoAepsPayoutBankRequestController.js:6:26)
+    at Module._compile (node:internal/modules/cjs/loader:1521:14)
+    at Module._extensions..js (node:internal/modules/cjs/loader:1623:10)
+    at Module.load (node:internal/modules/cjs/loader:1266:32)
+    at Module._load (node:internal/modules/cjs/loader:1091:12)
+    at Module.require (node:internal/modules/cjs/loader:1289:19) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [
+    '/home/oseuqxlt/camlenio.co.in/B2BBackend/src/controllers/userController/sozoAepsPayoutBankRequestController.js',
+    '/home/oseuqxlt/camlenio.co.in/B2BBackend/src/routes/userRoute/sozoAepsPayoutBankRequestRoute.js',
+    '/home/oseuqxlt/camlenio.co.in/B2BBackend/src/routes/userRoute/index.js',
+    '/home/oseuqxlt/camlenio.co.in/B2BBackend/app.js',
+    '/usr/local/lsws/fcgi-bin/lsnode.js'
+  ]
+}
+
+Node.js v20.20.2
+node:internal/modules/cjs/loader:1210
+  throw err;
+  ^
+
+Error: Cannot find module 'string-similarity'
+Require stack:
+- /home/oseuqxlt/camlenio.co.in/B2BBackend/src/controllers/userController/sozoAepsPayoutBankRequestController.js
+- /home/oseuqxlt/camlenio.co.in/B2BBackend/src/routes/userRoute/sozoAepsPayoutBankRequestRoute.js
+- /home/oseuqxlt/camlenio.co.in/B2BBackend/src/routes/userRoute/index.js
+- /home/oseuqxlt/camlenio.co.in/B2BBackend/app.js
+- /usr/local/lsws/fcgi-bin/lsnode.js
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1207:15)
+    at Module._load (node:internal/modules/cjs/loader:1038:27)
+    at Module.require (node:internal/modules/cjs/loader:1289:19)
+    at require (node:internal/modules/helpers:182:18)
+    at Object.<anonymous> (/home/oseuqxlt/camlenio.co.in/B2BBackend/src/controllers/userController/sozoAepsPayoutBankRequestController.js:6:26)
+    at Module._compile (node:internal/modules/cjs/loader:1521:14)
+    at Module._extensions..js (node:internal/modules/cjs/loader:1623:10)
+    at Module.load (node:internal/modules/cjs/loader:1266:32)
+    at Module._load (node:internal/modules/cjs/loader:1091:12)
+    at Module.require (node:internal/modules/cjs/loader:1289:19) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [
+    '/home/oseuqxlt/camlenio.co.in/B2BBackend/src/controllers/userController/sozoAepsPayoutBankRequestController.js',
+    '/home/oseuqxlt/camlenio.co.in/B2BBackend/src/routes/userRoute/sozoAepsPayoutBankRequestRoute.js',
+    '/home/oseuqxlt/camlenio.co.in/B2BBackend/src/routes/userRoute/index.js',
+    '/home/oseuqxlt/camlenio.co.in/B2BBackend/app.js',
+    '/usr/local/lsws/fcgi-bin/lsnode.js'
+  ]
+}
+
+Node.js v20.20.2
+node:internal/modules/cjs/loader:1210
+  throw err;
+  ^
+
+Error: Cannot find module 'string-similarity'
+Require stack:
+- /home/oseuqxlt/camlenio.co.in/B2BBackend/src/controllers/userController/sozoAepsPayoutBankRequestController.js
+- /home/oseuqxlt/camlenio.co.in/B2BBackend/src/routes/userRoute/sozoAepsPayoutBankRequestRoute.js
+- /home/oseuqxlt/camlenio.co.in/B2BBackend/src/routes/userRoute/index.js
+- /home/oseuqxlt/camlenio.co.in/B2BBackend/app.js
+- /usr/local/lsws/fcgi-bin/lsnode.js
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1207:15)
+    at Module._load (node:internal/modules/cjs/loader:1038:27)
+    at Module.require (node:internal/modules/cjs/loader:1289:19)
+    at require (node:internal/modules/helpers:182:18)
+    at Object.<anonymous> (/home/oseuqxlt/camlenio.co.in/B2BBackend/src/controllers/userController/sozoAepsPayoutBankRequestController.js:6:26)
+    at Module._compile (node:internal/modules/cjs/loader:1521:14)
+    at Module._extensions..js (node:internal/modules/cjs/loader:1623:10)
+    at Module.load (node:internal/modules/cjs/loader:1266:32)
+    at Module._load (node:internal/modules/cjs/loader:1091:12)
+    at Module.require (node:internal/modules/cjs/loader:1289:19) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [
+    '/home/oseuqxlt/camlenio.co.in/B2BBackend/src/controllers/userController/sozoAepsPayoutBankRequestController.js',
+    '/home/oseuqxlt/camlenio.co.in/B2BBackend/src/routes/userRoute/sozoAepsPayoutBankRequestRoute.js',
+    '/home/oseuqxlt/camlenio.co.in/B2BBackend/src/routes/userRoute/index.js',
+    '/home/oseuqxlt/camlenio.co.in/B2BBackend/app.js',
+    '/usr/local/lsws/fcgi-bin/lsnode.js'
+  ]
+}
+
+Node.js v20.20.2
+node:internal/modules/cjs/loader:1210
+  throw err;
+  ^
+
+Error: Cannot find module 'string-similarity'
+Require stack:
+- /home/oseuqxlt/camlenio.co.in/B2BBackend/src/controllers/userController/sozoAepsPayoutBankRequestController.js
+- /home/oseuqxlt/camlenio.co.in/B2BBackend/src/routes/userRoute/sozoAepsPayoutBankRequestRoute.js
+- /home/oseuqxlt/camlenio.co.in/B2BBackend/src/routes/userRoute/index.js
+- /home/oseuqxlt/camlenio.co.in/B2BBackend/app.js
+- /usr/local/lsws/fcgi-bin/lsnode.js
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1207:15)
+    at Module._load (node:internal/modules/cjs/loader:1038:27)
+    at Module.require (node:internal/modules/cjs/loader:1289:19)
+    at require (node:internal/modules/helpers:182:18)
+    at Object.<anonymous> (/home/oseuqxlt/camlenio.co.in/B2BBackend/src/controllers/userController/sozoAepsPayoutBankRequestController.js:6:26)
+    at Module._compile (node:internal/modules/cjs/loader:1521:14)
+    at Module._extensions..js (node:internal/modules/cjs/loader:1623:10)
+    at Module.load (node:internal/modules/cjs/loader:1266:32)
+    at Module._load (node:internal/modules/cjs/loader:1091:12)
+    at Module.require (node:internal/modules/cjs/loader:1289:19) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [
+    '/home/oseuqxlt/camlenio.co.in/B2BBackend/src/controllers/userController/sozoAepsPayoutBankRequestController.js',
+    '/home/oseuqxlt/camlenio.co.in/B2BBackend/src/routes/userRoute/sozoAepsPayoutBankRequestRoute.js',
+    '/home/oseuqxlt/camlenio.co.in/B2BBackend/src/routes/userRoute/index.js',
+    '/home/oseuqxlt/camlenio.co.in/B2BBackend/app.js',
+    '/usr/local/lsws/fcgi-bin/lsnode.js'
+  ]
+}
+
+Node.js v20.20.2
+node:internal/modules/cjs/loader:1210
+  throw err;
+  ^
+
+Error: Cannot find module 'string-similarity'
+Require stack:
+- /home/oseuqxlt/camlenio.co.in/B2BBackend/src/controllers/userController/sozoAepsPayoutBankRequestController.js
+- /home/oseuqxlt/camlenio.co.in/B2BBackend/src/routes/userRoute/sozoAepsPayoutBankRequestRoute.js
+- /home/oseuqxlt/camlenio.co.in/B2BBackend/src/routes/userRoute/index.js
+- /home/oseuqxlt/camlenio.co.in/B2BBackend/app.js
+- /usr/local/lsws/fcgi-bin/lsnode.js
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1207:15)
+    at Module._load (node:internal/modules/cjs/loader:1038:27)
+    at Module.require (node:internal/modules/cjs/loader:1289:19)
+    at require (node:internal/modules/helpers:182:18)
+    at Object.<anonymous> (/home/oseuqxlt/camlenio.co.in/B2BBackend/src/controllers/userController/sozoAepsPayoutBankRequestController.js:6:26)
+    at Module._compile (node:internal/modules/cjs/loader:1521:14)
+    at Module._extensions..js (node:internal/modules/cjs/loader:1623:10)
+    at Module.load (node:internal/modules/cjs/loader:1266:32)
+    at Module._load (node:internal/modules/cjs/loader:1091:12)
+    at Module.require (node:internal/modules/cjs/loader:1289:19) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [
+    '/home/oseuqxlt/camlenio.co.in/B2BBackend/src/controllers/userController/sozoAepsPayoutBankRequestController.js',
+    '/home/oseuqxlt/camlenio.co.in/B2BBackend/src/routes/userRoute/sozoAepsPayoutBankRequestRoute.js',
+    '/home/oseuqxlt/camlenio.co.in/B2BBackend/src/routes/userRoute/index.js',
+    '/home/oseuqxlt/camlenio.co.in/B2BBackend/app.js',
+    '/usr/local/lsws/fcgi-bin/lsnode.js'
+  ]
+}
+
+Node.js v20.20.2
+node:internal/modules/cjs/loader:1210
+  throw err;
+  ^
+
+Error: Cannot find module 'string-similarity'
+Require stack:
+- /home/oseuqxlt/camlenio.co.in/B2BBackend/src/controllers/userController/sozoAepsPayoutBankRequestController.js
+- /home/oseuqxlt/camlenio.co.in/B2BBackend/src/routes/userRoute/sozoAepsPayoutBankRequestRoute.js
+- /home/oseuqxlt/camlenio.co.in/B2BBackend/src/routes/userRoute/index.js
+- /home/oseuqxlt/camlenio.co.in/B2BBackend/app.js
+- /usr/local/lsws/fcgi-bin/lsnode.js
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1207:15)
+    at Module._load (node:internal/modules/cjs/loader:1038:27)
+    at Module.require (node:internal/modules/cjs/loader:1289:19)
+    at require (node:internal/modules/helpers:182:18)
+    at Object.<anonymous> (/home/oseuqxlt/camlenio.co.in/B2BBackend/src/controllers/userController/sozoAepsPayoutBankRequestController.js:6:26)
+    at Module._compile (node:internal/modules/cjs/loader:1521:14)
+    at Module._extensions..js (node:internal/modules/cjs/loader:1623:10)
+    at Module.load (node:internal/modules/cjs/loader:1266:32)
+    at Module._load (node:internal/modules/cjs/loader:1091:12)
+    at Module.require (node:internal/modules/cjs/loader:1289:19) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [
+    '/home/oseuqxlt/camlenio.co.in/B2BBackend/src/controllers/userController/sozoAepsPayoutBankRequestController.js',
+    '/home/oseuqxlt/camlenio.co.in/B2BBackend/src/routes/userRoute/sozoAepsPayoutBankRequestRoute.js',
+    '/home/oseuqxlt/camlenio.co.in/B2BBackend/src/routes/userRoute/index.js',
+    '/home/oseuqxlt/camlenio.co.in/B2BBackend/app.js',
+    '/usr/local/lsws/fcgi-bin/lsnode.js'
+  ]
+}
+
+Node.js v20.20.2
+node:internal/modules/cjs/loader:1210
+  throw err;
+  ^
+
+Error: Cannot find module 'string-similarity'
+Require stack:
+- /home/oseuqxlt/camlenio.co.in/B2BBackend/src/controllers/userController/sozoAepsPayoutBankRequestController.js
+- /home/oseuqxlt/camlenio.co.in/B2BBackend/src/routes/userRoute/sozoAepsPayoutBankRequestRoute.js
+- /home/oseuqxlt/camlenio.co.in/B2BBackend/src/routes/userRoute/index.js
+- /home/oseuqxlt/camlenio.co.in/B2BBackend/app.js
+- /usr/local/lsws/fcgi-bin/lsnode.js
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1207:15)
+    at Module._load (node:internal/modules/cjs/loader:1038:27)
+    at Module.require (node:internal/modules/cjs/loader:1289:19)
+    at require (node:internal/modules/helpers:182:18)
+    at Object.<anonymous> (/home/oseuqxlt/camlenio.co.in/B2BBackend/src/controllers/userController/sozoAepsPayoutBankRequestController.js:6:26)
+    at Module._compile (node:internal/modules/cjs/loader:1521:14)
+    at Module._extensions..js (node:internal/modules/cjs/loader:1623:10)
+    at Module.load (node:internal/modules/cjs/loader:1266:32)
+    at Module._load (node:internal/modules/cjs/loader:1091:12)
+    at Module.require (node:internal/modules/cjs/loader:1289:19) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [
+    '/home/oseuqxlt/camlenio.co.in/B2BBackend/src/controllers/userController/sozoAepsPayoutBankRequestController.js',
+    '/home/oseuqxlt/camlenio.co.in/B2BBackend/src/routes/userRoute/sozoAepsPayoutBankRequestRoute.js',
+    '/home/oseuqxlt/camlenio.co.in/B2BBackend/src/routes/userRoute/index.js',
+    '/home/oseuqxlt/camlenio.co.in/B2BBackend/app.js',
+    '/usr/local/lsws/fcgi-bin/lsnode.js'
+  ]
+}
+
+Node.js v20.20.2
+node:internal/modules/cjs/loader:1210
+  throw err;
+  ^
+
+Error: Cannot find module 'string-similarity'
+Require stack:
+- /home/oseuqxlt/camlenio.co.in/B2BBackend/src/controllers/userController/sozoAepsPayoutBankRequestController.js
+- /home/oseuqxlt/camlenio.co.in/B2BBackend/src/routes/userRoute/sozoAepsPayoutBankRequestRoute.js
+- /home/oseuqxlt/camlenio.co.in/B2BBackend/src/routes/userRoute/index.js
+- /home/oseuqxlt/camlenio.co.in/B2BBackend/app.js
+- /usr/local/lsws/fcgi-bin/lsnode.js
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1207:15)
+    at Module._load (node:internal/modules/cjs/loader:1038:27)
+    at Module.require (node:internal/modules/cjs/loader:1289:19)
+    at require (node:internal/modules/helpers:182:18)
+    at Object.<anonymous> (/home/oseuqxlt/camlenio.co.in/B2BBackend/src/controllers/userController/sozoAepsPayoutBankRequestController.js:6:26)
+    at Module._compile (node:internal/modules/cjs/loader:1521:14)
+    at Module._extensions..js (node:internal/modules/cjs/loader:1623:10)
+    at Module.load (node:internal/modules/cjs/loader:1266:32)
+    at Module._load (node:internal/modules/cjs/loader:1091:12)
+    at Module.require (node:internal/modules/cjs/loader:1289:19) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [
+    '/home/oseuqxlt/camlenio.co.in/B2BBackend/src/controllers/userController/sozoAepsPayoutBankRequestController.js',
+    '/home/oseuqxlt/camlenio.co.in/B2BBackend/src/routes/userRoute/sozoAepsPayoutBankRequestRoute.js',
+    '/home/oseuqxlt/camlenio.co.in/B2BBackend/src/routes/userRoute/index.js',
+    '/home/oseuqxlt/camlenio.co.in/B2BBackend/app.js',
+    '/usr/local/lsws/fcgi-bin/lsnode.js'
+  ]
+}
+
+Node.js v20.20.2
+node:internal/modules/cjs/loader:1210
+  throw err;
+  ^
+
+Error: Cannot find module 'string-similarity'
+Require stack:
+- /home/oseuqxlt/camlenio.co.in/B2BBackend/src/controllers/userController/sozoAepsPayoutBankRequestController.js
+- /home/oseuqxlt/camlenio.co.in/B2BBackend/src/routes/userRoute/sozoAepsPayoutBankRequestRoute.js
+- /home/oseuqxlt/camlenio.co.in/B2BBackend/src/routes/userRoute/index.js
+- /home/oseuqxlt/camlenio.co.in/B2BBackend/app.js
+- /usr/local/lsws/fcgi-bin/lsnode.js
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1207:15)
+    at Module._load (node:internal/modules/cjs/loader:1038:27)
+    at Module.require (node:internal/modules/cjs/loader:1289:19)
+    at require (node:internal/modules/helpers:182:18)
+    at Object.<anonymous> (/home/oseuqxlt/camlenio.co.in/B2BBackend/src/controllers/userController/sozoAepsPayoutBankRequestController.js:6:26)
+    at Module._compile (node:internal/modules/cjs/loader:1521:14)
+    at Module._extensions..js (node:internal/modules/cjs/loader:1623:10)
+    at Module.load (node:internal/modules/cjs/loader:1266:32)
+    at Module._load (node:internal/modules/cjs/loader:1091:12)
+    at Module.require (node:internal/modules/cjs/loader:1289:19) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [
+    '/home/oseuqxlt/camlenio.co.in/B2BBackend/src/controllers/userController/sozoAepsPayoutBankRequestController.js',
+    '/home/oseuqxlt/camlenio.co.in/B2BBackend/src/routes/userRoute/sozoAepsPayoutBankRequestRoute.js',
+    '/home/oseuqxlt/camlenio.co.in/B2BBackend/src/routes/userRoute/index.js',
+    '/home/oseuqxlt/camlenio.co.in/B2BBackend/app.js',
+    '/usr/local/lsws/fcgi-bin/lsnode.js'
+  ]
+}
+
+Node.js v20.20.2
+node:internal/modules/cjs/loader:1210
+  throw err;
+  ^
+
+Error: Cannot find module 'string-similarity'
+Require stack:
+- /home/oseuqxlt/camlenio.co.in/B2BBackend/src/controllers/userController/sozoAepsPayoutBankRequestController.js
+- /home/oseuqxlt/camlenio.co.in/B2BBackend/src/routes/userRoute/sozoAepsPayoutBankRequestRoute.js
+- /home/oseuqxlt/camlenio.co.in/B2BBackend/src/routes/userRoute/index.js
+- /home/oseuqxlt/camlenio.co.in/B2BBackend/app.js
+- /usr/local/lsws/fcgi-bin/lsnode.js
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1207:15)
+    at Module._load (node:internal/modules/cjs/loader:1038:27)
+    at Module.require (node:internal/modules/cjs/loader:1289:19)
+    at require (node:internal/modules/helpers:182:18)
+    at Object.<anonymous> (/home/oseuqxlt/camlenio.co.in/B2BBackend/src/controllers/userController/sozoAepsPayoutBankRequestController.js:6:26)
+    at Module._compile (node:internal/modules/cjs/loader:1521:14)
+    at Module._extensions..js (node:internal/modules/cjs/loader:1623:10)
+    at Module.load (node:internal/modules/cjs/loader:1266:32)
+    at Module._load (node:internal/modules/cjs/loader:1091:12)
+    at Module.require (node:internal/modules/cjs/loader:1289:19) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [
+    '/home/oseuqxlt/camlenio.co.in/B2BBackend/src/controllers/userController/sozoAepsPayoutBankRequestController.js',
+    '/home/oseuqxlt/camlenio.co.in/B2BBackend/src/routes/userRoute/sozoAepsPayoutBankRequestRoute.js',
+    '/home/oseuqxlt/camlenio.co.in/B2BBackend/src/routes/userRoute/index.js',
+    '/home/oseuqxlt/camlenio.co.in/B2BBackend/app.js',
+    '/usr/local/lsws/fcgi-bin/lsnode.js'
+  ]
+}
+
+Node.js v20.20.2
+node:internal/modules/cjs/loader:1210
+  throw err;
+  ^
+
+Error: Cannot find module 'string-similarity'
+Require stack:
+- /home/oseuqxlt/camlenio.co.in/B2BBackend/src/controllers/userController/sozoAepsPayoutBankRequestController.js
+- /home/oseuqxlt/camlenio.co.in/B2BBackend/src/routes/userRoute/sozoAepsPayoutBankRequestRoute.js
+- /home/oseuqxlt/camlenio.co.in/B2BBackend/src/routes/userRoute/index.js
+- /home/oseuqxlt/camlenio.co.in/B2BBackend/app.js
+- /usr/local/lsws/fcgi-bin/lsnode.js
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1207:15)
+    at Module._load (node:internal/modules/cjs/loader:1038:27)
+    at Module.require (node:internal/modules/cjs/loader:1289:19)
+    at require (node:internal/modules/helpers:182:18)
+    at Object.<anonymous> (/home/oseuqxlt/camlenio.co.in/B2BBackend/src/controllers/userController/sozoAepsPayoutBankRequestController.js:6:26)
+    at Module._compile (node:internal/modules/cjs/loader:1521:14)
+    at Module._extensions..js (node:internal/modules/cjs/loader:1623:10)
+    at Module.load (node:internal/modules/cjs/loader:1266:32)
+    at Module._load (node:internal/modules/cjs/loader:1091:12)
+    at Module.require (node:internal/modules/cjs/loader:1289:19) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [
+    '/home/oseuqxlt/camlenio.co.in/B2BBackend/src/controllers/userController/sozoAepsPayoutBankRequestController.js',
+    '/home/oseuqxlt/camlenio.co.in/B2BBackend/src/routes/userRoute/sozoAepsPayoutBankRequestRoute.js',
+    '/home/oseuqxlt/camlenio.co.in/B2BBackend/src/routes/userRoute/index.js',
+    '/home/oseuqxlt/camlenio.co.in/B2BBackend/app.js',
+    '/usr/local/lsws/fcgi-bin/lsnode.js'
+  ]
+}
+
+Node.js v20.20.2
+node:internal/modules/cjs/loader:1210
+  throw err;
+  ^
+
+Error: Cannot find module 'string-similarity'
+Require stack:
+- /home/oseuqxlt/camlenio.co.in/B2BBackend/src/controllers/userController/sozoAepsPayoutBankRequestController.js
+- /home/oseuqxlt/camlenio.co.in/B2BBackend/src/routes/userRoute/sozoAepsPayoutBankRequestRoute.js
+- /home/oseuqxlt/camlenio.co.in/B2BBackend/src/routes/userRoute/index.js
+- /home/oseuqxlt/camlenio.co.in/B2BBackend/app.js
+- /usr/local/lsws/fcgi-bin/lsnode.js
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1207:15)
+    at Module._load (node:internal/modules/cjs/loader:1038:27)
+    at Module.require (node:internal/modules/cjs/loader:1289:19)
+    at require (node:internal/modules/helpers:182:18)
+    at Object.<anonymous> (/home/oseuqxlt/camlenio.co.in/B2BBackend/src/controllers/userController/sozoAepsPayoutBankRequestController.js:6:26)
+    at Module._compile (node:internal/modules/cjs/loader:1521:14)
+    at Module._extensions..js (node:internal/modules/cjs/loader:1623:10)
+    at Module.load (node:internal/modules/cjs/loader:1266:32)
+    at Module._load (node:internal/modules/cjs/loader:1091:12)
+    at Module.require (node:internal/modules/cjs/loader:1289:19) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [
+    '/home/oseuqxlt/camlenio.co.in/B2BBackend/src/controllers/userController/sozoAepsPayoutBankRequestController.js',
+    '/home/oseuqxlt/camlenio.co.in/B2BBackend/src/routes/userRoute/sozoAepsPayoutBankRequestRoute.js',
+    '/home/oseuqxlt/camlenio.co.in/B2BBackend/src/routes/userRoute/index.js',
+    '/home/oseuqxlt/camlenio.co.in/B2BBackend/app.js',
+    '/usr/local/lsws/fcgi-bin/lsnode.js'
+  ]
+}
+
+Node.js v20.20.2
+node:internal/modules/cjs/loader:1210
+  throw err;
+  ^
+
+Error: Cannot find module 'string-similarity'
+Require stack:
+- /home/oseuqxlt/camlenio.co.in/B2BBackend/src/controllers/userController/sozoAepsPayoutBankRequestController.js
+- /home/oseuqxlt/camlenio.co.in/B2BBackend/src/routes/userRoute/sozoAepsPayoutBankRequestRoute.js
+- /home/oseuqxlt/camlenio.co.in/B2BBackend/src/routes/userRoute/index.js
+- /home/oseuqxlt/camlenio.co.in/B2BBackend/app.js
+- /usr/local/lsws/fcgi-bin/lsnode.js
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1207:15)
+    at Module._load (node:internal/modules/cjs/loader:1038:27)
+    at Module.require (node:internal/modules/cjs/loader:1289:19)
+    at require (node:internal/modules/helpers:182:18)
+    at Object.<anonymous> (/home/oseuqxlt/camlenio.co.in/B2BBackend/src/controllers/userController/sozoAepsPayoutBankRequestController.js:6:26)
+    at Module._compile (node:internal/modules/cjs/loader:1521:14)
+    at Module._extensions..js (node:internal/modules/cjs/loader:1623:10)
+    at Module.load (node:internal/modules/cjs/loader:1266:32)
+    at Module._load (node:internal/modules/cjs/loader:1091:12)
+    at Module.require (node:internal/modules/cjs/loader:1289:19) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [
+    '/home/oseuqxlt/camlenio.co.in/B2BBackend/src/controllers/userController/sozoAepsPayoutBankRequestController.js',
+    '/home/oseuqxlt/camlenio.co.in/B2BBackend/src/routes/userRoute/sozoAepsPayoutBankRequestRoute.js',
+    '/home/oseuqxlt/camlenio.co.in/B2BBackend/src/routes/userRoute/index.js',
+    '/home/oseuqxlt/camlenio.co.in/B2BBackend/app.js',
+    '/usr/local/lsws/fcgi-bin/lsnode.js'
+  ]
+}
+
+Node.js v20.20.2
+node:internal/modules/cjs/loader:1210
+  throw err;
+  ^
+
+Error: Cannot find module 'string-similarity'
+Require stack:
+- /home/oseuqxlt/camlenio.co.in/B2BBackend/src/controllers/userController/sozoAepsPayoutBankRequestController.js
+- /home/oseuqxlt/camlenio.co.in/B2BBackend/src/routes/userRoute/sozoAepsPayoutBankRequestRoute.js
+- /home/oseuqxlt/camlenio.co.in/B2BBackend/src/routes/userRoute/index.js
+- /home/oseuqxlt/camlenio.co.in/B2BBackend/app.js
+- /usr/local/lsws/fcgi-bin/lsnode.js
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1207:15)
+    at Module._load (node:internal/modules/cjs/loader:1038:27)
+    at Module.require (node:internal/modules/cjs/loader:1289:19)
+    at require (node:internal/modules/helpers:182:18)
+    at Object.<anonymous> (/home/oseuqxlt/camlenio.co.in/B2BBackend/src/controllers/userController/sozoAepsPayoutBankRequestController.js:6:26)
+    at Module._compile (node:internal/modules/cjs/loader:1521:14)
+    at Module._extensions..js (node:internal/modules/cjs/loader:1623:10)
+    at Module.load (node:internal/modules/cjs/loader:1266:32)
+    at Module._load (node:internal/modules/cjs/loader:1091:12)
+    at Module.require (node:internal/modules/cjs/loader:1289:19) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [
+    '/home/oseuqxlt/camlenio.co.in/B2BBackend/src/controllers/userController/sozoAepsPayoutBankRequestController.js',
+    '/home/oseuqxlt/camlenio.co.in/B2BBackend/src/routes/userRoute/sozoAepsPayoutBankRequestRoute.js',
+    '/home/oseuqxlt/camlenio.co.in/B2BBackend/src/routes/userRoute/index.js',
+    '/home/oseuqxlt/camlenio.co.in/B2BBackend/app.js',
+    '/usr/local/lsws/fcgi-bin/lsnode.js'
+  ]
+}
+
+Node.js v20.20.2
+node:internal/modules/cjs/loader:1210
+  throw err;
+  ^
+
+Error: Cannot find module 'string-similarity'
+Require stack:
+- /home/oseuqxlt/camlenio.co.in/B2BBackend/src/controllers/userController/sozoAepsPayoutBankRequestController.js
+- /home/oseuqxlt/camlenio.co.in/B2BBackend/src/routes/userRoute/sozoAepsPayoutBankRequestRoute.js
+- /home/oseuqxlt/camlenio.co.in/B2BBackend/src/routes/userRoute/index.js
+- /home/oseuqxlt/camlenio.co.in/B2BBackend/app.js
+- /usr/local/lsws/fcgi-bin/lsnode.js
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1207:15)
+    at Module._load (node:internal/modules/cjs/loader:1038:27)
+    at Module.require (node:internal/modules/cjs/loader:1289:19)
+    at require (node:internal/modules/helpers:182:18)
+    at Object.<anonymous> (/home/oseuqxlt/camlenio.co.in/B2BBackend/src/controllers/userController/sozoAepsPayoutBankRequestController.js:6:26)
+    at Module._compile (node:internal/modules/cjs/loader:1521:14)
+    at Module._extensions..js (node:internal/modules/cjs/loader:1623:10)
+    at Module.load (node:internal/modules/cjs/loader:1266:32)
+    at Module._load (node:internal/modules/cjs/loader:1091:12)
+    at Module.require (node:internal/modules/cjs/loader:1289:19) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [
+    '/home/oseuqxlt/camlenio.co.in/B2BBackend/src/controllers/userController/sozoAepsPayoutBankRequestController.js',
+    '/home/oseuqxlt/camlenio.co.in/B2BBackend/src/routes/userRoute/sozoAepsPayoutBankRequestRoute.js',
+    '/home/oseuqxlt/camlenio.co.in/B2BBackend/src/routes/userRoute/index.js',
+    '/home/oseuqxlt/camlenio.co.in/B2BBackend/app.js',
+    '/usr/local/lsws/fcgi-bin/lsnode.js'
+  ]
+}
+
+Node.js v20.20.2
+node:internal/modules/cjs/loader:1210
+  throw err;
+  ^
+
+Error: Cannot find module 'string-similarity'
+Require stack:
+- /home/oseuqxlt/camlenio.co.in/B2BBackend/src/controllers/userController/sozoAepsPayoutBankRequestController.js
+- /home/oseuqxlt/camlenio.co.in/B2BBackend/src/routes/userRoute/sozoAepsPayoutBankRequestRoute.js
+- /home/oseuqxlt/camlenio.co.in/B2BBackend/src/routes/userRoute/index.js
+- /home/oseuqxlt/camlenio.co.in/B2BBackend/app.js
+- /usr/local/lsws/fcgi-bin/lsnode.js
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1207:15)
+    at Module._load (node:internal/modules/cjs/loader:1038:27)
+    at Module.require (node:internal/modules/cjs/loader:1289:19)
+    at require (node:internal/modules/helpers:182:18)
+    at Object.<anonymous> (/home/oseuqxlt/camlenio.co.in/B2BBackend/src/controllers/userController/sozoAepsPayoutBankRequestController.js:6:26)
+    at Module._compile (node:internal/modules/cjs/loader:1521:14)
+    at Module._extensions..js (node:internal/modules/cjs/loader:1623:10)
+    at Module.load (node:internal/modules/cjs/loader:1266:32)
+    at Module._load (node:internal/modules/cjs/loader:1091:12)
+    at Module.require (node:internal/modules/cjs/loader:1289:19) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [
+    '/home/oseuqxlt/camlenio.co.in/B2BBackend/src/controllers/userController/sozoAepsPayoutBankRequestController.js',
+    '/home/oseuqxlt/camlenio.co.in/B2BBackend/src/routes/userRoute/sozoAepsPayoutBankRequestRoute.js',
+    '/home/oseuqxlt/camlenio.co.in/B2BBackend/src/routes/userRoute/index.js',
+    '/home/oseuqxlt/camlenio.co.in/B2BBackend/app.js',
+    '/usr/local/lsws/fcgi-bin/lsnode.js'
+  ]
+}
+
+Node.js v20.20.2
+node:internal/modules/cjs/loader:1210
+  throw err;
+  ^
+
+Error: Cannot find module 'string-similarity'
+Require stack:
+- /home/oseuqxlt/camlenio.co.in/B2BBackend/src/controllers/userController/sozoAepsPayoutBankRequestController.js
+- /home/oseuqxlt/camlenio.co.in/B2BBackend/src/routes/userRoute/sozoAepsPayoutBankRequestRoute.js
+- /home/oseuqxlt/camlenio.co.in/B2BBackend/src/routes/userRoute/index.js
+- /home/oseuqxlt/camlenio.co.in/B2BBackend/app.js
+- /usr/local/lsws/fcgi-bin/lsnode.js
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1207:15)
+    at Module._load (node:internal/modules/cjs/loader:1038:27)
+    at Module.require (node:internal/modules/cjs/loader:1289:19)
+    at require (node:internal/modules/helpers:182:18)
+    at Object.<anonymous> (/home/oseuqxlt/camlenio.co.in/B2BBackend/src/controllers/userController/sozoAepsPayoutBankRequestController.js:6:26)
+    at Module._compile (node:internal/modules/cjs/loader:1521:14)
+    at Module._extensions..js (node:internal/modules/cjs/loader:1623:10)
+    at Module.load (node:internal/modules/cjs/loader:1266:32)
+    at Module._load (node:internal/modules/cjs/loader:1091:12)
+    at Module.require (node:internal/modules/cjs/loader:1289:19) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [
+    '/home/oseuqxlt/camlenio.co.in/B2BBackend/src/controllers/userController/sozoAepsPayoutBankRequestController.js',
+    '/home/oseuqxlt/camlenio.co.in/B2BBackend/src/routes/userRoute/sozoAepsPayoutBankRequestRoute.js',
+    '/home/oseuqxlt/camlenio.co.in/B2BBackend/src/routes/userRoute/index.js',
+    '/home/oseuqxlt/camlenio.co.in/B2BBackend/app.js',
+    '/usr/local/lsws/fcgi-bin/lsnode.js'
+  ]
+}
+
+Node.js v20.20.2
+node:internal/modules/cjs/loader:1210
+  throw err;
+  ^
+
+Error: Cannot find module 'string-similarity'
+Require stack:
+- /home/oseuqxlt/camlenio.co.in/B2BBackend/src/controllers/userController/sozoAepsPayoutBankRequestController.js
+- /home/oseuqxlt/camlenio.co.in/B2BBackend/src/routes/userRoute/sozoAepsPayoutBankRequestRoute.js
+- /home/oseuqxlt/camlenio.co.in/B2BBackend/src/routes/userRoute/index.js
+- /home/oseuqxlt/camlenio.co.in/B2BBackend/app.js
+- /usr/local/lsws/fcgi-bin/lsnode.js
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1207:15)
+    at Module._load (node:internal/modules/cjs/loader:1038:27)
+    at Module.require (node:internal/modules/cjs/loader:1289:19)
+    at require (node:internal/modules/helpers:182:18)
+    at Object.<anonymous> (/home/oseuqxlt/camlenio.co.in/B2BBackend/src/controllers/userController/sozoAepsPayoutBankRequestController.js:6:26)
+    at Module._compile (node:internal/modules/cjs/loader:1521:14)
+    at Module._extensions..js (node:internal/modules/cjs/loader:1623:10)
+    at Module.load (node:internal/modules/cjs/loader:1266:32)
+    at Module._load (node:internal/modules/cjs/loader:1091:12)
+    at Module.require (node:internal/modules/cjs/loader:1289:19) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [
+    '/home/oseuqxlt/camlenio.co.in/B2BBackend/src/controllers/userController/sozoAepsPayoutBankRequestController.js',
+    '/home/oseuqxlt/camlenio.co.in/B2BBackend/src/routes/userRoute/sozoAepsPayoutBankRequestRoute.js',
+    '/home/oseuqxlt/camlenio.co.in/B2BBackend/src/routes/userRoute/index.js',
+    '/home/oseuqxlt/camlenio.co.in/B2BBackend/app.js',
+    '/usr/local/lsws/fcgi-bin/lsnode.js'
+  ]
+}
+
+Node.js v20.20.2
+node:internal/modules/cjs/loader:1210
+  throw err;
+  ^
+
+Error: Cannot find module 'string-similarity'
+Require stack:
+- /home/oseuqxlt/camlenio.co.in/B2BBackend/src/controllers/userController/sozoAepsPayoutBankRequestController.js
+- /home/oseuqxlt/camlenio.co.in/B2BBackend/src/routes/userRoute/sozoAepsPayoutBankRequestRoute.js
+- /home/oseuqxlt/camlenio.co.in/B2BBackend/src/routes/userRoute/index.js
+- /home/oseuqxlt/camlenio.co.in/B2BBackend/app.js
+- /usr/local/lsws/fcgi-bin/lsnode.js
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1207:15)
+    at Module._load (node:internal/modules/cjs/loader:1038:27)
+    at Module.require (node:internal/modules/cjs/loader:1289:19)
+    at require (node:internal/modules/helpers:182:18)
+    at Object.<anonymous> (/home/oseuqxlt/camlenio.co.in/B2BBackend/src/controllers/userController/sozoAepsPayoutBankRequestController.js:6:26)
+    at Module._compile (node:internal/modules/cjs/loader:1521:14)
+    at Module._extensions..js (node:internal/modules/cjs/loader:1623:10)
+    at Module.load (node:internal/modules/cjs/loader:1266:32)
+    at Module._load (node:internal/modules/cjs/loader:1091:12)
+    at Module.require (node:internal/modules/cjs/loader:1289:19) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [
+    '/home/oseuqxlt/camlenio.co.in/B2BBackend/src/controllers/userController/sozoAepsPayoutBankRequestController.js',
+    '/home/oseuqxlt/camlenio.co.in/B2BBackend/src/routes/userRoute/sozoAepsPayoutBankRequestRoute.js',
+    '/home/oseuqxlt/camlenio.co.in/B2BBackend/src/routes/userRoute/index.js',
+    '/home/oseuqxlt/camlenio.co.in/B2BBackend/app.js',
+    '/usr/local/lsws/fcgi-bin/lsnode.js'
+  ]
+}
+
+Node.js v20.20.2
+node:internal/modules/cjs/loader:1210
+  throw err;
+  ^
+
+Error: Cannot find module 'string-similarity'
+Require stack:
+- /home/oseuqxlt/camlenio.co.in/B2BBackend/src/controllers/userController/sozoAepsPayoutBankRequestController.js
+- /home/oseuqxlt/camlenio.co.in/B2BBackend/src/routes/userRoute/sozoAepsPayoutBankRequestRoute.js
+- /home/oseuqxlt/camlenio.co.in/B2BBackend/src/routes/userRoute/index.js
+- /home/oseuqxlt/camlenio.co.in/B2BBackend/app.js
+- /usr/local/lsws/fcgi-bin/lsnode.js
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1207:15)
+    at Module._load (node:internal/modules/cjs/loader:1038:27)
+    at Module.require (node:internal/modules/cjs/loader:1289:19)
+    at require (node:internal/modules/helpers:182:18)
+    at Object.<anonymous> (/home/oseuqxlt/camlenio.co.in/B2BBackend/src/controllers/userController/sozoAepsPayoutBankRequestController.js:6:26)
+    at Module._compile (node:internal/modules/cjs/loader:1521:14)
+    at Module._extensions..js (node:internal/modules/cjs/loader:1623:10)
+    at Module.load (node:internal/modules/cjs/loader:1266:32)
+    at Module._load (node:internal/modules/cjs/loader:1091:12)
+    at Module.require (node:internal/modules/cjs/loader:1289:19) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [
+    '/home/oseuqxlt/camlenio.co.in/B2BBackend/src/controllers/userController/sozoAepsPayoutBankRequestController.js',
+    '/home/oseuqxlt/camlenio.co.in/B2BBackend/src/routes/userRoute/sozoAepsPayoutBankRequestRoute.js',
+    '/home/oseuqxlt/camlenio.co.in/B2BBackend/src/routes/userRoute/index.js',
+    '/home/oseuqxlt/camlenio.co.in/B2BBackend/app.js',
+    '/usr/local/lsws/fcgi-bin/lsnode.js'
+  ]
+}
+
+Node.js v20.20.2
+node:internal/modules/cjs/loader:1210
+  throw err;
+  ^
+
+Error: Cannot find module 'string-similarity'
+Require stack:
+- /home/oseuqxlt/camlenio.co.in/B2BBackend/src/controllers/userController/sozoAepsPayoutBankRequestController.js
+- /home/oseuqxlt/camlenio.co.in/B2BBackend/src/routes/userRoute/sozoAepsPayoutBankRequestRoute.js
+- /home/oseuqxlt/camlenio.co.in/B2BBackend/src/routes/userRoute/index.js
+- /home/oseuqxlt/camlenio.co.in/B2BBackend/app.js
+- /usr/local/lsws/fcgi-bin/lsnode.js
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1207:15)
+    at Module._load (node:internal/modules/cjs/loader:1038:27)
+    at Module.require (node:internal/modules/cjs/loader:1289:19)
+    at require (node:internal/modules/helpers:182:18)
+    at Object.<anonymous> (/home/oseuqxlt/camlenio.co.in/B2BBackend/src/controllers/userController/sozoAepsPayoutBankRequestController.js:6:26)
+    at Module._compile (node:internal/modules/cjs/loader:1521:14)
+    at Module._extensions..js (node:internal/modules/cjs/loader:1623:10)
+    at Module.load (node:internal/modules/cjs/loader:1266:32)
+    at Module._load (node:internal/modules/cjs/loader:1091:12)
+    at Module.require (node:internal/modules/cjs/loader:1289:19) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [
+    '/home/oseuqxlt/camlenio.co.in/B2BBackend/src/controllers/userController/sozoAepsPayoutBankRequestController.js',
+    '/home/oseuqxlt/camlenio.co.in/B2BBackend/src/routes/userRoute/sozoAepsPayoutBankRequestRoute.js',
+    '/home/oseuqxlt/camlenio.co.in/B2BBackend/src/routes/userRoute/index.js',
+    '/home/oseuqxlt/camlenio.co.in/B2BBackend/app.js',
+    '/usr/local/lsws/fcgi-bin/lsnode.js'
+  ]
+}
+
+Node.js v20.20.2
+node:internal/modules/cjs/loader:1210
+  throw err;
+  ^
+
+Error: Cannot find module 'string-similarity'
+Require stack:
+- /home/oseuqxlt/camlenio.co.in/B2BBackend/src/controllers/userController/sozoAepsPayoutBankRequestController.js
+- /home/oseuqxlt/camlenio.co.in/B2BBackend/src/routes/userRoute/sozoAepsPayoutBankRequestRoute.js
+- /home/oseuqxlt/camlenio.co.in/B2BBackend/src/routes/userRoute/index.js
+- /home/oseuqxlt/camlenio.co.in/B2BBackend/app.js
+- /usr/local/lsws/fcgi-bin/lsnode.js
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1207:15)
+    at Module._load (node:internal/modules/cjs/loader:1038:27)
+    at Module.require (node:internal/modules/cjs/loader:1289:19)
+    at require (node:internal/modules/helpers:182:18)
+    at Object.<anonymous> (/home/oseuqxlt/camlenio.co.in/B2BBackend/src/controllers/userController/sozoAepsPayoutBankRequestController.js:6:26)
+    at Module._compile (node:internal/modules/cjs/loader:1521:14)
+    at Module._extensions..js (node:internal/modules/cjs/loader:1623:10)
+    at Module.load (node:internal/modules/cjs/loader:1266:32)
+    at Module._load (node:internal/modules/cjs/loader:1091:12)
+    at Module.require (node:internal/modules/cjs/loader:1289:19) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [
+    '/home/oseuqxlt/camlenio.co.in/B2BBackend/src/controllers/userController/sozoAepsPayoutBankRequestController.js',
+    '/home/oseuqxlt/camlenio.co.in/B2BBackend/src/routes/userRoute/sozoAepsPayoutBankRequestRoute.js',
+    '/home/oseuqxlt/camlenio.co.in/B2BBackend/src/routes/userRoute/index.js',
+    '/home/oseuqxlt/camlenio.co.in/B2BBackend/app.js',
+    '/usr/local/lsws/fcgi-bin/lsnode.js'
+  ]
+}
+
+Node.js v20.20.2
+node:internal/modules/cjs/loader:1210
+  throw err;
+  ^
+
+Error: Cannot find module 'string-similarity'
+Require stack:
+- /home/oseuqxlt/camlenio.co.in/B2BBackend/src/controllers/userController/sozoAepsPayoutBankRequestController.js
+- /home/oseuqxlt/camlenio.co.in/B2BBackend/src/routes/userRoute/sozoAepsPayoutBankRequestRoute.js
+- /home/oseuqxlt/camlenio.co.in/B2BBackend/src/routes/userRoute/index.js
+- /home/oseuqxlt/camlenio.co.in/B2BBackend/app.js
+- /usr/local/lsws/fcgi-bin/lsnode.js
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1207:15)
+    at Module._load (node:internal/modules/cjs/loader:1038:27)
+    at Module.require (node:internal/modules/cjs/loader:1289:19)
+    at require (node:internal/modules/helpers:182:18)
+    at Object.<anonymous> (/home/oseuqxlt/camlenio.co.in/B2BBackend/src/controllers/userController/sozoAepsPayoutBankRequestController.js:6:26)
+    at Module._compile (node:internal/modules/cjs/loader:1521:14)
+    at Module._extensions..js (node:internal/modules/cjs/loader:1623:10)
+    at Module.load (node:internal/modules/cjs/loader:1266:32)
+    at Module._load (node:internal/modules/cjs/loader:1091:12)
+    at Module.require (node:internal/modules/cjs/loader:1289:19) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [
+    '/home/oseuqxlt/camlenio.co.in/B2BBackend/src/controllers/userController/sozoAepsPayoutBankRequestController.js',
+    '/home/oseuqxlt/camlenio.co.in/B2BBackend/src/routes/userRoute/sozoAepsPayoutBankRequestRoute.js',
+    '/home/oseuqxlt/camlenio.co.in/B2BBackend/src/routes/userRoute/index.js',
+    '/home/oseuqxlt/camlenio.co.in/B2BBackend/app.js',
+    '/usr/local/lsws/fcgi-bin/lsnode.js'
+  ]
+}
+
+Node.js v20.20.2
+node:internal/modules/cjs/loader:1210
+  throw err;
+  ^
+
+Error: Cannot find module 'string-similarity'
+Require stack:
+- /home/oseuqxlt/camlenio.co.in/B2BBackend/src/controllers/userController/sozoAepsPayoutBankRequestController.js
+- /home/oseuqxlt/camlenio.co.in/B2BBackend/src/routes/userRoute/sozoAepsPayoutBankRequestRoute.js
+- /home/oseuqxlt/camlenio.co.in/B2BBackend/src/routes/userRoute/index.js
+- /home/oseuqxlt/camlenio.co.in/B2BBackend/app.js
+- /usr/local/lsws/fcgi-bin/lsnode.js
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1207:15)
+    at Module._load (node:internal/modules/cjs/loader:1038:27)
+    at Module.require (node:internal/modules/cjs/loader:1289:19)
+    at require (node:internal/modules/helpers:182:18)
+    at Object.<anonymous> (/home/oseuqxlt/camlenio.co.in/B2BBackend/src/controllers/userController/sozoAepsPayoutBankRequestController.js:6:26)
+    at Module._compile (node:internal/modules/cjs/loader:1521:14)
+    at Module._extensions..js (node:internal/modules/cjs/loader:1623:10)
+    at Module.load (node:internal/modules/cjs/loader:1266:32)
+    at Module._load (node:internal/modules/cjs/loader:1091:12)
+    at Module.require (node:internal/modules/cjs/loader:1289:19) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [
+    '/home/oseuqxlt/camlenio.co.in/B2BBackend/src/controllers/userController/sozoAepsPayoutBankRequestController.js',
+    '/home/oseuqxlt/camlenio.co.in/B2BBackend/src/routes/userRoute/sozoAepsPayoutBankRequestRoute.js',
+    '/home/oseuqxlt/camlenio.co.in/B2BBackend/src/routes/userRoute/index.js',
+    '/home/oseuqxlt/camlenio.co.in/B2BBackend/app.js',
+    '/usr/local/lsws/fcgi-bin/lsnode.js'
+  ]
+}
+
+Node.js v20.20.2
+node:internal/modules/cjs/loader:1210
+  throw err;
+  ^
+
+Error: Cannot find module 'express'
+Require stack:
+- /home/oseuqxlt/camlenio.co.in/B2BBackend/app.js
+- /usr/local/lsws/fcgi-bin/lsnode.js
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1207:15)
+    at Module._load (node:internal/modules/cjs/loader:1038:27)
+    at Module.require (node:internal/modules/cjs/loader:1289:19)
+    at require (node:internal/modules/helpers:182:18)
+    at Object.<anonymous> (/home/oseuqxlt/camlenio.co.in/B2BBackend/app.js:1:17)
+    at Module._compile (node:internal/modules/cjs/loader:1521:14)
+    at Module._extensions..js (node:internal/modules/cjs/loader:1623:10)
+    at Module.load (node:internal/modules/cjs/loader:1266:32)
+    at Module._load (node:internal/modules/cjs/loader:1091:12)
+    at Module.require (node:internal/modules/cjs/loader:1289:19) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [
+    '/home/oseuqxlt/camlenio.co.in/B2BBackend/app.js',
+    '/usr/local/lsws/fcgi-bin/lsnode.js'
+  ]
+}
+
+Node.js v20.20.2
+node:internal/modules/cjs/loader:1210
+  throw err;
+  ^
+
+Error: Cannot find module 'express'
+Require stack:
+- /home/oseuqxlt/camlenio.co.in/B2BBackend/app.js
+- /usr/local/lsws/fcgi-bin/lsnode.js
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1207:15)
+    at Module._load (node:internal/modules/cjs/loader:1038:27)
+    at Module.require (node:internal/modules/cjs/loader:1289:19)
+    at require (node:internal/modules/helpers:182:18)
+    at Object.<anonymous> (/home/oseuqxlt/camlenio.co.in/B2BBackend/app.js:1:17)
+    at Module._compile (node:internal/modules/cjs/loader:1521:14)
+    at Module._extensions..js (node:internal/modules/cjs/loader:1623:10)
+    at Module.load (node:internal/modules/cjs/loader:1266:32)
+    at Module._load (node:internal/modules/cjs/loader:1091:12)
+    at Module.require (node:internal/modules/cjs/loader:1289:19) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [
+    '/home/oseuqxlt/camlenio.co.in/B2BBackend/app.js',
+    '/usr/local/lsws/fcgi-bin/lsnode.js'
+  ]
+}
+
+Node.js v20.20.2
+node:internal/modules/cjs/loader:1210
+  throw err;
+  ^
+
+Error: Cannot find module 'express'
+Require stack:
+- /home/oseuqxlt/camlenio.co.in/B2BBackend/app.js
+- /usr/local/lsws/fcgi-bin/lsnode.js
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1207:15)
+    at Module._load (node:internal/modules/cjs/loader:1038:27)
+    at Module.require (node:internal/modules/cjs/loader:1289:19)
+    at require (node:internal/modules/helpers:182:18)
+    at Object.<anonymous> (/home/oseuqxlt/camlenio.co.in/B2BBackend/app.js:1:17)
+    at Module._compile (node:internal/modules/cjs/loader:1521:14)
+    at Module._extensions..js (node:internal/modules/cjs/loader:1623:10)
+    at Module.load (node:internal/modules/cjs/loader:1266:32)
+    at Module._load (node:internal/modules/cjs/loader:1091:12)
+    at Module.require (node:internal/modules/cjs/loader:1289:19) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [
+    '/home/oseuqxlt/camlenio.co.in/B2BBackend/app.js',
+    '/usr/local/lsws/fcgi-bin/lsnode.js'
+  ]
+}
+
+Node.js v20.20.2
+node:internal/modules/cjs/loader:1210
+  throw err;
+  ^
+
+Error: Cannot find module 'express'
+Require stack:
+- /home/oseuqxlt/camlenio.co.in/B2BBackend/app.js
+- /usr/local/lsws/fcgi-bin/lsnode.js
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1207:15)
+    at Module._load (node:internal/modules/cjs/loader:1038:27)
+    at Module.require (node:internal/modules/cjs/loader:1289:19)
+    at require (node:internal/modules/helpers:182:18)
+    at Object.<anonymous> (/home/oseuqxlt/camlenio.co.in/B2BBackend/app.js:1:17)
+    at Module._compile (node:internal/modules/cjs/loader:1521:14)
+    at Module._extensions..js (node:internal/modules/cjs/loader:1623:10)
+    at Module.load (node:internal/modules/cjs/loader:1266:32)
+    at Module._load (node:internal/modules/cjs/loader:1091:12)
+    at Module.require (node:internal/modules/cjs/loader:1289:19) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [
+    '/home/oseuqxlt/camlenio.co.in/B2BBackend/app.js',
+    '/usr/local/lsws/fcgi-bin/lsnode.js'
+  ]
+}
+
+Node.js v20.20.2
+(node:935439) [MONGOOSE] Warning: Duplicate schema index on {"adminId":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:935439) [MONGOOSE] Warning: Duplicate schema index on {"name":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+(node:935439) [MONGOOSE] Warning: Duplicate schema index on {"packageCode":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+(node:935439) [MONGOOSE] Warning: Duplicate schema index on {"name":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+(node:935439) [MONGOOSE] Warning: Duplicate schema index on {"serviceCode":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+(node:935439) [MONGOOSE] Warning: Duplicate schema index on {"ekycRequestId":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+(node:938336) [MONGOOSE] Warning: Duplicate schema index on {"adminId":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:938336) [MONGOOSE] Warning: Duplicate schema index on {"name":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+(node:938336) [MONGOOSE] Warning: Duplicate schema index on {"packageCode":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+(node:938336) [MONGOOSE] Warning: Duplicate schema index on {"name":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+(node:938336) [MONGOOSE] Warning: Duplicate schema index on {"serviceCode":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+(node:938336) [MONGOOSE] Warning: Duplicate schema index on {"ekycRequestId":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+(node:939051) [MONGOOSE] Warning: Duplicate schema index on {"adminId":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:939051) [MONGOOSE] Warning: Duplicate schema index on {"name":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+(node:939051) [MONGOOSE] Warning: Duplicate schema index on {"packageCode":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+(node:939051) [MONGOOSE] Warning: Duplicate schema index on {"name":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+(node:939051) [MONGOOSE] Warning: Duplicate schema index on {"serviceCode":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+(node:939051) [MONGOOSE] Warning: Duplicate schema index on {"ekycRequestId":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+Error Occured MW: Error: OTP not found
+    at exports.verifyUserOtp (/home/oseuqxlt/camlenio.co.in/B2BBackend/src/controllers/userController/userAuthController.js:347:19)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5) {
+  statusCode: 404
+}
+(node:969353) [MONGOOSE] Warning: Duplicate schema index on {"adminId":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:969353) [MONGOOSE] Warning: Duplicate schema index on {"name":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+(node:969353) [MONGOOSE] Warning: Duplicate schema index on {"packageCode":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+(node:969353) [MONGOOSE] Warning: Duplicate schema index on {"name":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+(node:969353) [MONGOOSE] Warning: Duplicate schema index on {"serviceCode":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+(node:969353) [MONGOOSE] Warning: Duplicate schema index on {"ekycRequestId":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+(node:1050486) [MONGOOSE] Warning: Duplicate schema index on {"adminId":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:1050486) [MONGOOSE] Warning: Duplicate schema index on {"name":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+(node:1050486) [MONGOOSE] Warning: Duplicate schema index on {"packageCode":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+(node:1050486) [MONGOOSE] Warning: Duplicate schema index on {"name":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+(node:1050486) [MONGOOSE] Warning: Duplicate schema index on {"serviceCode":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+(node:1050486) [MONGOOSE] Warning: Duplicate schema index on {"ekycRequestId":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+Error Occured MW: Error: OTP not found
+    at exports.verifyUserOtp (/home/oseuqxlt/camlenio.co.in/B2BBackend/src/controllers/userController/userAuthController.js:347:19)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5) {
+  statusCode: 404
+}
+Error sending email: Cannot read properties of undefined (reading 'length')
+Error Occured MW: Error: No Package Assigned
+    at validateUserPackageAndService (/home/oseuqxlt/camlenio.co.in/B2BBackend/src/services/common/validateUserPackageAndService.js:21:11)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async exports.doRechargeService (/home/oseuqxlt/camlenio.co.in/B2BBackend/src/services/doRechargeService.js:38:38)
+    at async exports.doMobilePrepaidRecharge (/home/oseuqxlt/camlenio.co.in/B2BBackend/src/controllers/userController/rechargeController.js:229:22)
+Error Occured MW: Error: Insufficient Wallet Balance, Contact to Admin
+    at debitWallet (/home/oseuqxlt/camlenio.co.in/B2BBackend/src/services/common/walletService.js:105:11)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async exports.doRechargeService (/home/oseuqxlt/camlenio.co.in/B2BBackend/src/services/doRechargeService.js:46:48)
+    at async exports.doMobilePrepaidRecharge (/home/oseuqxlt/camlenio.co.in/B2BBackend/src/controllers/userController/rechargeController.js:229:22)
+Error Occured MW: Error: Insufficient Wallet Balance, Contact to Admin
+    at debitWallet (/home/oseuqxlt/camlenio.co.in/B2BBackend/src/services/common/walletService.js:105:11)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async exports.doRechargeService (/home/oseuqxlt/camlenio.co.in/B2BBackend/src/services/doRechargeService.js:46:48)
+    at async exports.doMobilePrepaidRecharge (/home/oseuqxlt/camlenio.co.in/B2BBackend/src/controllers/userController/rechargeController.js:229:22)
+Error Occured MW: Error: Transaction Failed
+    at exports.doRechargeService (/home/oseuqxlt/camlenio.co.in/B2BBackend/src/services/doRechargeService.js:202:21)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async exports.doMobilePrepaidRecharge (/home/oseuqxlt/camlenio.co.in/B2BBackend/src/controllers/userController/rechargeController.js:229:22) {
+  statusCode: 400,
+  data: {
+    status: 'FAILED',
+    txn_ref: 'RCHG20260320153342533099',
+    utr: null,
+    message: 'Transaction Failed'
+  }
+}
+Error Occured MW: Error: Transaction Failed
+    at exports.doRechargeService (/home/oseuqxlt/camlenio.co.in/B2BBackend/src/services/doRechargeService.js:202:21)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async exports.doMobilePrepaidRecharge (/home/oseuqxlt/camlenio.co.in/B2BBackend/src/controllers/userController/rechargeController.js:229:22) {
+  statusCode: 400,
+  data: {
+    status: 'FAILED',
+    txn_ref: 'RCHG20260320153342533099',
+    utr: null,
+    message: 'Transaction Failed'
+  }
+}
+Error Occured MW: Error: Transaction Failed
+    at exports.doRechargeService (/home/oseuqxlt/camlenio.co.in/B2BBackend/src/services/doRechargeService.js:202:21)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async exports.doMobilePrepaidRecharge (/home/oseuqxlt/camlenio.co.in/B2BBackend/src/controllers/userController/rechargeController.js:229:22) {
+  statusCode: 400,
+  data: {
+    status: 'FAILED',
+    txn_ref: 'RCHG20260320153342533099',
+    utr: null,
+    message: 'Transaction Failed'
+  }
+}
+Error Occured MW: Error: Insufficient Wallet Balance, Contact to Admin
+    at debitWallet (/home/oseuqxlt/camlenio.co.in/B2BBackend/src/services/common/walletService.js:105:11)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async exports.initiateXpressPayoutTransfer (/home/oseuqxlt/camlenio.co.in/B2BBackend/src/services/sozoXpressPayoutService.js:53:48)
+    at async exports.initiateXpressPayout (/home/oseuqxlt/camlenio.co.in/B2BBackend/src/controllers/userController/sozoXpressPayoutController.js:147:22)
+Error Occured MW: Error: Insufficient Wallet Balance, Contact to Admin
+    at debitWallet (/home/oseuqxlt/camlenio.co.in/B2BBackend/src/services/common/walletService.js:105:11)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async exports.initiateXpressPayoutTransfer (/home/oseuqxlt/camlenio.co.in/B2BBackend/src/services/sozoXpressPayoutService.js:53:48)
+    at async exports.initiateXpressPayout (/home/oseuqxlt/camlenio.co.in/B2BBackend/src/controllers/userController/sozoXpressPayoutController.js:147:22)
+Error Occured MW: Error: Insufficient Wallet Balance, Contact to Admin
+    at debitWallet (/home/oseuqxlt/camlenio.co.in/B2BBackend/src/services/common/walletService.js:105:11)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async exports.initiateXpressPayoutTransfer (/home/oseuqxlt/camlenio.co.in/B2BBackend/src/services/sozoXpressPayoutService.js:53:48)
+    at async exports.initiateXpressPayout (/home/oseuqxlt/camlenio.co.in/B2BBackend/src/controllers/userController/sozoXpressPayoutController.js:147:22)
+Error Occured MW: Error: Insufficient Wallet Balance, Contact to Admin
+    at debitWallet (/home/oseuqxlt/camlenio.co.in/B2BBackend/src/services/common/walletService.js:105:11)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async exports.initiateXpressPayoutTransfer (/home/oseuqxlt/camlenio.co.in/B2BBackend/src/services/sozoXpressPayoutService.js:53:48)
+    at async exports.initiateXpressPayout (/home/oseuqxlt/camlenio.co.in/B2BBackend/src/controllers/userController/sozoXpressPayoutController.js:147:22)
+Error Occured MW: Error: Insufficient Wallet Balance, Contact to Admin
+    at debitWallet (/home/oseuqxlt/camlenio.co.in/B2BBackend/src/services/common/walletService.js:105:11)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async exports.initiateXpressPayoutTransfer (/home/oseuqxlt/camlenio.co.in/B2BBackend/src/services/sozoXpressPayoutService.js:53:48)
+    at async exports.initiateXpressPayout (/home/oseuqxlt/camlenio.co.in/B2BBackend/src/controllers/userController/sozoXpressPayoutController.js:147:22)
+Error Occured MW: Error: Services must be a non-empty array
+    at exports.assignServiceToUser (/home/oseuqxlt/camlenio.co.in/B2BBackend/src/controllers/adminController/userController.js:817:19)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5) {
+  statusCode: 400
+}
+Error Occured MW: Error: Services must be a non-empty array
+    at exports.assignServiceToUser (/home/oseuqxlt/camlenio.co.in/B2BBackend/src/controllers/adminController/userController.js:817:19)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5) {
+  statusCode: 400
+}
+Error Occured MW: Error: Services must be a non-empty array
+    at exports.assignServiceToUser (/home/oseuqxlt/camlenio.co.in/B2BBackend/src/controllers/adminController/userController.js:817:19)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5) {
+  statusCode: 400
+}
+Error Occured MW: Error: Services must be a non-empty array
+    at exports.assignServiceToUser (/home/oseuqxlt/camlenio.co.in/B2BBackend/src/controllers/adminController/userController.js:817:19)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5) {
+  statusCode: 400
+}
+node:internal/modules/cjs/loader:1210
+  throw err;
+  ^
+
+Error: Cannot find module 'express'
+Require stack:
+- /home/oseuqxlt/camlenio.co.in/api/app.js
+- /usr/local/lsws/fcgi-bin/lsnode.js
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1207:15)
+    at Module._load (node:internal/modules/cjs/loader:1038:27)
+    at Module.require (node:internal/modules/cjs/loader:1289:19)
+    at require (node:internal/modules/helpers:182:18)
+    at Object.<anonymous> (/home/oseuqxlt/camlenio.co.in/api/app.js:1:17)
+    at Module._compile (node:internal/modules/cjs/loader:1521:14)
+    at Module._extensions..js (node:internal/modules/cjs/loader:1623:10)
+    at Module.load (node:internal/modules/cjs/loader:1266:32)
+    at Module._load (node:internal/modules/cjs/loader:1091:12)
+    at Module.require (node:internal/modules/cjs/loader:1289:19) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [
+    '/home/oseuqxlt/camlenio.co.in/api/app.js',
+    '/usr/local/lsws/fcgi-bin/lsnode.js'
+  ]
+}
+
+Node.js v20.20.2
+node:internal/modules/cjs/loader:1210
+  throw err;
+  ^
+
+Error: Cannot find module 'express'
+Require stack:
+- /home/oseuqxlt/camlenio.co.in/api/app.js
+- /usr/local/lsws/fcgi-bin/lsnode.js
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1207:15)
+    at Module._load (node:internal/modules/cjs/loader:1038:27)
+    at Module.require (node:internal/modules/cjs/loader:1289:19)
+    at require (node:internal/modules/helpers:182:18)
+    at Object.<anonymous> (/home/oseuqxlt/camlenio.co.in/api/app.js:1:17)
+    at Module._compile (node:internal/modules/cjs/loader:1521:14)
+    at Module._extensions..js (node:internal/modules/cjs/loader:1623:10)
+    at Module.load (node:internal/modules/cjs/loader:1266:32)
+    at Module._load (node:internal/modules/cjs/loader:1091:12)
+    at Module.require (node:internal/modules/cjs/loader:1289:19) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [
+    '/home/oseuqxlt/camlenio.co.in/api/app.js',
+    '/usr/local/lsws/fcgi-bin/lsnode.js'
+  ]
+}
+
+Node.js v20.20.2
+node:internal/modules/cjs/loader:1210
+  throw err;
+  ^
+
+Error: Cannot find module 'express'
+Require stack:
+- /home/oseuqxlt/camlenio.co.in/api/app.js
+- /usr/local/lsws/fcgi-bin/lsnode.js
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1207:15)
+    at Module._load (node:internal/modules/cjs/loader:1038:27)
+    at Module.require (node:internal/modules/cjs/loader:1289:19)
+    at require (node:internal/modules/helpers:182:18)
+    at Object.<anonymous> (/home/oseuqxlt/camlenio.co.in/api/app.js:1:17)
+    at Module._compile (node:internal/modules/cjs/loader:1521:14)
+    at Module._extensions..js (node:internal/modules/cjs/loader:1623:10)
+    at Module.load (node:internal/modules/cjs/loader:1266:32)
+    at Module._load (node:internal/modules/cjs/loader:1091:12)
+    at Module.require (node:internal/modules/cjs/loader:1289:19) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [
+    '/home/oseuqxlt/camlenio.co.in/api/app.js',
+    '/usr/local/lsws/fcgi-bin/lsnode.js'
+  ]
+}
+
+Node.js v20.20.2
+node:internal/modules/cjs/loader:1210
+  throw err;
+  ^
+
+Error: Cannot find module 'express'
+Require stack:
+- /home/oseuqxlt/camlenio.co.in/api/app.js
+- /usr/local/lsws/fcgi-bin/lsnode.js
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1207:15)
+    at Module._load (node:internal/modules/cjs/loader:1038:27)
+    at Module.require (node:internal/modules/cjs/loader:1289:19)
+    at require (node:internal/modules/helpers:182:18)
+    at Object.<anonymous> (/home/oseuqxlt/camlenio.co.in/api/app.js:1:17)
+    at Module._compile (node:internal/modules/cjs/loader:1521:14)
+    at Module._extensions..js (node:internal/modules/cjs/loader:1623:10)
+    at Module.load (node:internal/modules/cjs/loader:1266:32)
+    at Module._load (node:internal/modules/cjs/loader:1091:12)
+    at Module.require (node:internal/modules/cjs/loader:1289:19) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [
+    '/home/oseuqxlt/camlenio.co.in/api/app.js',
+    '/usr/local/lsws/fcgi-bin/lsnode.js'
+  ]
+}
+
+Node.js v20.20.2
+node:internal/modules/cjs/loader:1210
+  throw err;
+  ^
+
+Error: Cannot find module 'express'
+Require stack:
+- /home/oseuqxlt/camlenio.co.in/api/app.js
+- /usr/local/lsws/fcgi-bin/lsnode.js
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1207:15)
+    at Module._load (node:internal/modules/cjs/loader:1038:27)
+    at Module.require (node:internal/modules/cjs/loader:1289:19)
+    at require (node:internal/modules/helpers:182:18)
+    at Object.<anonymous> (/home/oseuqxlt/camlenio.co.in/api/app.js:1:17)
+    at Module._compile (node:internal/modules/cjs/loader:1521:14)
+    at Module._extensions..js (node:internal/modules/cjs/loader:1623:10)
+    at Module.load (node:internal/modules/cjs/loader:1266:32)
+    at Module._load (node:internal/modules/cjs/loader:1091:12)
+    at Module.require (node:internal/modules/cjs/loader:1289:19) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [
+    '/home/oseuqxlt/camlenio.co.in/api/app.js',
+    '/usr/local/lsws/fcgi-bin/lsnode.js'
+  ]
+}
+
+Node.js v20.20.2
+node:internal/modules/cjs/loader:1210
+  throw err;
+  ^
+
+Error: Cannot find module 'express'
+Require stack:
+- /home/oseuqxlt/camlenio.co.in/api/app.js
+- /usr/local/lsws/fcgi-bin/lsnode.js
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1207:15)
+    at Module._load (node:internal/modules/cjs/loader:1038:27)
+    at Module.require (node:internal/modules/cjs/loader:1289:19)
+    at require (node:internal/modules/helpers:182:18)
+    at Object.<anonymous> (/home/oseuqxlt/camlenio.co.in/api/app.js:1:17)
+    at Module._compile (node:internal/modules/cjs/loader:1521:14)
+    at Module._extensions..js (node:internal/modules/cjs/loader:1623:10)
+    at Module.load (node:internal/modules/cjs/loader:1266:32)
+    at Module._load (node:internal/modules/cjs/loader:1091:12)
+    at Module.require (node:internal/modules/cjs/loader:1289:19) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [
+    '/home/oseuqxlt/camlenio.co.in/api/app.js',
+    '/usr/local/lsws/fcgi-bin/lsnode.js'
+  ]
+}
+
+Node.js v20.20.2
+node:internal/modules/cjs/loader:1210
+  throw err;
+  ^
+
+Error: Cannot find module 'express'
+Require stack:
+- /home/oseuqxlt/camlenio.co.in/api/app.js
+- /usr/local/lsws/fcgi-bin/lsnode.js
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1207:15)
+    at Module._load (node:internal/modules/cjs/loader:1038:27)
+    at Module.require (node:internal/modules/cjs/loader:1289:19)
+    at require (node:internal/modules/helpers:182:18)
+    at Object.<anonymous> (/home/oseuqxlt/camlenio.co.in/api/app.js:1:17)
+    at Module._compile (node:internal/modules/cjs/loader:1521:14)
+    at Module._extensions..js (node:internal/modules/cjs/loader:1623:10)
+    at Module.load (node:internal/modules/cjs/loader:1266:32)
+    at Module._load (node:internal/modules/cjs/loader:1091:12)
+    at Module.require (node:internal/modules/cjs/loader:1289:19) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [
+    '/home/oseuqxlt/camlenio.co.in/api/app.js',
+    '/usr/local/lsws/fcgi-bin/lsnode.js'
+  ]
+}
+
+Node.js v20.20.2
+node:internal/modules/cjs/loader:1210
+  throw err;
+  ^
+
+Error: Cannot find module 'express'
+Require stack:
+- /home/oseuqxlt/camlenio.co.in/api/app.js
+- /usr/local/lsws/fcgi-bin/lsnode.js
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1207:15)
+    at Module._load (node:internal/modules/cjs/loader:1038:27)
+    at Module.require (node:internal/modules/cjs/loader:1289:19)
+    at require (node:internal/modules/helpers:182:18)
+    at Object.<anonymous> (/home/oseuqxlt/camlenio.co.in/api/app.js:1:17)
+    at Module._compile (node:internal/modules/cjs/loader:1521:14)
+    at Module._extensions..js (node:internal/modules/cjs/loader:1623:10)
+    at Module.load (node:internal/modules/cjs/loader:1266:32)
+    at Module._load (node:internal/modules/cjs/loader:1091:12)
+    at Module.require (node:internal/modules/cjs/loader:1289:19) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [
+    '/home/oseuqxlt/camlenio.co.in/api/app.js',
+    '/usr/local/lsws/fcgi-bin/lsnode.js'
+  ]
+}
+
+Node.js v20.20.2
+node:internal/modules/cjs/loader:1210
+  throw err;
+  ^
+
+Error: Cannot find module 'express'
+Require stack:
+- /home/oseuqxlt/camlenio.co.in/api/app.js
+- /usr/local/lsws/fcgi-bin/lsnode.js
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1207:15)
+    at Module._load (node:internal/modules/cjs/loader:1038:27)
+    at Module.require (node:internal/modules/cjs/loader:1289:19)
+    at require (node:internal/modules/helpers:182:18)
+    at Object.<anonymous> (/home/oseuqxlt/camlenio.co.in/api/app.js:1:17)
+    at Module._compile (node:internal/modules/cjs/loader:1521:14)
+    at Module._extensions..js (node:internal/modules/cjs/loader:1623:10)
+    at Module.load (node:internal/modules/cjs/loader:1266:32)
+    at Module._load (node:internal/modules/cjs/loader:1091:12)
+    at Module.require (node:internal/modules/cjs/loader:1289:19) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [
+    '/home/oseuqxlt/camlenio.co.in/api/app.js',
+    '/usr/local/lsws/fcgi-bin/lsnode.js'
+  ]
+}
+
+Node.js v20.20.2
+node:internal/modules/cjs/loader:1210
+  throw err;
+  ^
+
+Error: Cannot find module 'express'
+Require stack:
+- /home/oseuqxlt/camlenio.co.in/api/app.js
+- /usr/local/lsws/fcgi-bin/lsnode.js
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1207:15)
+    at Module._load (node:internal/modules/cjs/loader:1038:27)
+    at Module.require (node:internal/modules/cjs/loader:1289:19)
+    at require (node:internal/modules/helpers:182:18)
+    at Object.<anonymous> (/home/oseuqxlt/camlenio.co.in/api/app.js:1:17)
+    at Module._compile (node:internal/modules/cjs/loader:1521:14)
+    at Module._extensions..js (node:internal/modules/cjs/loader:1623:10)
+    at Module.load (node:internal/modules/cjs/loader:1266:32)
+    at Module._load (node:internal/modules/cjs/loader:1091:12)
+    at Module.require (node:internal/modules/cjs/loader:1289:19) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [
+    '/home/oseuqxlt/camlenio.co.in/api/app.js',
+    '/usr/local/lsws/fcgi-bin/lsnode.js'
+  ]
+}
+
+Node.js v20.20.2
+node:internal/modules/cjs/loader:1210
+  throw err;
+  ^
+
+Error: Cannot find module 'express'
+Require stack:
+- /home/oseuqxlt/camlenio.co.in/api/app.js
+- /usr/local/lsws/fcgi-bin/lsnode.js
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1207:15)
+    at Module._load (node:internal/modules/cjs/loader:1038:27)
+    at Module.require (node:internal/modules/cjs/loader:1289:19)
+    at require (node:internal/modules/helpers:182:18)
+    at Object.<anonymous> (/home/oseuqxlt/camlenio.co.in/api/app.js:1:17)
+    at Module._compile (node:internal/modules/cjs/loader:1521:14)
+    at Module._extensions..js (node:internal/modules/cjs/loader:1623:10)
+    at Module.load (node:internal/modules/cjs/loader:1266:32)
+    at Module._load (node:internal/modules/cjs/loader:1091:12)
+    at Module.require (node:internal/modules/cjs/loader:1289:19) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [
+    '/home/oseuqxlt/camlenio.co.in/api/app.js',
+    '/usr/local/lsws/fcgi-bin/lsnode.js'
+  ]
+}
+
+Node.js v20.20.2
+node:internal/modules/cjs/loader:1210
+  throw err;
+  ^
+
+Error: Cannot find module 'express'
+Require stack:
+- /home/oseuqxlt/camlenio.co.in/api/app.js
+- /usr/local/lsws/fcgi-bin/lsnode.js
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1207:15)
+    at Module._load (node:internal/modules/cjs/loader:1038:27)
+    at Module.require (node:internal/modules/cjs/loader:1289:19)
+    at require (node:internal/modules/helpers:182:18)
+    at Object.<anonymous> (/home/oseuqxlt/camlenio.co.in/api/app.js:1:17)
+    at Module._compile (node:internal/modules/cjs/loader:1521:14)
+    at Module._extensions..js (node:internal/modules/cjs/loader:1623:10)
+    at Module.load (node:internal/modules/cjs/loader:1266:32)
+    at Module._load (node:internal/modules/cjs/loader:1091:12)
+    at Module.require (node:internal/modules/cjs/loader:1289:19) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [
+    '/home/oseuqxlt/camlenio.co.in/api/app.js',
+    '/usr/local/lsws/fcgi-bin/lsnode.js'
+  ]
+}
+
+Node.js v20.20.2
+node:internal/modules/cjs/loader:1210
+  throw err;
+  ^
+
+Error: Cannot find module 'express'
+Require stack:
+- /home/oseuqxlt/camlenio.co.in/api/app.js
+- /usr/local/lsws/fcgi-bin/lsnode.js
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1207:15)
+    at Module._load (node:internal/modules/cjs/loader:1038:27)
+    at Module.require (node:internal/modules/cjs/loader:1289:19)
+    at require (node:internal/modules/helpers:182:18)
+    at Object.<anonymous> (/home/oseuqxlt/camlenio.co.in/api/app.js:1:17)
+    at Module._compile (node:internal/modules/cjs/loader:1521:14)
+    at Module._extensions..js (node:internal/modules/cjs/loader:1623:10)
+    at Module.load (node:internal/modules/cjs/loader:1266:32)
+    at Module._load (node:internal/modules/cjs/loader:1091:12)
+    at Module.require (node:internal/modules/cjs/loader:1289:19) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [
+    '/home/oseuqxlt/camlenio.co.in/api/app.js',
+    '/usr/local/lsws/fcgi-bin/lsnode.js'
+  ]
+}
+
+Node.js v20.20.2
+node:internal/modules/cjs/loader:1210
+  throw err;
+  ^
+
+Error: Cannot find module 'express'
+Require stack:
+- /home/oseuqxlt/camlenio.co.in/api/app.js
+- /usr/local/lsws/fcgi-bin/lsnode.js
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1207:15)
+    at Module._load (node:internal/modules/cjs/loader:1038:27)
+    at Module.require (node:internal/modules/cjs/loader:1289:19)
+    at require (node:internal/modules/helpers:182:18)
+    at Object.<anonymous> (/home/oseuqxlt/camlenio.co.in/api/app.js:1:17)
+    at Module._compile (node:internal/modules/cjs/loader:1521:14)
+    at Module._extensions..js (node:internal/modules/cjs/loader:1623:10)
+    at Module.load (node:internal/modules/cjs/loader:1266:32)
+    at Module._load (node:internal/modules/cjs/loader:1091:12)
+    at Module.require (node:internal/modules/cjs/loader:1289:19) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [
+    '/home/oseuqxlt/camlenio.co.in/api/app.js',
+    '/usr/local/lsws/fcgi-bin/lsnode.js'
+  ]
+}
+
+Node.js v20.20.2
+node:internal/modules/cjs/loader:1210
+  throw err;
+  ^
+
+Error: Cannot find module 'express'
+Require stack:
+- /home/oseuqxlt/camlenio.co.in/api/app.js
+- /usr/local/lsws/fcgi-bin/lsnode.js
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1207:15)
+    at Module._load (node:internal/modules/cjs/loader:1038:27)
+    at Module.require (node:internal/modules/cjs/loader:1289:19)
+    at require (node:internal/modules/helpers:182:18)
+    at Object.<anonymous> (/home/oseuqxlt/camlenio.co.in/api/app.js:1:17)
+    at Module._compile (node:internal/modules/cjs/loader:1521:14)
+    at Module._extensions..js (node:internal/modules/cjs/loader:1623:10)
+    at Module.load (node:internal/modules/cjs/loader:1266:32)
+    at Module._load (node:internal/modules/cjs/loader:1091:12)
+    at Module.require (node:internal/modules/cjs/loader:1289:19) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [
+    '/home/oseuqxlt/camlenio.co.in/api/app.js',
+    '/usr/local/lsws/fcgi-bin/lsnode.js'
+  ]
+}
+
+Node.js v20.20.2
+node:internal/modules/cjs/loader:1210
+  throw err;
+  ^
+
+Error: Cannot find module 'express'
+Require stack:
+- /home/oseuqxlt/camlenio.co.in/api/app.js
+- /usr/local/lsws/fcgi-bin/lsnode.js
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1207:15)
+    at Module._load (node:internal/modules/cjs/loader:1038:27)
+    at Module.require (node:internal/modules/cjs/loader:1289:19)
+    at require (node:internal/modules/helpers:182:18)
+    at Object.<anonymous> (/home/oseuqxlt/camlenio.co.in/api/app.js:1:17)
+    at Module._compile (node:internal/modules/cjs/loader:1521:14)
+    at Module._extensions..js (node:internal/modules/cjs/loader:1623:10)
+    at Module.load (node:internal/modules/cjs/loader:1266:32)
+    at Module._load (node:internal/modules/cjs/loader:1091:12)
+    at Module.require (node:internal/modules/cjs/loader:1289:19) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [
+    '/home/oseuqxlt/camlenio.co.in/api/app.js',
+    '/usr/local/lsws/fcgi-bin/lsnode.js'
+  ]
+}
+
+Node.js v20.20.2
+node:internal/modules/cjs/loader:1210
+  throw err;
+  ^
+
+Error: Cannot find module 'express'
+Require stack:
+- /home/oseuqxlt/camlenio.co.in/api/app.js
+- /usr/local/lsws/fcgi-bin/lsnode.js
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1207:15)
+    at Module._load (node:internal/modules/cjs/loader:1038:27)
+    at Module.require (node:internal/modules/cjs/loader:1289:19)
+    at require (node:internal/modules/helpers:182:18)
+    at Object.<anonymous> (/home/oseuqxlt/camlenio.co.in/api/app.js:1:17)
+    at Module._compile (node:internal/modules/cjs/loader:1521:14)
+    at Module._extensions..js (node:internal/modules/cjs/loader:1623:10)
+    at Module.load (node:internal/modules/cjs/loader:1266:32)
+    at Module._load (node:internal/modules/cjs/loader:1091:12)
+    at Module.require (node:internal/modules/cjs/loader:1289:19) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [
+    '/home/oseuqxlt/camlenio.co.in/api/app.js',
+    '/usr/local/lsws/fcgi-bin/lsnode.js'
+  ]
+}
+
+Node.js v20.20.2
+node:internal/modules/cjs/loader:1210
+  throw err;
+  ^
+
+Error: Cannot find module 'express'
+Require stack:
+- /home/oseuqxlt/camlenio.co.in/api/app.js
+- /usr/local/lsws/fcgi-bin/lsnode.js
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1207:15)
+    at Module._load (node:internal/modules/cjs/loader:1038:27)
+    at Module.require (node:internal/modules/cjs/loader:1289:19)
+    at require (node:internal/modules/helpers:182:18)
+    at Object.<anonymous> (/home/oseuqxlt/camlenio.co.in/api/app.js:1:17)
+    at Module._compile (node:internal/modules/cjs/loader:1521:14)
+    at Module._extensions..js (node:internal/modules/cjs/loader:1623:10)
+    at Module.load (node:internal/modules/cjs/loader:1266:32)
+    at Module._load (node:internal/modules/cjs/loader:1091:12)
+    at Module.require (node:internal/modules/cjs/loader:1289:19) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [
+    '/home/oseuqxlt/camlenio.co.in/api/app.js',
+    '/usr/local/lsws/fcgi-bin/lsnode.js'
+  ]
+}
+
+Node.js v20.20.2
+node:internal/modules/cjs/loader:1210
+  throw err;
+  ^
+
+Error: Cannot find module 'express'
+Require stack:
+- /home/oseuqxlt/camlenio.co.in/api/app.js
+- /usr/local/lsws/fcgi-bin/lsnode.js
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1207:15)
+    at Module._load (node:internal/modules/cjs/loader:1038:27)
+    at Module.require (node:internal/modules/cjs/loader:1289:19)
+    at require (node:internal/modules/helpers:182:18)
+    at Object.<anonymous> (/home/oseuqxlt/camlenio.co.in/api/app.js:1:17)
+    at Module._compile (node:internal/modules/cjs/loader:1521:14)
+    at Module._extensions..js (node:internal/modules/cjs/loader:1623:10)
+    at Module.load (node:internal/modules/cjs/loader:1266:32)
+    at Module._load (node:internal/modules/cjs/loader:1091:12)
+    at Module.require (node:internal/modules/cjs/loader:1289:19) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [
+    '/home/oseuqxlt/camlenio.co.in/api/app.js',
+    '/usr/local/lsws/fcgi-bin/lsnode.js'
+  ]
+}
+
+Node.js v20.20.2
+node:internal/modules/cjs/loader:1210
+  throw err;
+  ^
+
+Error: Cannot find module 'express'
+Require stack:
+- /home/oseuqxlt/camlenio.co.in/api/app.js
+- /usr/local/lsws/fcgi-bin/lsnode.js
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1207:15)
+    at Module._load (node:internal/modules/cjs/loader:1038:27)
+    at Module.require (node:internal/modules/cjs/loader:1289:19)
+    at require (node:internal/modules/helpers:182:18)
+    at Object.<anonymous> (/home/oseuqxlt/camlenio.co.in/api/app.js:1:17)
+    at Module._compile (node:internal/modules/cjs/loader:1521:14)
+    at Module._extensions..js (node:internal/modules/cjs/loader:1623:10)
+    at Module.load (node:internal/modules/cjs/loader:1266:32)
+    at Module._load (node:internal/modules/cjs/loader:1091:12)
+    at Module.require (node:internal/modules/cjs/loader:1289:19) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [
+    '/home/oseuqxlt/camlenio.co.in/api/app.js',
+    '/usr/local/lsws/fcgi-bin/lsnode.js'
+  ]
+}
+
+Node.js v20.20.2
+node:internal/modules/cjs/loader:1210
+  throw err;
+  ^
+
+Error: Cannot find module 'express'
+Require stack:
+- /home/oseuqxlt/camlenio.co.in/api/app.js
+- /usr/local/lsws/fcgi-bin/lsnode.js
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1207:15)
+    at Module._load (node:internal/modules/cjs/loader:1038:27)
+    at Module.require (node:internal/modules/cjs/loader:1289:19)
+    at require (node:internal/modules/helpers:182:18)
+    at Object.<anonymous> (/home/oseuqxlt/camlenio.co.in/api/app.js:1:17)
+    at Module._compile (node:internal/modules/cjs/loader:1521:14)
+    at Module._extensions..js (node:internal/modules/cjs/loader:1623:10)
+    at Module.load (node:internal/modules/cjs/loader:1266:32)
+    at Module._load (node:internal/modules/cjs/loader:1091:12)
+    at Module.require (node:internal/modules/cjs/loader:1289:19) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [
+    '/home/oseuqxlt/camlenio.co.in/api/app.js',
+    '/usr/local/lsws/fcgi-bin/lsnode.js'
+  ]
+}
+
+Node.js v20.20.2
+node:internal/modules/cjs/loader:1210
+  throw err;
+  ^
+
+Error: Cannot find module 'express'
+Require stack:
+- /home/oseuqxlt/camlenio.co.in/api/app.js
+- /usr/local/lsws/fcgi-bin/lsnode.js
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1207:15)
+    at Module._load (node:internal/modules/cjs/loader:1038:27)
+    at Module.require (node:internal/modules/cjs/loader:1289:19)
+    at require (node:internal/modules/helpers:182:18)
+    at Object.<anonymous> (/home/oseuqxlt/camlenio.co.in/api/app.js:1:17)
+    at Module._compile (node:internal/modules/cjs/loader:1521:14)
+    at Module._extensions..js (node:internal/modules/cjs/loader:1623:10)
+    at Module.load (node:internal/modules/cjs/loader:1266:32)
+    at Module._load (node:internal/modules/cjs/loader:1091:12)
+    at Module.require (node:internal/modules/cjs/loader:1289:19) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [
+    '/home/oseuqxlt/camlenio.co.in/api/app.js',
+    '/usr/local/lsws/fcgi-bin/lsnode.js'
+  ]
+}
+
+Node.js v20.20.2
+node:internal/modules/cjs/loader:1210
+  throw err;
+  ^
+
+Error: Cannot find module 'express'
+Require stack:
+- /home/oseuqxlt/camlenio.co.in/api/app.js
+- /usr/local/lsws/fcgi-bin/lsnode.js
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1207:15)
+    at Module._load (node:internal/modules/cjs/loader:1038:27)
+    at Module.require (node:internal/modules/cjs/loader:1289:19)
+    at require (node:internal/modules/helpers:182:18)
+    at Object.<anonymous> (/home/oseuqxlt/camlenio.co.in/api/app.js:1:17)
+    at Module._compile (node:internal/modules/cjs/loader:1521:14)
+    at Module._extensions..js (node:internal/modules/cjs/loader:1623:10)
+    at Module.load (node:internal/modules/cjs/loader:1266:32)
+    at Module._load (node:internal/modules/cjs/loader:1091:12)
+    at Module.require (node:internal/modules/cjs/loader:1289:19) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [
+    '/home/oseuqxlt/camlenio.co.in/api/app.js',
+    '/usr/local/lsws/fcgi-bin/lsnode.js'
+  ]
+}
+
+Node.js v20.20.2
+node:internal/modules/cjs/loader:1210
+  throw err;
+  ^
+
+Error: Cannot find module 'express'
+Require stack:
+- /home/oseuqxlt/camlenio.co.in/api/app.js
+- /usr/local/lsws/fcgi-bin/lsnode.js
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1207:15)
+    at Module._load (node:internal/modules/cjs/loader:1038:27)
+    at Module.require (node:internal/modules/cjs/loader:1289:19)
+    at require (node:internal/modules/helpers:182:18)
+    at Object.<anonymous> (/home/oseuqxlt/camlenio.co.in/api/app.js:1:17)
+    at Module._compile (node:internal/modules/cjs/loader:1521:14)
+    at Module._extensions..js (node:internal/modules/cjs/loader:1623:10)
+    at Module.load (node:internal/modules/cjs/loader:1266:32)
+    at Module._load (node:internal/modules/cjs/loader:1091:12)
+    at Module.require (node:internal/modules/cjs/loader:1289:19) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [
+    '/home/oseuqxlt/camlenio.co.in/api/app.js',
+    '/usr/local/lsws/fcgi-bin/lsnode.js'
+  ]
+}
+
+Node.js v20.20.2
+node:internal/modules/cjs/loader:1210
+  throw err;
+  ^
+
+Error: Cannot find module 'express'
+Require stack:
+- /home/oseuqxlt/camlenio.co.in/api/app.js
+- /usr/local/lsws/fcgi-bin/lsnode.js
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1207:15)
+    at Module._load (node:internal/modules/cjs/loader:1038:27)
+    at Module.require (node:internal/modules/cjs/loader:1289:19)
+    at require (node:internal/modules/helpers:182:18)
+    at Object.<anonymous> (/home/oseuqxlt/camlenio.co.in/api/app.js:1:17)
+    at Module._compile (node:internal/modules/cjs/loader:1521:14)
+    at Module._extensions..js (node:internal/modules/cjs/loader:1623:10)
+    at Module.load (node:internal/modules/cjs/loader:1266:32)
+    at Module._load (node:internal/modules/cjs/loader:1091:12)
+    at Module.require (node:internal/modules/cjs/loader:1289:19) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [
+    '/home/oseuqxlt/camlenio.co.in/api/app.js',
+    '/usr/local/lsws/fcgi-bin/lsnode.js'
+  ]
+}
+
+Node.js v20.20.2
+node:internal/modules/cjs/loader:1210
+  throw err;
+  ^
+
+Error: Cannot find module 'express'
+Require stack:
+- /home/oseuqxlt/camlenio.co.in/api/app.js
+- /usr/local/lsws/fcgi-bin/lsnode.js
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1207:15)
+    at Module._load (node:internal/modules/cjs/loader:1038:27)
+    at Module.require (node:internal/modules/cjs/loader:1289:19)
+    at require (node:internal/modules/helpers:182:18)
+    at Object.<anonymous> (/home/oseuqxlt/camlenio.co.in/api/app.js:1:17)
+    at Module._compile (node:internal/modules/cjs/loader:1521:14)
+    at Module._extensions..js (node:internal/modules/cjs/loader:1623:10)
+    at Module.load (node:internal/modules/cjs/loader:1266:32)
+    at Module._load (node:internal/modules/cjs/loader:1091:12)
+    at Module.require (node:internal/modules/cjs/loader:1289:19) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [
+    '/home/oseuqxlt/camlenio.co.in/api/app.js',
+    '/usr/local/lsws/fcgi-bin/lsnode.js'
+  ]
+}
+
+Node.js v20.20.2
+node:internal/modules/cjs/loader:1210
+  throw err;
+  ^
+
+Error: Cannot find module 'express'
+Require stack:
+- /home/oseuqxlt/camlenio.co.in/api/app.js
+- /usr/local/lsws/fcgi-bin/lsnode.js
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1207:15)
+    at Module._load (node:internal/modules/cjs/loader:1038:27)
+    at Module.require (node:internal/modules/cjs/loader:1289:19)
+    at require (node:internal/modules/helpers:182:18)
+    at Object.<anonymous> (/home/oseuqxlt/camlenio.co.in/api/app.js:1:17)
+    at Module._compile (node:internal/modules/cjs/loader:1521:14)
+    at Module._extensions..js (node:internal/modules/cjs/loader:1623:10)
+    at Module.load (node:internal/modules/cjs/loader:1266:32)
+    at Module._load (node:internal/modules/cjs/loader:1091:12)
+    at Module.require (node:internal/modules/cjs/loader:1289:19) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [
+    '/home/oseuqxlt/camlenio.co.in/api/app.js',
+    '/usr/local/lsws/fcgi-bin/lsnode.js'
+  ]
+}
+
+Node.js v20.20.2
+node:internal/modules/cjs/loader:1210
+  throw err;
+  ^
+
+Error: Cannot find module 'express'
+Require stack:
+- /home/oseuqxlt/camlenio.co.in/api/app.js
+- /usr/local/lsws/fcgi-bin/lsnode.js
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1207:15)
+    at Module._load (node:internal/modules/cjs/loader:1038:27)
+    at Module.require (node:internal/modules/cjs/loader:1289:19)
+    at require (node:internal/modules/helpers:182:18)
+    at Object.<anonymous> (/home/oseuqxlt/camlenio.co.in/api/app.js:1:17)
+    at Module._compile (node:internal/modules/cjs/loader:1521:14)
+    at Module._extensions..js (node:internal/modules/cjs/loader:1623:10)
+    at Module.load (node:internal/modules/cjs/loader:1266:32)
+    at Module._load (node:internal/modules/cjs/loader:1091:12)
+    at Module.require (node:internal/modules/cjs/loader:1289:19) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [
+    '/home/oseuqxlt/camlenio.co.in/api/app.js',
+    '/usr/local/lsws/fcgi-bin/lsnode.js'
+  ]
+}
+
+Node.js v20.20.2
+node:internal/modules/cjs/loader:1210
+  throw err;
+  ^
+
+Error: Cannot find module 'express'
+Require stack:
+- /home/oseuqxlt/camlenio.co.in/api/app.js
+- /usr/local/lsws/fcgi-bin/lsnode.js
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1207:15)
+    at Module._load (node:internal/modules/cjs/loader:1038:27)
+    at Module.require (node:internal/modules/cjs/loader:1289:19)
+    at require (node:internal/modules/helpers:182:18)
+    at Object.<anonymous> (/home/oseuqxlt/camlenio.co.in/api/app.js:1:17)
+    at Module._compile (node:internal/modules/cjs/loader:1521:14)
+    at Module._extensions..js (node:internal/modules/cjs/loader:1623:10)
+    at Module.load (node:internal/modules/cjs/loader:1266:32)
+    at Module._load (node:internal/modules/cjs/loader:1091:12)
+    at Module.require (node:internal/modules/cjs/loader:1289:19) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [
+    '/home/oseuqxlt/camlenio.co.in/api/app.js',
+    '/usr/local/lsws/fcgi-bin/lsnode.js'
+  ]
+}
+
+Node.js v20.20.2
+node:internal/modules/cjs/loader:1210
+  throw err;
+  ^
+
+Error: Cannot find module 'express'
+Require stack:
+- /home/oseuqxlt/camlenio.co.in/api/app.js
+- /usr/local/lsws/fcgi-bin/lsnode.js
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1207:15)
+    at Module._load (node:internal/modules/cjs/loader:1038:27)
+    at Module.require (node:internal/modules/cjs/loader:1289:19)
+    at require (node:internal/modules/helpers:182:18)
+    at Object.<anonymous> (/home/oseuqxlt/camlenio.co.in/api/app.js:1:17)
+    at Module._compile (node:internal/modules/cjs/loader:1521:14)
+    at Module._extensions..js (node:internal/modules/cjs/loader:1623:10)
+    at Module.load (node:internal/modules/cjs/loader:1266:32)
+    at Module._load (node:internal/modules/cjs/loader:1091:12)
+    at Module.require (node:internal/modules/cjs/loader:1289:19) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [
+    '/home/oseuqxlt/camlenio.co.in/api/app.js',
+    '/usr/local/lsws/fcgi-bin/lsnode.js'
+  ]
+}
+
+Node.js v20.20.2
+node:internal/modules/cjs/loader:1210
+  throw err;
+  ^
+
+Error: Cannot find module 'express'
+Require stack:
+- /home/oseuqxlt/camlenio.co.in/api/app.js
+- /usr/local/lsws/fcgi-bin/lsnode.js
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1207:15)
+    at Module._load (node:internal/modules/cjs/loader:1038:27)
+    at Module.require (node:internal/modules/cjs/loader:1289:19)
+    at require (node:internal/modules/helpers:182:18)
+    at Object.<anonymous> (/home/oseuqxlt/camlenio.co.in/api/app.js:1:17)
+    at Module._compile (node:internal/modules/cjs/loader:1521:14)
+    at Module._extensions..js (node:internal/modules/cjs/loader:1623:10)
+    at Module.load (node:internal/modules/cjs/loader:1266:32)
+    at Module._load (node:internal/modules/cjs/loader:1091:12)
+    at Module.require (node:internal/modules/cjs/loader:1289:19) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [
+    '/home/oseuqxlt/camlenio.co.in/api/app.js',
+    '/usr/local/lsws/fcgi-bin/lsnode.js'
+  ]
+}
+
+Node.js v20.20.2
+node:internal/modules/cjs/loader:1210
+  throw err;
+  ^
+
+Error: Cannot find module 'express'
+Require stack:
+- /home/oseuqxlt/camlenio.co.in/api/app.js
+- /usr/local/lsws/fcgi-bin/lsnode.js
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1207:15)
+    at Module._load (node:internal/modules/cjs/loader:1038:27)
+    at Module.require (node:internal/modules/cjs/loader:1289:19)
+    at require (node:internal/modules/helpers:182:18)
+    at Object.<anonymous> (/home/oseuqxlt/camlenio.co.in/api/app.js:1:17)
+    at Module._compile (node:internal/modules/cjs/loader:1521:14)
+    at Module._extensions..js (node:internal/modules/cjs/loader:1623:10)
+    at Module.load (node:internal/modules/cjs/loader:1266:32)
+    at Module._load (node:internal/modules/cjs/loader:1091:12)
+    at Module.require (node:internal/modules/cjs/loader:1289:19) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [
+    '/home/oseuqxlt/camlenio.co.in/api/app.js',
+    '/usr/local/lsws/fcgi-bin/lsnode.js'
+  ]
+}
+
+Node.js v20.20.2
+node:internal/modules/cjs/loader:1210
+  throw err;
+  ^
+
+Error: Cannot find module 'express'
+Require stack:
+- /home/oseuqxlt/camlenio.co.in/api/app.js
+- /usr/local/lsws/fcgi-bin/lsnode.js
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1207:15)
+    at Module._load (node:internal/modules/cjs/loader:1038:27)
+    at Module.require (node:internal/modules/cjs/loader:1289:19)
+    at require (node:internal/modules/helpers:182:18)
+    at Object.<anonymous> (/home/oseuqxlt/camlenio.co.in/api/app.js:1:17)
+    at Module._compile (node:internal/modules/cjs/loader:1521:14)
+    at Module._extensions..js (node:internal/modules/cjs/loader:1623:10)
+    at Module.load (node:internal/modules/cjs/loader:1266:32)
+    at Module._load (node:internal/modules/cjs/loader:1091:12)
+    at Module.require (node:internal/modules/cjs/loader:1289:19) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [
+    '/home/oseuqxlt/camlenio.co.in/api/app.js',
+    '/usr/local/lsws/fcgi-bin/lsnode.js'
+  ]
+}
+
+Node.js v20.20.2
+node:internal/modules/cjs/loader:1210
+  throw err;
+  ^
+
+Error: Cannot find module 'express'
+Require stack:
+- /home/oseuqxlt/camlenio.co.in/api/app.js
+- /usr/local/lsws/fcgi-bin/lsnode.js
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1207:15)
+    at Module._load (node:internal/modules/cjs/loader:1038:27)
+    at Module.require (node:internal/modules/cjs/loader:1289:19)
+    at require (node:internal/modules/helpers:182:18)
+    at Object.<anonymous> (/home/oseuqxlt/camlenio.co.in/api/app.js:1:17)
+    at Module._compile (node:internal/modules/cjs/loader:1521:14)
+    at Module._extensions..js (node:internal/modules/cjs/loader:1623:10)
+    at Module.load (node:internal/modules/cjs/loader:1266:32)
+    at Module._load (node:internal/modules/cjs/loader:1091:12)
+    at Module.require (node:internal/modules/cjs/loader:1289:19) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [
+    '/home/oseuqxlt/camlenio.co.in/api/app.js',
+    '/usr/local/lsws/fcgi-bin/lsnode.js'
+  ]
+}
+
+Node.js v20.20.2
+node:internal/modules/cjs/loader:1210
+  throw err;
+  ^
+
+Error: Cannot find module 'express'
+Require stack:
+- /home/oseuqxlt/camlenio.co.in/api/app.js
+- /usr/local/lsws/fcgi-bin/lsnode.js
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1207:15)
+    at Module._load (node:internal/modules/cjs/loader:1038:27)
+    at Module.require (node:internal/modules/cjs/loader:1289:19)
+    at require (node:internal/modules/helpers:182:18)
+    at Object.<anonymous> (/home/oseuqxlt/camlenio.co.in/api/app.js:1:17)
+    at Module._compile (node:internal/modules/cjs/loader:1521:14)
+    at Module._extensions..js (node:internal/modules/cjs/loader:1623:10)
+    at Module.load (node:internal/modules/cjs/loader:1266:32)
+    at Module._load (node:internal/modules/cjs/loader:1091:12)
+    at Module.require (node:internal/modules/cjs/loader:1289:19) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [
+    '/home/oseuqxlt/camlenio.co.in/api/app.js',
+    '/usr/local/lsws/fcgi-bin/lsnode.js'
+  ]
+}
+
+Node.js v20.20.2
+node:internal/modules/cjs/loader:1210
+  throw err;
+  ^
+
+Error: Cannot find module 'express'
+Require stack:
+- /home/oseuqxlt/camlenio.co.in/api/app.js
+- /usr/local/lsws/fcgi-bin/lsnode.js
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1207:15)
+    at Module._load (node:internal/modules/cjs/loader:1038:27)
+    at Module.require (node:internal/modules/cjs/loader:1289:19)
+    at require (node:internal/modules/helpers:182:18)
+    at Object.<anonymous> (/home/oseuqxlt/camlenio.co.in/api/app.js:1:17)
+    at Module._compile (node:internal/modules/cjs/loader:1521:14)
+    at Module._extensions..js (node:internal/modules/cjs/loader:1623:10)
+    at Module.load (node:internal/modules/cjs/loader:1266:32)
+    at Module._load (node:internal/modules/cjs/loader:1091:12)
+    at Module.require (node:internal/modules/cjs/loader:1289:19) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [
+    '/home/oseuqxlt/camlenio.co.in/api/app.js',
+    '/usr/local/lsws/fcgi-bin/lsnode.js'
+  ]
+}
+
+Node.js v20.20.2
+node:internal/modules/cjs/loader:1210
+  throw err;
+  ^
+
+Error: Cannot find module 'express'
+Require stack:
+- /home/oseuqxlt/camlenio.co.in/api/app.js
+- /usr/local/lsws/fcgi-bin/lsnode.js
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1207:15)
+    at Module._load (node:internal/modules/cjs/loader:1038:27)
+    at Module.require (node:internal/modules/cjs/loader:1289:19)
+    at require (node:internal/modules/helpers:182:18)
+    at Object.<anonymous> (/home/oseuqxlt/camlenio.co.in/api/app.js:1:17)
+    at Module._compile (node:internal/modules/cjs/loader:1521:14)
+    at Module._extensions..js (node:internal/modules/cjs/loader:1623:10)
+    at Module.load (node:internal/modules/cjs/loader:1266:32)
+    at Module._load (node:internal/modules/cjs/loader:1091:12)
+    at Module.require (node:internal/modules/cjs/loader:1289:19) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [
+    '/home/oseuqxlt/camlenio.co.in/api/app.js',
+    '/usr/local/lsws/fcgi-bin/lsnode.js'
+  ]
+}
+
+Node.js v20.20.2
+node:internal/modules/cjs/loader:1210
+  throw err;
+  ^
+
+Error: Cannot find module 'express'
+Require stack:
+- /home/oseuqxlt/camlenio.co.in/api/app.js
+- /usr/local/lsws/fcgi-bin/lsnode.js
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1207:15)
+    at Module._load (node:internal/modules/cjs/loader:1038:27)
+    at Module.require (node:internal/modules/cjs/loader:1289:19)
+    at require (node:internal/modules/helpers:182:18)
+    at Object.<anonymous> (/home/oseuqxlt/camlenio.co.in/api/app.js:1:17)
+    at Module._compile (node:internal/modules/cjs/loader:1521:14)
+    at Module._extensions..js (node:internal/modules/cjs/loader:1623:10)
+    at Module.load (node:internal/modules/cjs/loader:1266:32)
+    at Module._load (node:internal/modules/cjs/loader:1091:12)
+    at Module.require (node:internal/modules/cjs/loader:1289:19) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [
+    '/home/oseuqxlt/camlenio.co.in/api/app.js',
+    '/usr/local/lsws/fcgi-bin/lsnode.js'
+  ]
+}
+
+Node.js v20.20.2
+node:internal/modules/cjs/loader:1210
+  throw err;
+  ^
+
+Error: Cannot find module 'express'
+Require stack:
+- /home/oseuqxlt/camlenio.co.in/api/app.js
+- /usr/local/lsws/fcgi-bin/lsnode.js
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1207:15)
+    at Module._load (node:internal/modules/cjs/loader:1038:27)
+    at Module.require (node:internal/modules/cjs/loader:1289:19)
+    at require (node:internal/modules/helpers:182:18)
+    at Object.<anonymous> (/home/oseuqxlt/camlenio.co.in/api/app.js:1:17)
+    at Module._compile (node:internal/modules/cjs/loader:1521:14)
+    at Module._extensions..js (node:internal/modules/cjs/loader:1623:10)
+    at Module.load (node:internal/modules/cjs/loader:1266:32)
+    at Module._load (node:internal/modules/cjs/loader:1091:12)
+    at Module.require (node:internal/modules/cjs/loader:1289:19) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [
+    '/home/oseuqxlt/camlenio.co.in/api/app.js',
+    '/usr/local/lsws/fcgi-bin/lsnode.js'
+  ]
+}
+
+Node.js v20.20.2
+node:buffer:322
+  throw new ERR_INVALID_ARG_TYPE(
+  ^
+
+TypeError [ERR_INVALID_ARG_TYPE]: The first argument must be of type string or an instance of Buffer, ArrayBuffer, or Array or an Array-like Object. Received undefined
+    at Function.from (node:buffer:322:9)
+    at Object.<anonymous> (/home/oseuqxlt/camlenio.co.in/api/src/helpers/encryptDecryptAadhar.js:5:31)
+    at Module._compile (node:internal/modules/cjs/loader:1521:14)
+    at Module._extensions..js (node:internal/modules/cjs/loader:1623:10)
+    at Module.load (node:internal/modules/cjs/loader:1266:32)
+    at Module._load (node:internal/modules/cjs/loader:1091:12)
+    at Module.require (node:internal/modules/cjs/loader:1289:19)
+    at require (node:internal/modules/helpers:182:18)
+    at Object.<anonymous> (/home/oseuqxlt/camlenio.co.in/api/src/services/instantAepsService.js:25:28)
+    at Module._compile (node:internal/modules/cjs/loader:1521:14) {
+  code: 'ERR_INVALID_ARG_TYPE'
+}
+
+Node.js v20.20.2
+node:buffer:322
+  throw new ERR_INVALID_ARG_TYPE(
+  ^
+
+TypeError [ERR_INVALID_ARG_TYPE]: The first argument must be of type string or an instance of Buffer, ArrayBuffer, or Array or an Array-like Object. Received undefined
+    at Function.from (node:buffer:322:9)
+    at Object.<anonymous> (/home/oseuqxlt/camlenio.co.in/api/src/helpers/encryptDecryptAadhar.js:5:31)
+    at Module._compile (node:internal/modules/cjs/loader:1521:14)
+    at Module._extensions..js (node:internal/modules/cjs/loader:1623:10)
+    at Module.load (node:internal/modules/cjs/loader:1266:32)
+    at Module._load (node:internal/modules/cjs/loader:1091:12)
+    at Module.require (node:internal/modules/cjs/loader:1289:19)
+    at require (node:internal/modules/helpers:182:18)
+    at Object.<anonymous> (/home/oseuqxlt/camlenio.co.in/api/src/services/instantAepsService.js:25:28)
+    at Module._compile (node:internal/modules/cjs/loader:1521:14) {
+  code: 'ERR_INVALID_ARG_TYPE'
+}
+
+Node.js v20.20.2
+node:buffer:322
+  throw new ERR_INVALID_ARG_TYPE(
+  ^
+
+TypeError [ERR_INVALID_ARG_TYPE]: The first argument must be of type string or an instance of Buffer, ArrayBuffer, or Array or an Array-like Object. Received undefined
+    at Function.from (node:buffer:322:9)
+    at Object.<anonymous> (/home/oseuqxlt/camlenio.co.in/api/src/helpers/encryptDecryptAadhar.js:5:31)
+    at Module._compile (node:internal/modules/cjs/loader:1521:14)
+    at Module._extensions..js (node:internal/modules/cjs/loader:1623:10)
+    at Module.load (node:internal/modules/cjs/loader:1266:32)
+    at Module._load (node:internal/modules/cjs/loader:1091:12)
+    at Module.require (node:internal/modules/cjs/loader:1289:19)
+    at require (node:internal/modules/helpers:182:18)
+    at Object.<anonymous> (/home/oseuqxlt/camlenio.co.in/api/src/services/instantAepsService.js:25:28)
+    at Module._compile (node:internal/modules/cjs/loader:1521:14) {
+  code: 'ERR_INVALID_ARG_TYPE'
+}
+
+Node.js v20.20.2
+node:buffer:322
+  throw new ERR_INVALID_ARG_TYPE(
+  ^
+
+TypeError [ERR_INVALID_ARG_TYPE]: The first argument must be of type string or an instance of Buffer, ArrayBuffer, or Array or an Array-like Object. Received undefined
+    at Function.from (node:buffer:322:9)
+    at Object.<anonymous> (/home/oseuqxlt/camlenio.co.in/api/src/helpers/encryptDecryptAadhar.js:5:31)
+    at Module._compile (node:internal/modules/cjs/loader:1521:14)
+    at Module._extensions..js (node:internal/modules/cjs/loader:1623:10)
+    at Module.load (node:internal/modules/cjs/loader:1266:32)
+    at Module._load (node:internal/modules/cjs/loader:1091:12)
+    at Module.require (node:internal/modules/cjs/loader:1289:19)
+    at require (node:internal/modules/helpers:182:18)
+    at Object.<anonymous> (/home/oseuqxlt/camlenio.co.in/api/src/services/instantAepsService.js:25:28)
+    at Module._compile (node:internal/modules/cjs/loader:1521:14) {
+  code: 'ERR_INVALID_ARG_TYPE'
+}
+
+Node.js v20.20.2
+node:buffer:322
+  throw new ERR_INVALID_ARG_TYPE(
+  ^
+
+TypeError [ERR_INVALID_ARG_TYPE]: The first argument must be of type string or an instance of Buffer, ArrayBuffer, or Array or an Array-like Object. Received undefined
+    at Function.from (node:buffer:322:9)
+    at Object.<anonymous> (/home/oseuqxlt/camlenio.co.in/api/src/helpers/encryptDecryptAadhar.js:5:31)
+    at Module._compile (node:internal/modules/cjs/loader:1521:14)
+    at Module._extensions..js (node:internal/modules/cjs/loader:1623:10)
+    at Module.load (node:internal/modules/cjs/loader:1266:32)
+    at Module._load (node:internal/modules/cjs/loader:1091:12)
+    at Module.require (node:internal/modules/cjs/loader:1289:19)
+    at require (node:internal/modules/helpers:182:18)
+    at Object.<anonymous> (/home/oseuqxlt/camlenio.co.in/api/src/services/instantAepsService.js:25:28)
+    at Module._compile (node:internal/modules/cjs/loader:1521:14) {
+  code: 'ERR_INVALID_ARG_TYPE'
+}
+
+Node.js v20.20.2
+node:buffer:322
+  throw new ERR_INVALID_ARG_TYPE(
+  ^
+
+TypeError [ERR_INVALID_ARG_TYPE]: The first argument must be of type string or an instance of Buffer, ArrayBuffer, or Array or an Array-like Object. Received undefined
+    at Function.from (node:buffer:322:9)
+    at Object.<anonymous> (/home/oseuqxlt/camlenio.co.in/api/src/helpers/encryptDecryptAadhar.js:5:31)
+    at Module._compile (node:internal/modules/cjs/loader:1521:14)
+    at Module._extensions..js (node:internal/modules/cjs/loader:1623:10)
+    at Module.load (node:internal/modules/cjs/loader:1266:32)
+    at Module._load (node:internal/modules/cjs/loader:1091:12)
+    at Module.require (node:internal/modules/cjs/loader:1289:19)
+    at require (node:internal/modules/helpers:182:18)
+    at Object.<anonymous> (/home/oseuqxlt/camlenio.co.in/api/src/services/instantAepsService.js:25:28)
+    at Module._compile (node:internal/modules/cjs/loader:1521:14) {
+  code: 'ERR_INVALID_ARG_TYPE'
+}
+
+Node.js v20.20.2
+node:buffer:322
+  throw new ERR_INVALID_ARG_TYPE(
+  ^
+
+TypeError [ERR_INVALID_ARG_TYPE]: The first argument must be of type string or an instance of Buffer, ArrayBuffer, or Array or an Array-like Object. Received undefined
+    at Function.from (node:buffer:322:9)
+    at Object.<anonymous> (/home/oseuqxlt/camlenio.co.in/api/src/helpers/encryptDecryptAadhar.js:5:31)
+    at Module._compile (node:internal/modules/cjs/loader:1521:14)
+    at Module._extensions..js (node:internal/modules/cjs/loader:1623:10)
+    at Module.load (node:internal/modules/cjs/loader:1266:32)
+    at Module._load (node:internal/modules/cjs/loader:1091:12)
+    at Module.require (node:internal/modules/cjs/loader:1289:19)
+    at require (node:internal/modules/helpers:182:18)
+    at Object.<anonymous> (/home/oseuqxlt/camlenio.co.in/api/src/services/instantAepsService.js:25:28)
+    at Module._compile (node:internal/modules/cjs/loader:1521:14) {
+  code: 'ERR_INVALID_ARG_TYPE'
+}
+
+Node.js v20.20.2
+node:buffer:322
+  throw new ERR_INVALID_ARG_TYPE(
+  ^
+
+TypeError [ERR_INVALID_ARG_TYPE]: The first argument must be of type string or an instance of Buffer, ArrayBuffer, or Array or an Array-like Object. Received undefined
+    at Function.from (node:buffer:322:9)
+    at Object.<anonymous> (/home/oseuqxlt/camlenio.co.in/api/src/helpers/encryptDecryptAadhar.js:5:31)
+    at Module._compile (node:internal/modules/cjs/loader:1521:14)
+    at Module._extensions..js (node:internal/modules/cjs/loader:1623:10)
+    at Module.load (node:internal/modules/cjs/loader:1266:32)
+    at Module._load (node:internal/modules/cjs/loader:1091:12)
+    at Module.require (node:internal/modules/cjs/loader:1289:19)
+    at require (node:internal/modules/helpers:182:18)
+    at Object.<anonymous> (/home/oseuqxlt/camlenio.co.in/api/src/services/instantAepsService.js:25:28)
+    at Module._compile (node:internal/modules/cjs/loader:1521:14) {
+  code: 'ERR_INVALID_ARG_TYPE'
+}
+
+Node.js v20.20.2
+(node:1390821) [MONGOOSE] Warning: Duplicate schema index on {"adminId":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:1390821) [MONGOOSE] Warning: Duplicate schema index on {"name":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+(node:1390821) [MONGOOSE] Warning: Duplicate schema index on {"packageCode":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+(node:1390821) [MONGOOSE] Warning: Duplicate schema index on {"name":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+(node:1390821) [MONGOOSE] Warning: Duplicate schema index on {"serviceCode":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+(node:1414581) [MONGOOSE] Warning: Duplicate schema index on {"adminId":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:1414581) [MONGOOSE] Warning: Duplicate schema index on {"name":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+(node:1414581) [MONGOOSE] Warning: Duplicate schema index on {"packageCode":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+(node:1414581) [MONGOOSE] Warning: Duplicate schema index on {"name":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+(node:1414581) [MONGOOSE] Warning: Duplicate schema index on {"serviceCode":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+(node:1473775) [MONGOOSE] Warning: Duplicate schema index on {"adminId":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:1473775) [MONGOOSE] Warning: Duplicate schema index on {"name":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+(node:1473775) [MONGOOSE] Warning: Duplicate schema index on {"packageCode":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+(node:1473775) [MONGOOSE] Warning: Duplicate schema index on {"name":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+(node:1473775) [MONGOOSE] Warning: Duplicate schema index on {"serviceCode":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+(node:1604897) [MONGOOSE] Warning: Duplicate schema index on {"adminId":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:1604897) [MONGOOSE] Warning: Duplicate schema index on {"name":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+(node:1604897) [MONGOOSE] Warning: Duplicate schema index on {"packageCode":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+(node:1604897) [MONGOOSE] Warning: Duplicate schema index on {"name":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+(node:1604897) [MONGOOSE] Warning: Duplicate schema index on {"serviceCode":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+(node:1605161) [MONGOOSE] Warning: Duplicate schema index on {"adminId":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:1605161) [MONGOOSE] Warning: Duplicate schema index on {"name":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+(node:1605161) [MONGOOSE] Warning: Duplicate schema index on {"packageCode":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+(node:1605161) [MONGOOSE] Warning: Duplicate schema index on {"name":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+(node:1605161) [MONGOOSE] Warning: Duplicate schema index on {"serviceCode":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+(node:1608722) [MONGOOSE] Warning: Duplicate schema index on {"adminId":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:1608722) [MONGOOSE] Warning: Duplicate schema index on {"name":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+(node:1608722) [MONGOOSE] Warning: Duplicate schema index on {"packageCode":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+(node:1608722) [MONGOOSE] Warning: Duplicate schema index on {"name":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+(node:1608722) [MONGOOSE] Warning: Duplicate schema index on {"serviceCode":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+node:buffer:322
+  throw new ERR_INVALID_ARG_TYPE(
+  ^
+
+TypeError [ERR_INVALID_ARG_TYPE]: The first argument must be of type string or an instance of Buffer, ArrayBuffer, or Array or an Array-like Object. Received undefined
+    at Function.from (node:buffer:322:9)
+    at Object.<anonymous> (/home/oseuqxlt/camlenio.co.in/api/src/helpers/encryptDecryptAadhar.js:5:31)
+    at Module._compile (node:internal/modules/cjs/loader:1521:14)
+    at Module._extensions..js (node:internal/modules/cjs/loader:1623:10)
+    at Module.load (node:internal/modules/cjs/loader:1266:32)
+    at Module._load (node:internal/modules/cjs/loader:1091:12)
+    at Module.require (node:internal/modules/cjs/loader:1289:19)
+    at require (node:internal/modules/helpers:182:18)
+    at Object.<anonymous> (/home/oseuqxlt/camlenio.co.in/api/src/services/instantAepsService.js:25:28)
+    at Module._compile (node:internal/modules/cjs/loader:1521:14) {
+  code: 'ERR_INVALID_ARG_TYPE'
+}
+
+Node.js v20.20.2
+node:buffer:322
+  throw new ERR_INVALID_ARG_TYPE(
+  ^
+
+TypeError [ERR_INVALID_ARG_TYPE]: The first argument must be of type string or an instance of Buffer, ArrayBuffer, or Array or an Array-like Object. Received undefined
+    at Function.from (node:buffer:322:9)
+    at Object.<anonymous> (/home/oseuqxlt/camlenio.co.in/api/src/helpers/encryptDecryptAadhar.js:5:31)
+    at Module._compile (node:internal/modules/cjs/loader:1521:14)
+    at Module._extensions..js (node:internal/modules/cjs/loader:1623:10)
+    at Module.load (node:internal/modules/cjs/loader:1266:32)
+    at Module._load (node:internal/modules/cjs/loader:1091:12)
+    at Module.require (node:internal/modules/cjs/loader:1289:19)
+    at require (node:internal/modules/helpers:182:18)
+    at Object.<anonymous> (/home/oseuqxlt/camlenio.co.in/api/src/services/instantAepsService.js:25:28)
+    at Module._compile (node:internal/modules/cjs/loader:1521:14) {
+  code: 'ERR_INVALID_ARG_TYPE'
+}
+
+Node.js v20.20.2
+node:buffer:322
+  throw new ERR_INVALID_ARG_TYPE(
+  ^
+
+TypeError [ERR_INVALID_ARG_TYPE]: The first argument must be of type string or an instance of Buffer, ArrayBuffer, or Array or an Array-like Object. Received undefined
+    at Function.from (node:buffer:322:9)
+    at Object.<anonymous> (/home/oseuqxlt/camlenio.co.in/api/src/helpers/encryptDecryptAadhar.js:5:31)
+    at Module._compile (node:internal/modules/cjs/loader:1521:14)
+    at Module._extensions..js (node:internal/modules/cjs/loader:1623:10)
+    at Module.load (node:internal/modules/cjs/loader:1266:32)
+    at Module._load (node:internal/modules/cjs/loader:1091:12)
+    at Module.require (node:internal/modules/cjs/loader:1289:19)
+    at require (node:internal/modules/helpers:182:18)
+    at Object.<anonymous> (/home/oseuqxlt/camlenio.co.in/api/src/services/instantAepsService.js:25:28)
+    at Module._compile (node:internal/modules/cjs/loader:1521:14) {
+  code: 'ERR_INVALID_ARG_TYPE'
+}
+
+Node.js v20.20.2
+node:buffer:322
+  throw new ERR_INVALID_ARG_TYPE(
+  ^
+
+TypeError [ERR_INVALID_ARG_TYPE]: The first argument must be of type string or an instance of Buffer, ArrayBuffer, or Array or an Array-like Object. Received undefined
+    at Function.from (node:buffer:322:9)
+    at Object.<anonymous> (/home/oseuqxlt/camlenio.co.in/api/src/helpers/encryptDecryptAadhar.js:5:31)
+    at Module._compile (node:internal/modules/cjs/loader:1521:14)
+    at Module._extensions..js (node:internal/modules/cjs/loader:1623:10)
+    at Module.load (node:internal/modules/cjs/loader:1266:32)
+    at Module._load (node:internal/modules/cjs/loader:1091:12)
+    at Module.require (node:internal/modules/cjs/loader:1289:19)
+    at require (node:internal/modules/helpers:182:18)
+    at Object.<anonymous> (/home/oseuqxlt/camlenio.co.in/api/src/services/instantAepsService.js:25:28)
+    at Module._compile (node:internal/modules/cjs/loader:1521:14) {
+  code: 'ERR_INVALID_ARG_TYPE'
+}
+
+Node.js v20.20.2
+node:buffer:322
+  throw new ERR_INVALID_ARG_TYPE(
+  ^
+
+TypeError [ERR_INVALID_ARG_TYPE]: The first argument must be of type string or an instance of Buffer, ArrayBuffer, or Array or an Array-like Object. Received undefined
+    at Function.from (node:buffer:322:9)
+    at Object.<anonymous> (/home/oseuqxlt/camlenio.co.in/api/src/helpers/encryptDecryptAadhar.js:5:31)
+    at Module._compile (node:internal/modules/cjs/loader:1521:14)
+    at Module._extensions..js (node:internal/modules/cjs/loader:1623:10)
+    at Module.load (node:internal/modules/cjs/loader:1266:32)
+    at Module._load (node:internal/modules/cjs/loader:1091:12)
+    at Module.require (node:internal/modules/cjs/loader:1289:19)
+    at require (node:internal/modules/helpers:182:18)
+    at Object.<anonymous> (/home/oseuqxlt/camlenio.co.in/api/src/services/instantAepsService.js:25:28)
+    at Module._compile (node:internal/modules/cjs/loader:1521:14) {
+  code: 'ERR_INVALID_ARG_TYPE'
+}
+
+Node.js v20.20.2
+node:buffer:322
+  throw new ERR_INVALID_ARG_TYPE(
+  ^
+
+TypeError [ERR_INVALID_ARG_TYPE]: The first argument must be of type string or an instance of Buffer, ArrayBuffer, or Array or an Array-like Object. Received undefined
+    at Function.from (node:buffer:322:9)
+    at Object.<anonymous> (/home/oseuqxlt/camlenio.co.in/api/src/helpers/encryptDecryptAadhar.js:5:31)
+    at Module._compile (node:internal/modules/cjs/loader:1521:14)
+    at Module._extensions..js (node:internal/modules/cjs/loader:1623:10)
+    at Module.load (node:internal/modules/cjs/loader:1266:32)
+    at Module._load (node:internal/modules/cjs/loader:1091:12)
+    at Module.require (node:internal/modules/cjs/loader:1289:19)
+    at require (node:internal/modules/helpers:182:18)
+    at Object.<anonymous> (/home/oseuqxlt/camlenio.co.in/api/src/services/instantAepsService.js:25:28)
+    at Module._compile (node:internal/modules/cjs/loader:1521:14) {
+  code: 'ERR_INVALID_ARG_TYPE'
+}
+
+Node.js v20.20.2
+node:buffer:322
+  throw new ERR_INVALID_ARG_TYPE(
+  ^
+
+TypeError [ERR_INVALID_ARG_TYPE]: The first argument must be of type string or an instance of Buffer, ArrayBuffer, or Array or an Array-like Object. Received undefined
+    at Function.from (node:buffer:322:9)
+    at Object.<anonymous> (/home/oseuqxlt/camlenio.co.in/api/src/helpers/encryptDecryptAadhar.js:5:31)
+    at Module._compile (node:internal/modules/cjs/loader:1521:14)
+    at Module._extensions..js (node:internal/modules/cjs/loader:1623:10)
+    at Module.load (node:internal/modules/cjs/loader:1266:32)
+    at Module._load (node:internal/modules/cjs/loader:1091:12)
+    at Module.require (node:internal/modules/cjs/loader:1289:19)
+    at require (node:internal/modules/helpers:182:18)
+    at Object.<anonymous> (/home/oseuqxlt/camlenio.co.in/api/src/services/instantAepsService.js:25:28)
+    at Module._compile (node:internal/modules/cjs/loader:1521:14) {
+  code: 'ERR_INVALID_ARG_TYPE'
+}
+
+Node.js v20.20.2
+node:buffer:322
+  throw new ERR_INVALID_ARG_TYPE(
+  ^
+
+TypeError [ERR_INVALID_ARG_TYPE]: The first argument must be of type string or an instance of Buffer, ArrayBuffer, or Array or an Array-like Object. Received undefined
+    at Function.from (node:buffer:322:9)
+    at Object.<anonymous> (/home/oseuqxlt/camlenio.co.in/api/src/helpers/encryptDecryptAadhar.js:5:31)
+    at Module._compile (node:internal/modules/cjs/loader:1521:14)
+    at Module._extensions..js (node:internal/modules/cjs/loader:1623:10)
+    at Module.load (node:internal/modules/cjs/loader:1266:32)
+    at Module._load (node:internal/modules/cjs/loader:1091:12)
+    at Module.require (node:internal/modules/cjs/loader:1289:19)
+    at require (node:internal/modules/helpers:182:18)
+    at Object.<anonymous> (/home/oseuqxlt/camlenio.co.in/api/src/services/instantAepsService.js:25:28)
+    at Module._compile (node:internal/modules/cjs/loader:1521:14) {
+  code: 'ERR_INVALID_ARG_TYPE'
+}
+
+Node.js v20.20.2
+(node:1864902) [MONGOOSE] Warning: Duplicate schema index on {"adminId":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:1864902) [MONGOOSE] Warning: Duplicate schema index on {"name":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+(node:1864902) [MONGOOSE] Warning: Duplicate schema index on {"packageCode":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+(node:1864902) [MONGOOSE] Warning: Duplicate schema index on {"name":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+(node:1864902) [MONGOOSE] Warning: Duplicate schema index on {"serviceCode":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+(node:1865168) [MONGOOSE] Warning: Duplicate schema index on {"adminId":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:1865168) [MONGOOSE] Warning: Duplicate schema index on {"name":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+(node:1865168) [MONGOOSE] Warning: Duplicate schema index on {"packageCode":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+(node:1865168) [MONGOOSE] Warning: Duplicate schema index on {"name":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+(node:1865168) [MONGOOSE] Warning: Duplicate schema index on {"serviceCode":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+(node:1894328) [MONGOOSE] Warning: Duplicate schema index on {"adminId":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:1894328) [MONGOOSE] Warning: Duplicate schema index on {"name":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+(node:1894328) [MONGOOSE] Warning: Duplicate schema index on {"packageCode":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+(node:1894328) [MONGOOSE] Warning: Duplicate schema index on {"name":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+(node:1894328) [MONGOOSE] Warning: Duplicate schema index on {"serviceCode":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+(node:1894328) [MONGOOSE] Warning: Duplicate schema index on {"ekycRequestId":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+(node:1894484) [MONGOOSE] Warning: Duplicate schema index on {"adminId":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:1894484) [MONGOOSE] Warning: Duplicate schema index on {"name":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+(node:1894484) [MONGOOSE] Warning: Duplicate schema index on {"packageCode":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+(node:1894484) [MONGOOSE] Warning: Duplicate schema index on {"name":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+(node:1894484) [MONGOOSE] Warning: Duplicate schema index on {"serviceCode":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+(node:1894484) [MONGOOSE] Warning: Duplicate schema index on {"ekycRequestId":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+(node:1925031) [MONGOOSE] Warning: Duplicate schema index on {"adminId":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:1925031) [MONGOOSE] Warning: Duplicate schema index on {"name":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+(node:1925031) [MONGOOSE] Warning: Duplicate schema index on {"packageCode":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+(node:1925031) [MONGOOSE] Warning: Duplicate schema index on {"name":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+(node:1925031) [MONGOOSE] Warning: Duplicate schema index on {"serviceCode":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+(node:1925031) [MONGOOSE] Warning: Duplicate schema index on {"ekycRequestId":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+(node:1938175) [MONGOOSE] Warning: Duplicate schema index on {"adminId":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:1938175) [MONGOOSE] Warning: Duplicate schema index on {"name":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+(node:1938175) [MONGOOSE] Warning: Duplicate schema index on {"packageCode":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+(node:1938175) [MONGOOSE] Warning: Duplicate schema index on {"name":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+(node:1938175) [MONGOOSE] Warning: Duplicate schema index on {"serviceCode":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+(node:1938175) [MONGOOSE] Warning: Duplicate schema index on {"ekycRequestId":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+(node:2005612) [MONGOOSE] Warning: Duplicate schema index on {"adminId":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:2005612) [MONGOOSE] Warning: Duplicate schema index on {"name":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+(node:2005612) [MONGOOSE] Warning: Duplicate schema index on {"packageCode":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+(node:2005612) [MONGOOSE] Warning: Duplicate schema index on {"name":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+(node:2005612) [MONGOOSE] Warning: Duplicate schema index on {"serviceCode":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+(node:2005612) [MONGOOSE] Warning: Duplicate schema index on {"ekycRequestId":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+(node:2012965) [MONGOOSE] Warning: Duplicate schema index on {"adminId":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:2012965) [MONGOOSE] Warning: Duplicate schema index on {"name":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+(node:2012965) [MONGOOSE] Warning: Duplicate schema index on {"packageCode":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+(node:2012965) [MONGOOSE] Warning: Duplicate schema index on {"name":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+(node:2012965) [MONGOOSE] Warning: Duplicate schema index on {"serviceCode":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+(node:2012965) [MONGOOSE] Warning: Duplicate schema index on {"ekycRequestId":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+(node:554431) [MONGOOSE] Warning: Duplicate schema index on {"adminId":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:554431) [MONGOOSE] Warning: Duplicate schema index on {"name":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+(node:554431) [MONGOOSE] Warning: Duplicate schema index on {"packageCode":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+(node:554431) [MONGOOSE] Warning: Duplicate schema index on {"name":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+(node:554431) [MONGOOSE] Warning: Duplicate schema index on {"serviceCode":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+(node:554431) [MONGOOSE] Warning: Duplicate schema index on {"ekycRequestId":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+Error Occured MW: Error: Invalid OTP
+    at exports.verifyUserOtp (/home/oseuqxlt/camlenio.co.in/api/src/controllers/userController/userAuthController.js:353:19)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5) {
+  statusCode: 400
+}
+Error Occured MW: {
+  status: 'FAILED',
+  type: 'CONNECTION_ERROR',
+  message: 'API connection failed',
+  error: 'cURL error 6: Could not resolve host: vendor.sozowallet.com (see https://curl.haxx.se/libcurl/c/libcurl-errors.html) for https://vendor.sozowallet.com/api/v1/mobile-operator-verify'
+}
+Error Occured MW: {
+  status: 'FAILED',
+  type: 'CONNECTION_ERROR',
+  message: 'API connection failed',
+  error: 'cURL error 6: Could not resolve host: vendor.sozowallet.com (see https://curl.haxx.se/libcurl/c/libcurl-errors.html) for https://vendor.sozowallet.com/api/v1/fetch-recharge-plans'
+}
+Error Occured MW: Error: Transaction Failed
+    at exports.doRechargeService (/home/oseuqxlt/camlenio.co.in/api/src/services/doRechargeService.js:202:21)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async exports.doMobilePrepaidRecharge (/home/oseuqxlt/camlenio.co.in/api/src/controllers/userController/rechargeController.js:229:22) {
+  statusCode: 400,
+  data: {
+    status: 'FAILED',
+    txn_ref: 'RCHG20260320153342533099',
+    utr: null,
+    message: 'Transaction Failed'
+  }
+}
+Error Occured MW: Error: Transaction Failed
+    at exports.doRechargeService (/home/oseuqxlt/camlenio.co.in/api/src/services/doRechargeService.js:202:21)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async exports.doMobilePrepaidRecharge (/home/oseuqxlt/camlenio.co.in/api/src/controllers/userController/rechargeController.js:229:22) {
+  statusCode: 400,
+  data: {
+    status: 'FAILED',
+    txn_ref: 'RCHG20260320153342533099',
+    utr: null,
+    message: 'Transaction Failed'
+  }
+}
+Error Occured MW: Error: Transaction Failed
+    at exports.doRechargeService (/home/oseuqxlt/camlenio.co.in/api/src/services/doRechargeService.js:202:21)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async exports.doMobilePrepaidRecharge (/home/oseuqxlt/camlenio.co.in/api/src/controllers/userController/rechargeController.js:229:22) {
+  statusCode: 400,
+  data: {
+    status: 'FAILED',
+    txn_ref: 'RCHG20260320153342533099',
+    utr: null,
+    message: 'Transaction Failed'
+  }
+}
+Error Occured MW: Error: Transaction Failed
+    at exports.doRechargeService (/home/oseuqxlt/camlenio.co.in/api/src/services/doRechargeService.js:202:21)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async exports.doMobilePrepaidRecharge (/home/oseuqxlt/camlenio.co.in/api/src/controllers/userController/rechargeController.js:229:22) {
+  statusCode: 400,
+  data: {
+    status: 'FAILED',
+    txn_ref: 'RCHG20260320153342533099',
+    utr: null,
+    message: 'Transaction Failed'
+  }
+}
+Error Occured MW: {
+  status: 'FAILED',
+  message: 'Unable to get bill details from biller',
+  billerstatus: '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><billFetchResponse><responseCode>001</responseCode><errorInfo><error><errorCode>BFR008</errorCode><errorMessage>Unable to get bill details from biller</errorMessage></error></errorInfo></billFetchResponse>'
+}
+Error Occured MW: {
+  status: 'FAILED',
+  type: 'CONNECTION_ERROR',
+  message: 'API connection failed',
+  error: 'cURL error 6: Could not resolve host: vendor.sozowallet.com (see https://curl.haxx.se/libcurl/c/libcurl-errors.html) for https://vendor.sozowallet.com/api/v1/mobile-operator-verify'
+}
+Error Occured MW: Error: Transaction Failed
+    at exports.doRechargeService (/home/oseuqxlt/camlenio.co.in/api/src/services/doRechargeService.js:202:21)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async exports.doMobilePrepaidRecharge (/home/oseuqxlt/camlenio.co.in/api/src/controllers/userController/rechargeController.js:229:22) {
+  statusCode: 400,
+  data: {
+    status: 'FAILED',
+    txn_ref: 'RCHG20260320153342533099',
+    utr: null,
+    message: 'Transaction Failed'
+  }
+}
+Error Occured MW: { status: 'FAILED', message: 'Customer is not registered' }
+Error Occured MW: Error: Aadhaar Number not validating with Profile, please try again with the correct details.
+    at exports.dailyLogin (/home/oseuqxlt/camlenio.co.in/api/src/services/instantAepsService.js:478:19)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async dailyAepsLogin (/home/oseuqxlt/camlenio.co.in/api/src/controllers/userController/instantAepsController.js:577:22) {
+  statusCode: 400,
+  data: {
+    status_code: 'ERR',
+    message: 'Aadhaar Number not validating with Profile, please try again with the correct details.',
+    data: {
+      statuscode: 'ERR',
+      actcode: null,
+      status: 'Aadhaar Number not validating with Profile, please try again with the correct details.',
+      data: null,
+      timestamp: '2026-05-04 14:47:00',
+      ipay_uuid: 'h000a1b2a3a9-10b0-43d6-b847-53c8ed68dc81-8LobF0xGk9SQ',
+      orderid: null,
+      environment: 'LIVE'
+    }
+  }
+}
+Error Occured MW: Error: Account already exists
+    at exports.addAepsPayoutBank (/home/oseuqxlt/camlenio.co.in/api/src/controllers/userController/sozoAepsPayoutBankRequestController.js:154:19)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5) {
+  status: 400
+}
+Error Occured MW: { status: 'FAILED', message: 'Customer is not registered' }
+Error Occured MW: Error: Transaction Failed
+    at exports.doRechargeService (/home/oseuqxlt/camlenio.co.in/api/src/services/doRechargeService.js:202:21)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async exports.doMobilePrepaidRecharge (/home/oseuqxlt/camlenio.co.in/api/src/controllers/userController/rechargeController.js:229:22) {
+  statusCode: 400,
+  data: {
+    status: 'FAILED',
+    txn_ref: 'RCHG20260320153342533099',
+    utr: null,
+    message: 'Transaction Failed'
+  }
+}
+Error Occured MW: { status: 'FAILED', message: 'Customer is not registered' }
+Error Occured MW: {
+  status: 'FAILED',
+  message: 'Incorrect / invalid Customer account',
+  billerstatus: '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><billFetchResponse><responseCode>001</responseCode><errorInfo><error><errorCode>BFR001</errorCode><errorMessage>Incorrect / invalid Customer account</errorMessage></error></errorInfo></billFetchResponse>'
+}
+Error Occured MW: {
+  status: 'FAILED',
+  message: 'Incorrect / invalid Customer account',
+  billerstatus: '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><billFetchResponse><responseCode>001</responseCode><errorInfo><error><errorCode>BFR001</errorCode><errorMessage>Incorrect / invalid Customer account</errorMessage></error></errorInfo></billFetchResponse>'
+}
+Error Occured MW: {
+  status: 'FAILED',
+  message: 'Payment received for the billing period - no bill due',
+  billerstatus: '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><billFetchResponse><responseCode>001</responseCode><errorInfo><error><errorCode>BFR004</errorCode><errorMessage>Payment received for the billing period - no bill due</errorMessage></error></errorInfo></billFetchResponse>'
+}
+Error Occured MW: {
+  status: 'FAILED',
+  message: 'K Number length should not be greater than 12',
+  billerstatus: '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><billFetchResponse><responseCode>001</responseCode><errorInfo><error><errorCode>CP1</errorCode><errorMessage>K Number length should not be greater than 12</errorMessage></error></errorInfo></billFetchResponse>'
+}
+Error Occured MW: {
+  status: 'FAILED',
+  message: 'Incorrect / invalid Customer account',
+  billerstatus: '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><billFetchResponse><responseCode>001</responseCode><errorInfo><error><errorCode>BFR001</errorCode><errorMessage>Incorrect / invalid Customer account</errorMessage></error></errorInfo></billFetchResponse>'
+}
+Error Occured MW: {
+  status: 'FAILED',
+  message: 'Payment received for the billing period - no bill due',
+  billerstatus: '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><billFetchResponse><responseCode>001</responseCode><errorInfo><error><errorCode>BFR004</errorCode><errorMessage>Payment received for the billing period - no bill due</errorMessage></error></errorInfo></billFetchResponse>'
+}
+Error Occured MW: {
+  status: 'FAILED',
+  message: 'Payment received for the billing period - no bill due',
+  billerstatus: '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><billFetchResponse><responseCode>001</responseCode><errorInfo><error><errorCode>BFR004</errorCode><errorMessage>Payment received for the billing period - no bill due</errorMessage></error></errorInfo></billFetchResponse>'
+}
