@@ -10,34 +10,36 @@ const { processRefund } = require("./common/refundService");
 const { rupeeToPaise, paiseToRupee } = require("../utils/money");
 
 const { encryptAadhaar } = require("../helpers/encryptDecryptAadhar");
+
 const {
   searchCustomer,
-} = require("../client/app/apis/dmt/fino/searchCustomer");
+} = require("../client/cspl/apis/dmt/fino/searchCustomer");
 const {
   getCustomerLimit,
-} = require("../client/app/apis/dmt/fino/getCustomerLimit");
-const { customerEkyc } = require("../client/app/apis/dmt/fino/customerEkyc");
+} = require("../client/cspl/apis/dmt/fino/getCustomerLimit");
+const { customerEkyc } = require("../client/cspl/apis/dmt/fino/customerEkyc");
 const {
   generateRegisterOtp,
-} = require("../client/app/apis/dmt/fino/generateRegisterOtp");
+} = require("../client/cspl/apis/dmt/fino/generateRegisterOtp");
 const {
   registerCustomer,
-} = require("../client/app/apis/dmt/fino/registerCustomer");
+} = require("../client/cspl/apis/dmt/fino/registerCustomer");
 const {
   addNobleDmtBeneficiary,
-} = require("../client/app/apis/dmt/common/addBeneficiaryClient");
+} = require("../client/cspl/apis/dmt/common/addBeneficiaryClient");
 const {
   listNobleDmtBeneficiary,
-} = require("../client/app/apis/dmt/common/getBeneficiaryClient");
+} = require("../client/cspl/apis/dmt/common/getBeneficiaryClient");
 const {
   deleteNobleDmtBeneficiary,
-} = require("../client/app/apis/dmt/common/deleteBeneficiaryClient");
+} = require("../client/cspl/apis/dmt/common/deleteBeneficiaryClient");
 const {
   generateTransactionOtp,
-} = require("../client/app/apis/dmt/fino/generateTransactionOtp");
+} = require("../client/cspl/apis/dmt/fino/generateTransactionOtp");
 const {
   initiateTransfer,
-} = require("../client/app/apis/dmt/fino/initiateTransaction");
+} = require("../client/cspl/apis/dmt/fino/initiateTransaction");
+
 const {
   validateUserPackageAndService,
 } = require("./common/validateUserPackageAndService");

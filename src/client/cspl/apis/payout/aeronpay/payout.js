@@ -6,7 +6,7 @@ const {
 } = require("../../../../../utils/requestIdGenerator");
 const SozoPayoutLog = require("../../../../../models/sozoPayoutLogsModel");
 const { paiseToRupee } = require("../../../../../utils/money");
-const sozoClient = require("../../../sozo.clent");
+const csplClient = require("../../../cspl.client");
 
 exports.initiatePayout = async ({
   client_referenceId,
@@ -32,10 +32,8 @@ exports.initiatePayout = async ({
   console.log(amountInRupee, "amountInRupee");
 
   try {
-    const response = await sozoClient.post(
-      "v1/payout/s/imps-payout",
-      // "aer/payout/imps-payout",
-
+    const response = await csplClient.post(
+      "aer/payout/imps-payout",
       {
         amount: amountInRupee, //rupee
         reference: client_referenceId,
@@ -52,9 +50,10 @@ exports.initiatePayout = async ({
       },
       {
         headers: {
-          ApiKey: process.env.SOZO_API_KEY,
-          SecretKey: process.env.SOZO_SECRET_KEY,
-          UserId: process.env.SOZO_USER_ID,
+          "X-TIMESTAMP": timestamp,
+          "X-REQUEST-ID": client_referenceId,
+          "X-API-KEY": process.env.CSPL_API_KEY,
+          "X-Forwarded-For": process.env.SERVER_IP,
         },
 
         // Accept any status code < 500 as "valid" so Axios doesn't throw

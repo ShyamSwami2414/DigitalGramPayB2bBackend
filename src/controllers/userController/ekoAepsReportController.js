@@ -57,7 +57,7 @@ const getMyLastAepsHistory = async (req, res, next) => {
       {
         $project: {
           amount: 1,
-          accountBalance: 1,
+          balance: 1,
           miniStatement: 1,
           serviceType: 1,
           commission: 1,
@@ -76,6 +76,7 @@ const getMyLastAepsHistory = async (req, res, next) => {
     const formattedData = result.map((item) => ({
       ...item,
       amount: paiseToRupee(item?.amount),
+      balance: paiseToRupee(item?.balance),
       commission: paiseToRupee(item?.commission),
       tds: paiseToRupee(item?.tds),
       netCommission: paiseToRupee(item?.netCommission),
@@ -886,7 +887,7 @@ const getCompleteAepsReport = async (req, res, next) => {
             {
               $project: {
                 amount: 1,
-                accountBalance: 1,
+                balance: 1,
                 miniStatement: 1,
                 serviceType: 1,
                 type: 1,
@@ -900,7 +901,7 @@ const getCompleteAepsReport = async (req, res, next) => {
                 isRefunded: 1,
                 description: 1,
                 createdAt: 1,
-                 userName: "$user.userName",
+                userName: "$user.userName",
                 fullName: {
                   $concat: ["$user.firstName", " ", "$user.lastName"],
                 },
@@ -926,6 +927,7 @@ const getCompleteAepsReport = async (req, res, next) => {
     const formattedData = data.map((item) => ({
       ...item,
       amount: paiseToRupee(item.amount),
+      balance: paiseToRupee(item.balance),
       commission: paiseToRupee(item.commission),
       tds: paiseToRupee(item.tds),
       netCommission: paiseToRupee(item.netCommission),
@@ -1037,6 +1039,7 @@ const getAepsReportById = async (req, res, next) => {
       ? {
           ...report,
           amount: paiseToRupee(report?.amount),
+          balance: paiseToRupee(report?.balance),
           commission: paiseToRupee(report?.commission),
           tds: paiseToRupee(report?.tds),
           netCommission: paiseToRupee(report?.netCommission),

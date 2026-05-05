@@ -759,7 +759,7 @@ exports.initiateAepsTransaction = async ({
             $set: {
               txnStatus: "SUCCESS",
               providerTxnId: data?.tid,
-              accountBalance: data?.customer_balance,
+              balance: data?.customer_balance,
               miniStatement: data?.mini_statement_list,
               aadhaar: data?.aadhar,
               message: result?.data?.message,
