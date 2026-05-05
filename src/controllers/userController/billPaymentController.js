@@ -208,14 +208,14 @@ exports.payBbpsBill = async (req, res, next) => {
     paramValue = paramValue?.trim();
 
     console.log(userId, "userId");
-    console.log(req.body, "body");
+
     console.log(billAmount, "amount from body");
     console.log(typeof billAmount, "amount from body bilAmount type");
 
     const requiredFields = [
-      "refid",
+      // "refid",
       "billerId",
-      "customerName",
+      // "customerName",
       "customerMobile",
       "billAmount",
     ];
