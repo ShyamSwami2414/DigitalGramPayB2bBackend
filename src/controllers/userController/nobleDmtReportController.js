@@ -897,13 +897,17 @@ const getCompleteDmtReport = async (req, res, next) => {
                 totalCharges: "$totalDebit",
                 referenceId: 1,
                 createdAt: 1,
-                user: {
-                  _id: "$user._id",
-                  firstName: "$user.firstName",
-                  lastName: "$user.lastName",
-                  userName: "$user.userName",
-                  level: "$user.level",
+                userName: "$user.userName",
+                fullName: {
+                  $concat: ["$user.firstName", " ", "$user.lastName"],
                 },
+                // user: {
+                //   _id: "$user._id",
+                //   firstName: "$user.firstName",
+                //   lastName: "$user.lastName",
+                //   userName: "$user.userName",
+                //   level: "$user.level",
+                // },
               },
             },
           ],
@@ -1020,13 +1024,17 @@ const getDmtReportById = async (req, res, next) => {
           totalCharges: "$totalDebit",
           referenceId: 1,
           createdAt: 1,
-          user: {
-            _id: "$user._id",
-            firstName: "$user.firstName",
-            lastName: "$user.lastName",
-            userName: "$user.userName",
-            level: "$user.level",
+          userName: "$user.userName",
+          fullName: {
+            $concat: ["$user.firstName", " ", "$user.lastName"],
           },
+          // user: {
+          //   _id: "$user._id",
+          //   firstName: "$user.firstName",
+          //   lastName: "$user.lastName",
+          //   userName: "$user.userName",
+          //   level: "$user.level",
+          // },
         },
       },
     ]);

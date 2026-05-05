@@ -690,7 +690,6 @@ const getCompleteBillPaymentReport = async (req, res, next) => {
             },
           },
         ]);
-        
 
         const allUserIds = downlineData?.[0]?.allUserIds || [];
 
@@ -826,14 +825,18 @@ const getCompleteBillPaymentReport = async (req, res, next) => {
                 isRefunded: 1,
                 description: 1,
                 createdAt: 1,
-
-                user: {
-                  _id: "$user._id",
-                  firstName: "$user.firstName",
-                  lastName: "$user.lastName",
-                  userName: "$user.userName",
-                  level: "$user.level",
+                userName: "$user.userName",
+                fullName: {
+                  $concat: ["$user.firstName", " ", "$user.lastName"],
                 },
+
+                // user: {
+                //   _id: "$user._id",
+                //   firstName: "$user.firstName",
+                //   lastName: "$user.lastName",
+                //   userName: "$user.userName",
+                //   level: "$user.level",
+                // },
               },
             },
           ],
