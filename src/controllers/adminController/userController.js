@@ -880,6 +880,62 @@ exports.assignServiceToUser = async (req, res, next) => {
 
     const assignedServices = user.assignedServices || [];
 
+    // ==================  UNASSIGN LOGIC START ==================
+
+    const oldServices = assignedServices;
+    const newServices = services;
+
+    // Create map of new services
+    const newMap = new Map();
+    newServices.forEach((s) => {
+      newMap.set(s.serviceId.toString(), s.pipelineCodes);
+    });
+
+    // Loop over OLD services to detect removals
+    for (const old of oldServices) {
+      const oldServiceId = old.serviceId.toString();
+      const oldPipelines = old.pipelineCodes;
+
+      const newPipelines = newMap.get(oldServiceId);
+
+      //  Case 1: Entire service removed
+      if (!newPipelines) {
+        await ServiceRequest.updateMany(
+          {
+            userId,
+            serviceId: old.serviceId,
+            isDeleted: false,
+          },
+          {
+            $set: { status: "pending" }, // or "unassigned"
+          },
+          { session },
+        );
+      } else {
+        //  Case 2: Some pipelines removed
+        const removedPipelines = oldPipelines.filter(
+          (p) => !newPipelines.includes(p),
+        );
+
+        if (removedPipelines.length > 0) {
+          await ServiceRequest.updateMany(
+            {
+              userId,
+              serviceId: old.serviceId,
+              pipelineCode: { $in: removedPipelines },
+              isDeleted: false,
+            },
+            {
+              $set: { status: "pending" },
+            },
+            { session },
+          );
+        }
+      }
+    }
+
+    // ==================  UNASSIGN LOGIC END ==================
+
     // existing services
     const updatedServices = [];
 

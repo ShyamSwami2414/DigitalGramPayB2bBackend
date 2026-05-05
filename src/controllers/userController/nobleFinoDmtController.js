@@ -100,7 +100,7 @@ const getCustomer = async (req, res, next) => {
     }
 
     // const customerExist = await NobleDmtFinoCustomer.findOne({
-    //   userId: userId,
+    //
     //   mobile: mobileNumber,
     // }).select("_id customerName");
 
@@ -144,9 +144,10 @@ const getCustomer = async (req, res, next) => {
 
       if (!existingCustomer) {
         customer = new NobleDmtFinoCustomer({
-          userId,
           customerName: data?.CustomerName,
           mobile: mobileNumber,
+          isKycDone: true,
+          isVerified: true,
         });
 
         await customer.save();
@@ -384,7 +385,6 @@ const doCustomerKyc = async (req, res, next) => {
 
       const update = await NobleDmtFinoCustomer.findOneAndUpdate(
         {
-          userId: userId,
           mobile: mobileNumber,
         },
         {
@@ -541,7 +541,6 @@ const generateRegistrationOtp = async (req, res, next) => {
 
       const update = await NobleDmtFinoCustomer.findOneAndUpdate(
         {
-          userId: userId,
           mobile: mobileNumber,
         },
         {
@@ -698,7 +697,6 @@ const registerNewCustomer = async (req, res, next) => {
 
       const update = await NobleDmtFinoCustomer.findOneAndUpdate(
         {
-          userId: userId,
           mobile: mobileNumber,
         },
         {
@@ -727,6 +725,8 @@ const registerNewCustomer = async (req, res, next) => {
 const generateTransactionOtp = async (req, res, next) => {
   try {
     let { mobileNumber, latitude, longitude, publicIp } = req.body;
+
+    console.log("body", req.body);
 
     mobileNumber = mobileNumber?.trim();
     publicIp = publicIp?.trim();
@@ -830,7 +830,6 @@ const generateTransactionOtp = async (req, res, next) => {
 
       const update = await NobleDmtFinoCustomer.findOneAndUpdate(
         {
-          userId: userId,
           mobile: mobileNumber,
         },
         {
@@ -864,6 +863,8 @@ const initiateTransaction = async (req, res, next) => {
       amount,
       beneficiaryAccount,
     } = req.body;
+
+    console.log(req.body, "body");
 
     mobileNumber = mobileNumber?.trim();
     publicIp = publicIp?.trim();
@@ -930,7 +931,7 @@ const initiateTransaction = async (req, res, next) => {
       });
     }
 
-    if (amount < 100) {
+    if (amount < 10) {
       //rupee
       return res.status(400).json({
         success: false,
@@ -1004,6 +1005,7 @@ const initiateTransaction = async (req, res, next) => {
       publicIp,
       otp: otp,
       amount: amountInPaise,
+      beneficiaryId: isValidBeneficiary?._id,
       beneficiaryName: isValidBeneficiary?.accountHolderName,
       beneficiaryAccount: isValidBeneficiary?.accountNumber,
       beneficiaryIfsc: isValidBeneficiary?.ifsc,
@@ -1018,17 +1020,16 @@ const initiateTransaction = async (req, res, next) => {
     ) {
       const data = response?.data?.responseData?.[0];
 
-      const update = await NobleDmtFinoCustomer.findOneAndUpdate(
-        {
-          userId: userId,
-          mobile: mobileNumber,
-        },
-        {
-          $set: {
-            tOtpRequestId: data?.OtpRequestId,
-          },
-        },
-      );
+      // const update = await NobleDmtFinoCustomer.findOneAndUpdate(
+      //   {
+      //     mobile: mobileNumber,
+      //   },
+      //   {
+      //     $set: {
+      //       tOtpRequestId: data?.OtpRequestId,
+      //     },
+      //   },
+      // );
 
       return res.status(201).json({
         success: true,

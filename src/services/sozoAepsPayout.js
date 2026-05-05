@@ -12,6 +12,11 @@ const { debitAepsWallet } = require("./common/walletService");
 const mongoose = require("mongoose");
 const { processRefund } = require("../services/common/refundService");
 const PayoutTransaction = require("../models/sozopayoutTransactionModel");
+const {
+  validateUserPackageAndService,
+} = require("./common/validateUserPackageAndService");
+const { processCharges } = require("./common/chargeService");
+const Transaction = require("../models/transactionModel");
 
 exports.initiateAepsPayoutTransfer = async ({
   userId,
@@ -35,42 +40,12 @@ exports.initiateAepsPayoutTransfer = async ({
     const amountInRupee = paiseToRupee(amount);
     console.log("bankProfle ID", bankProfileId);
 
-    let payoutTxn;
-
-    try {
-      payoutTxn = await PayoutTransaction.create(
-        [
-          {
-            userId: userId,
-            idempotencyKey: requestId,
-            serviceType: "AEPS_PAYOUT",
-            referenceId: referenceId,
-            bankAccount: bankAccountNumber,
-            ifsc: ifsc,
-            beneficiaryName: name,
-            beneficiaryPhone: phone,
-            amount: amount,
-            totalDebit: amount,
-            status: "INITIATED",
-          },
-        ],
-
-        { session },
-      );
-    } catch (err) {
-      if (err.code === 11000) {
-        // duplicate request → fetch existing txn
-        const existing = await PayoutTransaction.findOne({
-          idempotencyKey: requestId,
-        });
-
-        await session.abortTransaction();
-        session.endSession();
-
-        return existing;
-      }
-      throw err;
-    }
+    const { packageId, serviceId } = await validateUserPackageAndService({
+      userId: userId,
+      serviceName: "aeps-payout",
+      pipeline: "aeps-payout1",
+      amount: amount, //paise
+    });
 
     const { openingBalance, closingBalance } = await debitAepsWallet({
       userId: userId,
@@ -81,6 +56,60 @@ exports.initiateAepsPayoutTransfer = async ({
       description: `Aeps Payout for ${purpose}`,
       session: session,
     });
+
+    const { charges, gstAmount, totalCharges } = await processCharges({
+      userId: userId,
+      amount: amount, //paise
+      packageId: packageId,
+      serviceId: serviceId,
+      serviceType: "AEPS_PAYOUT",
+      walletType: "aeps",
+
+      pipeline: "aeps-payout1",
+      referenceId: referenceId,
+      reportModel: PayoutTransaction,
+      description: "Aeps Payout Charges",
+
+      requestId: requestId,
+      bankAccountNumber: bankAccountNumber,
+      ifsc: ifsc,
+      name: name,
+      phone: phone,
+
+      session: session,
+    });
+
+    await Transaction.create(
+      [
+        {
+          userId: userId,
+          referenceId: referenceId,
+          serviceType: "AEPS_PAYOUT",
+          amount: amount, //paise
+          wallet: "main",
+          type: "debit",
+          status: "INITIATED",
+          meta: {
+            request: {
+              userId: userId,
+              requestId: requestId, //client send idempotency
+              amount: amount, //paise
+              bankAccount: bankAccountNumber,
+              ifsc: ifsc,
+              name: name,
+              email: email,
+              phone: phone,
+              bankProfileId: bankProfileId,
+              address: address,
+              latitude: latitude,
+              longitude: longitude,
+              remarks: purpose,
+            },
+          },
+        },
+      ],
+      { session: session },
+    );
 
     await session.commitTransaction();
 

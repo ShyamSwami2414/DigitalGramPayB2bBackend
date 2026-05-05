@@ -56,7 +56,7 @@ const validateUserPackageAndService = async ({
   );
 
   console.log(service, "service");
-  console.log(isAssigned);
+  console.log(isAssigned, "isAssigned");
 
   // const isAssigned = user.assignedServices.some(
   //   (id) => id.toString() === service._id.toString(),

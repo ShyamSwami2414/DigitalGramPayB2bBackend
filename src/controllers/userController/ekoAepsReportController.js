@@ -1,162 +1,20 @@
-const PayoutTransaction = require("../../models/sozopayoutTransactionModel");
+const EkoAepsReport = require("../../models/ekoAepsReportModel");
 const mongoose = require("mongoose");
 const User = require("../../models/userModel");
 const { paiseToRupee } = require("../../utils/money");
 
-// exports.myAllTransaction = async (req, res, next) => {
-//   try {
-//     let {
-//       user = "",
-//       status = "",
-//       from = "",
-//       to = "",
-//       range = "",
-//       page = 1,
-//       limit = 10,
-//     } = req.query;
-
-//     user = user?.trim();
-//     status = status?.trim().toLowerCase();
-
-//     page = parseInt(page) || 1;
-//     limit = parseInt(limit) || 10;
-//     const skip = (page - 1) * limit;
-
-//     const filter = {
-//       serviceType: "AEPS_PAYOUT",
-//     };
-
-//     // ✅ STATUS FILTER
-//     if (status) {
-//       filter.status = status.toUpperCase();
-//     }
-
-//     // ✅ DATE FILTER (simple version)
-//     if (from || to) {
-//       filter.createdAt = {};
-//       if (from) filter.createdAt.$gte = new Date(from);
-//       if (to) {
-//         const t = new Date(to);
-//         t.setHours(23, 59, 59, 999);
-//         filter.createdAt.$lte = t;
-//       }
-//     }
-
-//     // ✅ USER FILTER (SELF ONLY OR SPECIFIC)
-//     let userIds = [];
-
-//     if (user) {
-//       if (!mongoose.Types.ObjectId.isValid(user)) {
-//         const err = new Error("Invalid user ID");
-//         err.status = 400;
-//         throw err;
-//       }
-//       userIds = [new mongoose.Types.ObjectId(user)];
-//     } else {
-//       userIds = [new mongoose.Types.ObjectId(req.user.id)];
-//     }
-
-//     filter.userId = { $in: userIds };
-
-//     // ✅ AGGREGATION WITH LOOKUP
-//     const pipeline = [
-//       { $match: filter },
-
-//       {
-//         $lookup: {
-//           from: "users",
-//           localField: "userId",
-//           foreignField: "_id",
-//           as: "user",
-//         },
-//       },
-//       { $unwind: "$user" },
-
-//       {
-//         $project: {
-//           _id: 1,
-//           referenceId: 1,
-//           bankAccount: 1,
-//           ifsc: 1,
-//           beneficiaryName: 1,
-//           beneficiaryPhone: 1,
-//           amount: 1,
-//           status: 1,
-//           createdAt: 1,
-
-//           // ✅ user fields
-//           "user.firstName": 1,
-//           "user.lastName": 1,
-//           "user.mobile": 1,
-//           "user.email": 1,
-
-//           // ❌ hidden fields automatically excluded
-//         },
-//       },
-
-//       { $sort: { createdAt: -1 } },
-//       { $skip: skip },
-//       { $limit: limit },
-//     ];
-
-//     const [transactions, total] = await Promise.all([
-//       PayoutTransaction.aggregate(pipeline),
-//       PayoutTransaction.countDocuments(filter),
-//     ]);
-
-//     // ✅ FORMAT RESPONSE
-//     const formattedData = transactions.map((txn) => ({
-//       id: txn._id,
-//       referenceId: txn.referenceId,
-
-//       user: {
-//         name: `${txn.user.firstName || ""} ${txn.user.lastName || ""}`.trim(),
-//         phone: txn.user.mobile,
-//         email: txn.user.email,
-//       },
-
-//       bankAccount: txn.bankAccount,
-//       ifsc: txn.ifsc,
-//       beneficiaryName: txn.beneficiaryName,
-//       beneficiaryPhone: txn.beneficiaryPhone,
-
-//       // 💰 convert paise → rupee
-//       amount: paiseToRupee(txn.amount),
-
-//       status: txn.status,
-//       createdAt: txn.createdAt,
-//     }));
-
-//     return res.status(200).json({
-//       success: true,
-//       message: "AEPS Payout Report",
-//       data: formattedData,
-//       pagination: {
-//         total,
-//         page,
-//         limit,
-//         totalPages: Math.ceil(total / limit),
-//       },
-//     });
-//   } catch (error) {
-//     next(error);
-//   }
-// };
-
-//last 5 my dmt transaction history
-
-const getMyLastPayoutHistory = async (req, res, next) => {
+//last 5 my aeps transaction history
+const getMyLastAepsHistory = async (req, res, next) => {
   try {
     let { search = "" } = req.query;
     search = search?.trim();
 
     const userId = req.user.id;
 
-    const result = await PayoutTransaction.aggregate([
+    const result = await EkoAepsReport.aggregate([
       {
         $match: {
           userId: new mongoose.Types.ObjectId(userId),
-          serviceType: "AEPS_PAYOUT",
         },
       },
       ...(search
@@ -198,20 +56,19 @@ const getMyLastPayoutHistory = async (req, res, next) => {
       },
       {
         $project: {
-          beneficiaryName: 1,
-          beneficiaryPhone: 1,
-          ifsc: 1,
-          bankAccount: 1,
           amount: 1,
-          charge: 1,
-          gst: 1,
+          accountBalance: 1,
+          miniStatement: 1,
+          serviceType: 1,
+          commission: 1,
+          netCommission: 1,
           tds: 1,
-          totalAmount: "$totalDebit",
+          operatorName: 1,
           message: "$reason" || "$message",
-          status: "$status",
+          mobileNumber: 1,
+          status: "$txnStatus",
           createdAt: 1,
           referenceId: 1,
-          message: 1,
         },
       },
     ]);
@@ -219,10 +76,9 @@ const getMyLastPayoutHistory = async (req, res, next) => {
     const formattedData = result.map((item) => ({
       ...item,
       amount: paiseToRupee(item?.amount),
-      totalAmount: paiseToRupee(item?.totalAmount),
-      charge: paiseToRupee(item?.charge),
+      commission: paiseToRupee(item?.commission),
       tds: paiseToRupee(item?.tds),
-      gst: paiseToRupee(item?.gst),
+      netCommission: paiseToRupee(item?.netCommission),
     }));
 
     return res.status(200).json({
@@ -235,7 +91,7 @@ const getMyLastPayoutHistory = async (req, res, next) => {
   }
 };
 
-const getPayoutStats = async (req, res, next) => {
+const getAepsStats = async (req, res, next) => {
   try {
     let { user = "", status = "", from = "", to = "", range = "" } = req.query;
     console.log(req.query);
@@ -259,7 +115,7 @@ const getPayoutStats = async (req, res, next) => {
       range = undefined;
     }
 
-    const filter = { serviceType: "AEPS_PAYOUT" };
+    const filter = {};
 
     const now = new Date();
     let fromDate, toDate;
@@ -292,7 +148,7 @@ const getPayoutStats = async (req, res, next) => {
     }
 
     if (status) {
-      filter.status = status?.toUpperCase();
+      filter.txnStatus = status?.toUpperCase();
     }
 
     if (range) {
@@ -465,7 +321,6 @@ const getPayoutStats = async (req, res, next) => {
         {
           $match: {
             userId: new mongoose.Types.ObjectId(targetUserId),
-            serviceType: "AEPS_PAYOUT",
           },
         },
 
@@ -479,7 +334,7 @@ const getPayoutStats = async (req, res, next) => {
             _id: null,
             totalCount: { $sum: 1 },
             totalAmount: { $sum: "$amount" },
-            totalCharges: { $sum: "$charge" },
+            totalCommission: { $sum: "$netCommission" },
 
             successCount: {
               $sum: { $cond: [{ $eq: ["$status", "SUCCESS"] }, 1, 0] },
@@ -515,7 +370,7 @@ const getPayoutStats = async (req, res, next) => {
             total: {
               count: "$totalCount",
               amount: "$totalAmount",
-              charges: "$totalCharges",
+              commission: "$totalCommission",
             },
             success: {
               count: "$successCount",
@@ -558,17 +413,12 @@ const getPayoutStats = async (req, res, next) => {
         },
         {
           $lookup: {
-            from: "payouttransactions",
+            from: "ekoaepsreports",
             let: { userIds: "$allUserIds" },
             pipeline: [
               {
                 $match: {
-                  $expr: {
-                    $and: [
-                      { $in: ["$userId", "$$userIds"] },
-                      { $eq: ["$serviceType", "AEPS_PAYOUT"] },
-                    ],
-                  },
+                  $expr: { $in: ["$userId", "$$userIds"] },
                 },
               },
 
@@ -582,32 +432,32 @@ const getPayoutStats = async (req, res, next) => {
                   _id: null,
                   totalCount: { $sum: 1 },
                   totalAmount: { $sum: "$amount" },
-                  totalAmount: { $sum: "$totalDebit" },
+                  totalCommission: { $sum: "$netCommission" },
 
                   successCount: {
-                    $sum: { $cond: [{ $eq: ["$status", "SUCCESS"] }, 1, 0] },
+                    $sum: { $cond: [{ $eq: ["$txnStatus", "SUCCESS"] }, 1, 0] },
                   },
                   successAmount: {
                     $sum: {
-                      $cond: [{ $eq: ["$status", "SUCCESS"] }, "$amount", 0],
+                      $cond: [{ $eq: ["$txnStatus", "SUCCESS"] }, "$amount", 0],
                     },
                   },
 
                   pendingCount: {
-                    $sum: { $cond: [{ $eq: ["$status", "PENDING"] }, 1, 0] },
+                    $sum: { $cond: [{ $eq: ["$txnStatus", "PENDING"] }, 1, 0] },
                   },
                   pendingAmount: {
                     $sum: {
-                      $cond: [{ $eq: ["$status", "PENDING"] }, "$amount", 0],
+                      $cond: [{ $eq: ["$txnStatus", "PENDING"] }, "$amount", 0],
                     },
                   },
 
                   failedCount: {
-                    $sum: { $cond: [{ $eq: ["$status", "FAILED"] }, 1, 0] },
+                    $sum: { $cond: [{ $eq: ["$txnStatus", "FAILED"] }, 1, 0] },
                   },
                   failedAmount: {
                     $sum: {
-                      $cond: [{ $eq: ["$status", "FAILED"] }, "$amount", 0],
+                      $cond: [{ $eq: ["$txnStatus", "FAILED"] }, "$amount", 0],
                     },
                   },
                 },
@@ -619,7 +469,7 @@ const getPayoutStats = async (req, res, next) => {
       );
     }
 
-    const Model = isSpecificUser ? PayoutTransaction : User;
+    const Model = isSpecificUser ? EkoAepsReport : User;
     const [result] = await Model.aggregate(pipeline);
 
     const statsData = isSpecificUser ? result : result?.stats?.[0];
@@ -627,7 +477,7 @@ const getPayoutStats = async (req, res, next) => {
     //aggregation start ---------------------------------
 
     const defaultStats = {
-      total: { count: 0, amount: 0, charges: 0 },
+      total: { count: 0, amount: 0, commission: 0 },
       success: { count: 0, amount: 0 },
       pending: { count: 0, amount: 0 },
       failed: { count: 0, amount: 0 },
@@ -640,8 +490,8 @@ const getPayoutStats = async (req, res, next) => {
             amount: paiseToRupee(
               statsData.totalAmount ?? statsData.total?.amount ?? 0,
             ),
-            charges: paiseToRupee(
-              statsData.totalCharges ?? statsData.total?.charges ?? 0,
+            commission: paiseToRupee(
+              statsData.totalCommission ?? statsData.total?.commission ?? 0,
             ),
           },
           success: {
@@ -673,7 +523,7 @@ const getPayoutStats = async (req, res, next) => {
   }
 };
 
-const getCompletePayoutReport = async (req, res, next) => {
+const getCompleteAepsReport = async (req, res, next) => {
   try {
     let {
       page = 1,
@@ -749,7 +599,7 @@ const getCompletePayoutReport = async (req, res, next) => {
     }
 
     if (status) {
-      filter.status = status?.toUpperCase();
+      filter.txnStatus = status?.toUpperCase();
     }
 
     if (range) {
@@ -850,7 +700,7 @@ const getCompletePayoutReport = async (req, res, next) => {
         });
       }
 
-      //  ONLY check if NOT self
+      // ✅ ONLY check if NOT self
       if (!userObjectId.equals(currentUserId)) {
         const downlineData = await User.aggregate([
           { $match: { _id: currentUserId } },
@@ -886,11 +736,35 @@ const getCompletePayoutReport = async (req, res, next) => {
       }
     }
 
-    const payoutReport = await User.aggregate([
+    // if (user) {
+    //   if (!mongoose.Types.ObjectId.isValid(user)) {
+    //     return res
+    //       .status(400)
+    //       .json({ success: false, message: "Invalid user ID" });
+    //   }
+
+    //   const userExist = await User.findOne({ _id: user }).lean();
+
+    //   if (!userExist) {
+    //     return res
+    //       .status(404)
+    //       .json({ success: false, message: "User not found" });
+    //   }
+
+    //   if (
+    //     userExist._id.toString() !== req.user.id.toString() && // not self
+    //     userExist.parentUserId?.toString() !== req.user.id.toString() // not child
+    //   ) {
+    //     return res.status(403).json({
+    //       success: false,
+    //       message: "Not allowed to access this user",
+    //     });
+    //   }
+    // }
+
+    const aepsReport = await User.aggregate([
       {
-        $match: {
-          _id: new mongoose.Types.ObjectId(userId),
-        },
+        $match: { _id: new mongoose.Types.ObjectId(userId) },
       },
 
       //  Get downline
@@ -917,21 +791,20 @@ const getCompletePayoutReport = async (req, res, next) => {
       //  Lookup recharge reports
       {
         $lookup: {
-          from: "payouttransactions",
+          from: "ekoaepsreports",
           let: { userIds: "$allUserIds" },
           pipeline: [
             {
               $match: {
                 $expr: {
-                  $and: [
-                    { $in: ["$userId", "$$userIds"] },
-                    { $eq: ["$serviceType", "AEPS_PAYOUT"] },
-                  ],
+                  $in: ["$userId", "$$userIds"],
                 },
               },
             },
 
-            ...(status ? [{ $match: { status: status.toUpperCase() } }] : []),
+            ...(status
+              ? [{ $match: { txnStatus: status.toUpperCase() } }]
+              : []),
 
             ...(operator
               ? [
@@ -962,21 +835,21 @@ const getCompletePayoutReport = async (req, res, next) => {
               ? [{ $match: { createdAt: filter.createdAt } }]
               : []),
           ],
-          as: "payout",
+          as: "aeps",
         },
       },
 
       //  IMPORTANT: unwind BEFORE pagination
       {
         $unwind: {
-          path: "$payout",
+          path: "$aeps",
           preserveNullAndEmptyArrays: false,
         },
       },
 
       //  Replace root (flatten)
       {
-        $replaceRoot: { newRoot: "$payout" },
+        $replaceRoot: { newRoot: "$aeps" },
       },
 
       //  Apply user filter (IMPORTANT FIX)
@@ -1012,21 +885,22 @@ const getCompletePayoutReport = async (req, res, next) => {
 
             {
               $project: {
-                beneficiaryName: 1,
-                beneficiaryPhone: 1,
-                ifsc: 1,
-                bankAccount: 1,
                 amount: 1,
-                charge: 1,
-                gst: 1,
-                tds: 1,
-                totalAmount: "$totalDebit",
-
+                accountBalance: 1,
+                miniStatement: 1,
+                serviceType: 1,
+                type: 1,
                 message: "$reason" || "$message",
-                status: "$status",
+                mobileNumber: 1,
+                status: "$txnStatus",
+                commission: 1,
+                tds: 1,
+                netCommission: 1,
                 referenceId: 1,
+                isRefunded: 1,
+                description: 1,
                 createdAt: 1,
-                userName: "$user.userName",
+                 userName: "$user.userName",
                 fullName: {
                   $concat: ["$user.firstName", " ", "$user.lastName"],
                 },
@@ -1046,21 +920,20 @@ const getCompletePayoutReport = async (req, res, next) => {
       },
     ]);
 
-    const data = payoutReport[0]?.data || [];
-    const total = payoutReport[0]?.totalCount[0]?.count || 0;
+    const data = aepsReport[0]?.data || [];
+    const total = aepsReport[0]?.totalCount[0]?.count || 0;
 
     const formattedData = data.map((item) => ({
       ...item,
       amount: paiseToRupee(item.amount),
-      charge: paiseToRupee(item.charge),
+      commission: paiseToRupee(item.commission),
       tds: paiseToRupee(item.tds),
-      gst: paiseToRupee(item.gst),
-      totalAmount: paiseToRupee(item.totalAmount),
+      netCommission: paiseToRupee(item.netCommission),
     }));
 
     return res.status(200).json({
       success: true,
-      message: "Payout reports fetched successfully",
+      message: "Aeps reports fetched successfully",
 
       data: formattedData,
       pagination: {
@@ -1075,7 +948,7 @@ const getCompletePayoutReport = async (req, res, next) => {
   }
 };
 
-const getPayoutReportById = async (req, res, next) => {
+const getAepsReportById = async (req, res, next) => {
   try {
     const { id } = req.params;
 
@@ -1093,11 +966,10 @@ const getPayoutReportById = async (req, res, next) => {
       });
     }
 
-    const [report] = await PayoutTransaction.aggregate([
+    const [report] = await EkoAepsReport.aggregate([
       {
         $match: {
           _id: new mongoose.Types.ObjectId(id),
-          serviceType: "AEPS_PAYOUT",
         },
       },
       {
@@ -1134,38 +1006,22 @@ const getPayoutReportById = async (req, res, next) => {
           userName: "$user.userName",
           email: "$user.email",
           phone: "$user.phone",
-          serviceName: "$serviceType",
+          serviceName: "AEPS",
           providerTxnId: "$provider.providerTxnId",
-          requestBody: "$provider.request",
-          responseBody: "$provider.response",
+          // requestBody: "$provider.request",
+          // responseBody: "$provider.response",
         },
       },
       {
         $project: {
-          amount: 1,
-          message: "$reason" || "$message",
-          beneficiaryName: 1,
-          beneficiaryPhone: 1,
-          ifsc: 1,
-          bankAccount: 1,
-          status: "$status",
-          charge: 1,
-          tds: 1,
-          gst: 1,
-          totalAmount: "$totalDebit",
-          referenceId: 1,
-          createdAt: 1,
-          userName: "$user.userName",
-          fullName: {
-            $concat: ["$user.firstName", " ", "$user.lastName"],
-          },
-          // user: {
-          //   _id: "$user._id",
-          //   firstName: "$user.firstName",
-          //   lastName: "$user.lastName",
-          //   userName: "$user.userName",
-          //   level: "$user.level",
-          // },
+          user: 0,
+          provider: 0,
+          outletId: 0,
+          providerName: 0,
+          providerName: 0,
+          updatedAt: 0,
+          aadhaar: 0,
+          rawResponse: 0,
         },
       },
     ]);
@@ -1173,7 +1029,7 @@ const getPayoutReportById = async (req, res, next) => {
     if (!report) {
       return res.status(404).json({
         success: false,
-        message: "Aeps Payout Report not found",
+        message: "Aeps Report not found",
       });
     }
 
@@ -1181,16 +1037,15 @@ const getPayoutReportById = async (req, res, next) => {
       ? {
           ...report,
           amount: paiseToRupee(report?.amount),
-          charge: paiseToRupee(report?.charge),
+          commission: paiseToRupee(report?.commission),
           tds: paiseToRupee(report?.tds),
-          gst: paiseToRupee(report?.gst),
-          totalAmount: paiseToRupee(report?.totalAmount),
+          netCommission: paiseToRupee(report?.netCommission),
         }
       : null;
 
     return res.status(200).json({
       success: true,
-      message: "Aeps Payout report fetched successfully",
+      message: "Aeps report fetched successfully",
       data: formattedData,
     });
   } catch (error) {
@@ -1199,8 +1054,8 @@ const getPayoutReportById = async (req, res, next) => {
 };
 
 module.exports = {
-  getMyLastPayoutHistory,
-  getPayoutStats,
-  getCompletePayoutReport,
-  getPayoutReportById,
+  getMyLastAepsHistory,
+  getAepsStats,
+  getCompleteAepsReport,
+  getAepsReportById,
 };

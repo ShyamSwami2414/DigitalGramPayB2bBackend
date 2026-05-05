@@ -5,6 +5,30 @@ const BbpsReport = require("../../models/bbpsReportModel");
 const User = require("../../models/userModel");
 const { paiseToRupee } = require("../../utils/money");
 
+const getDownlineUserIds = async (userId) => {
+  const result = await User.aggregate([
+    {
+      $match: { _id: new mongoose.Types.ObjectId(userId) },
+    },
+    {
+      $graphLookup: {
+        from: "users",
+        startWith: "$_id",
+        connectFromField: "_id",
+        connectToField: "parentUserId",
+        as: "downlines",
+      },
+    },
+    {
+      $project: {
+        ids: "$downlines._id",
+      },
+    },
+  ]);
+
+  return result[0]?.ids || [];
+};
+
 //wallet stats from leedger and report combined
 // exports.getWalletStats = async (req, res, next) => {
 //   try {
@@ -399,7 +423,7 @@ exports.getWalletStats = async (req, res, next) => {
     const allowedStatus = ["success", "failed", "pending"];
     const allowedRanges = ["today", "yesterday", "last7days", "thismonth"];
 
-    // ❗ VALIDATIONS
+    //  VALIDATIONS
     if (status && !allowedStatus.includes(status)) {
       return res.status(400).json({ message: "Invalid Status" });
     }
@@ -473,7 +497,7 @@ exports.getWalletStats = async (req, res, next) => {
       if (toDate) toDate.setHours(23, 59, 59, 999);
     }
 
-    // 🔐 USER ACCESS + USER IDS
+    //  USER ACCESS + USER IDS
     let userIds = [];
 
     if (user) {
@@ -1940,21 +1964,61 @@ exports.getWalletReport = async (req, res, next) => {
     page = Number(page);
     limit = Number(limit);
 
+    // VALIDATION
+    if (isNaN(page) || page < 1)
+      return res.status(400).json({ success: false, message: "Invalid page" });
+
+    if (isNaN(limit) || limit < 1 || limit > 100)
+      return res.status(400).json({ success: false, message: "Invalid limit" });
+
     const skip = (page - 1) * limit;
     const filter = {};
 
+    // ===============================
+    //  HIERARCHY FILTER
+    // ===============================
+    const loggedInUserId = req.user.id;
+    console.log(loggedInUserId, "loggedInUserId");
+
+    const downlineIds = await getDownlineUserIds(loggedInUserId);
+
+    const allowedUserIds = [
+      new mongoose.Types.ObjectId(loggedInUserId),
+      ...downlineIds,
+    ];
+
     if (userId) {
+      if (!mongoose.Types.ObjectId.isValid(userId)) {
+        return res
+          .status(400)
+          .json({ success: false, message: "Invalid userId" });
+      }
+
+      const isAllowed = allowedUserIds.some((id) => id.equals(userId));
+
+      if (!isAllowed) {
+        return res.status(403).json({
+          success: false,
+          message: "Not allowed to access this user's report",
+        });
+      }
+
       filter.userId = new mongoose.Types.ObjectId(userId);
+    } else {
+      filter.userId = { $in: allowedUserIds };
     }
 
     if (search) {
       filter.referenceId = { $regex: search, $options: "i" };
     }
 
+    // ===============================
+    //  PIPELINE
+    // ===============================
     const basePipeline = [
       { $match: filter },
 
-      //  GROUP BY referenceId + userId
+      //  FIX: keep createdAt for sorting
       {
         $group: {
           _id: {
@@ -1962,12 +2026,11 @@ exports.getWalletReport = async (req, res, next) => {
             userId: "$userId",
           },
           entries: { $push: "$$ROOT" },
+          createdAt: { $max: "$createdAt" },
         },
       },
 
-      // ===============================
       // FLAGS
-      // ===============================
       {
         $addFields: {
           hasRefund: {
@@ -1979,7 +2042,6 @@ exports.getWalletReport = async (req, res, next) => {
               },
             },
           },
-
           hasMainTxn: {
             $anyElementTrue: {
               $map: {
@@ -1996,7 +2058,6 @@ exports.getWalletReport = async (req, res, next) => {
               },
             },
           },
-
           hasWalletRefill: {
             $anyElementTrue: {
               $map: {
@@ -2006,7 +2067,6 @@ exports.getWalletReport = async (req, res, next) => {
               },
             },
           },
-
           hasAEPS: {
             $anyElementTrue: {
               $map: {
@@ -2019,41 +2079,34 @@ exports.getWalletReport = async (req, res, next) => {
         },
       },
 
-      // ===============================
-      // MERGE CONDITION
-      // ===============================
       {
         $addFields: {
           shouldMerge: {
             $and: [
               { $not: ["$hasWalletRefill"] },
               { $not: ["$hasAEPS"] },
-
-              //  smart refund handling
-              {
-                $or: [
-                  { $not: ["$hasRefund"] },
-                  { $and: ["$hasRefund", "$hasMainTxn"] },
-                ],
-              },
+              { $not: ["$hasRefund"] },
             ],
           },
         },
       },
 
       // ===============================
-      // MERGE LOGIC
+      //  FIXED MERGE LOGIC
       // ===============================
       {
         $project: {
+          createdAt: 1,
           data: {
             $cond: [
               "$shouldMerge",
-
               [
                 {
                   $mergeObjects: [
-                    //  MAIN ENTRY (serviceType wala)
+                    // fallback first
+                    { $arrayElemAt: ["$entries", 0] },
+
+                    // main entry
                     {
                       $arrayElemAt: [
                         {
@@ -2075,9 +2128,8 @@ exports.getWalletReport = async (req, res, next) => {
                                     ],
                                   },
                                 },
-                                {
-                                  $ne: ["$$e.serviceType", null],
-                                },
+                                { $ne: ["$$e.serviceType", null] },
+                                { $ne: ["$$e.serviceType", ""] },
                               ],
                             },
                           },
@@ -2086,14 +2138,7 @@ exports.getWalletReport = async (req, res, next) => {
                       ],
                     },
 
-                    //  FALLBACK if no serviceType entry
-                    {
-                      $arrayElemAt: ["$entries", 0],
-                    },
-
-                    // ======================
-                    // MERGED FIELDS
-                    // ======================
+                    // computed
                     {
                       charges: {
                         $sum: {
@@ -2110,7 +2155,6 @@ exports.getWalletReport = async (req, res, next) => {
                           },
                         },
                       },
-
                       commission: {
                         $sum: {
                           $map: {
@@ -2126,7 +2170,6 @@ exports.getWalletReport = async (req, res, next) => {
                           },
                         },
                       },
-
                       bonus: {
                         $sum: {
                           $map: {
@@ -2142,8 +2185,6 @@ exports.getWalletReport = async (req, res, next) => {
                           },
                         },
                       },
-
-                      //  REFUND merge (IMPORTANT)
                       refund: {
                         $sum: {
                           $map: {
@@ -2163,8 +2204,6 @@ exports.getWalletReport = async (req, res, next) => {
                   ],
                 },
               ],
-
-              //  NO MERGE
               "$entries",
             ],
           },
@@ -2174,9 +2213,7 @@ exports.getWalletReport = async (req, res, next) => {
       { $unwind: "$data" },
       { $replaceRoot: { newRoot: "$data" } },
 
-      // ===============================
-      //  USER (USER SPECIFIC)
-      // ===============================
+      // USER
       {
         $lookup: {
           from: "users",
@@ -2185,12 +2222,7 @@ exports.getWalletReport = async (req, res, next) => {
           as: "user",
         },
       },
-      {
-        $unwind: {
-          path: "$user",
-          preserveNullAndEmptyArrays: true,
-        },
-      },
+      { $unwind: { path: "$user", preserveNullAndEmptyArrays: true } },
       {
         $addFields: {
           userName: "$user.userName",
@@ -2199,16 +2231,11 @@ exports.getWalletReport = async (req, res, next) => {
       },
       { $unset: "user" },
 
-      // ===============================
-      //  TDS (USER SPECIFIC)
-      // ===============================
+      // TDS
       {
         $lookup: {
           from: "tdsledgers",
-          let: {
-            refId: "$referenceId",
-            uid: "$userId",
-          },
+          let: { refId: "$referenceId", uid: "$userId" },
           pipeline: [
             {
               $match: {
@@ -2220,21 +2247,12 @@ exports.getWalletReport = async (req, res, next) => {
                 },
               },
             },
-            {
-              $project: {
-                tdsAmount: 1,
-              },
-            },
+            { $project: { tdsAmount: 1 } },
           ],
           as: "tds",
         },
       },
-      {
-        $unwind: {
-          path: "$tds",
-          preserveNullAndEmptyArrays: true,
-        },
-      },
+      { $unwind: { path: "$tds", preserveNullAndEmptyArrays: true } },
       {
         $addFields: {
           tdsAmount: { $ifNull: ["$tds.tdsAmount", 0] },
@@ -2242,9 +2260,7 @@ exports.getWalletReport = async (req, res, next) => {
       },
       { $unset: "tds" },
 
-      // ===============================
-      //  GST
-      // ===============================
+      // GST
       {
         $lookup: {
           from: "gstledgers",
@@ -2253,12 +2269,7 @@ exports.getWalletReport = async (req, res, next) => {
           as: "gst",
         },
       },
-      {
-        $unwind: {
-          path: "$gst",
-          preserveNullAndEmptyArrays: true,
-        },
-      },
+      { $unwind: { path: "$gst", preserveNullAndEmptyArrays: true } },
       {
         $addFields: {
           gstAmount: { $ifNull: ["$gst.gstAmount", 0] },
@@ -2268,36 +2279,36 @@ exports.getWalletReport = async (req, res, next) => {
       { $unset: "gst" },
     ];
 
-    const dataPipeline = [
+    // ===============================
+    // DATA + PAGINATION
+    // ===============================
+    const walletLedger = await WalletLedger.aggregate([
       ...basePipeline,
       { $sort: { createdAt: -1 } },
       { $skip: skip },
       { $limit: limit },
-    ];
+    ]);
 
-    const walletLedger = await WalletLedger.aggregate(dataPipeline);
+    const totalAgg = await WalletLedger.aggregate([
+      ...basePipeline,
+      { $count: "total" },
+    ]);
 
-    const countPipeline = [...basePipeline, { $count: "total" }];
-    const totalAgg = await WalletLedger.aggregate(countPipeline);
     const total = totalAgg[0]?.total || 0;
 
     // ===============================
-    // ✅ FINAL FORMAT (RUPEES)
+    // FORMAT
     // ===============================
     const formattedData = walletLedger.map((item) => ({
       ...item,
       amount: paiseToRupee(item.amount),
       openingBalance: paiseToRupee(item.openingBalance),
       closingBalance: paiseToRupee(item.closingBalance),
-
       commission: paiseToRupee(item.commission || 0),
       bonus: paiseToRupee(item.bonus || 0),
-      refund: paiseToRupee(item.refund || 0),
-
       charge: paiseToRupee(item.chargesAmount || 0),
       gstAmount: paiseToRupee(item.gstAmount || 0),
       totalCharges: paiseToRupee(item.charges || 0),
-
       tdsAmount: paiseToRupee(item.tdsAmount || 0),
     }));
 

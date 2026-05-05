@@ -1,46 +1,43 @@
 const express = require("express");
 const { authenticateUser } = require("../../middleware/authMiddleware");
-const {
-  //
-  getMyLastPayoutHistory,
-  getPayoutStats,
-  getCompletePayoutReport,
-  getPayoutReportById,
-} = require("../../controllers/userController/sozoAepsPayoutReportController");
 const checkUserPaymentAndKYC = require("../../middleware/kycPaymentCheckMiddleware");
+const {
+  getMyLastDmtHistory,
+  getDmtStats,
+  getCompleteDmtReport,
+  getDmtReportById,
+} = require("../../controllers/userController/nobleDmtReportController");
 
 const router = express.Router();
 
-// router.get("/list-all", authenticateUser, myAllTransaction);
-
-//get my last 5 payout transaction
+//get my last 5 aeps transaction
 router.get(
-  "/my-payout-history",
+  "/my-dmt-history",
   authenticateUser,
   checkUserPaymentAndKYC,
-  getMyLastPayoutHistory,
+  getMyLastDmtHistory,
 );
 
 router.get(
-  "/payout-stats",
+  "/dmt-stats",
   authenticateUser,
   checkUserPaymentAndKYC,
-  getPayoutStats,
+  getDmtStats,
 );
 
 //get all aeps transaction of me and my downline
 router.get(
-  "/complete-payout-report",
+  "/complete-dmt-report",
   authenticateUser,
   checkUserPaymentAndKYC,
-  getCompletePayoutReport,
+  getCompleteDmtReport,
 );
 
 router.get(
   "/report/:id",
   authenticateUser,
   checkUserPaymentAndKYC,
-  getPayoutReportById,
+  getDmtReportById,
 );
 
 module.exports = router;

@@ -39,7 +39,7 @@ router.post(
   authenticateUser,
   checkUserPaymentAndKYC,
   idempotencyMiddleware,
-  apiLogger,
+  // apiLogger,
   completetBiometricKyc,
 );
 

@@ -40,12 +40,14 @@ router.post(
   checkUserPaymentAndKYC,
   fetchBbpsBill,
 );
+
 router.post(
   "/validate-bill",
   authenticateUser,
   checkUserPaymentAndKYC,
   validateBbpsBill,
 );
+
 router.post(
   "/bill-pay",
   authenticateUser,

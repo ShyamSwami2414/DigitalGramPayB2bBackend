@@ -74,7 +74,7 @@ const processCommission = async ({
             description,
           },
         ],
-        { session },
+        { session: session },
       );
 
       await reportModel.updateOne(

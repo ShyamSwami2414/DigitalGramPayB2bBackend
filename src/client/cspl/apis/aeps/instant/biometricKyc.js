@@ -39,12 +39,14 @@ exports.biometricKyc = async ({
       },
     );
 
-    console.log(response.data, "response");
+    console.log(response?.data, "response");
 
     const responseTime = Date.now() - startTime;
 
     const isSuccess =
-      response.data.status === "TXN" || response.data.status_code === "TXN";
+      response?.data?.status === "TXN" || response?.data?.status_code === "TXN";
+
+    console.log("isSuccess", isSuccess);
 
     let providerStatus = isSuccess ? "SUCCESS" : "FAILED";
 
@@ -52,61 +54,79 @@ exports.biometricKyc = async ({
       throw {
         providerStatus: providerStatus,
         message: response?.data.message,
+        fullResponse: response?.data,
       };
     }
 
-    await InstantAepsLogs.create({
-      providerTxnId: response?.data?.txn_ref || undefined,
-      userId: userId,
-      referenceId: client_referenceId,
-      type: "AEPS-BIOMETRIC-KYC",
-      providerName: "INSTANT_PAY",
-      endPoint: "aeps/BiometricKyc",
-      method: "POST",
-      request: {
-        externalRef: client_referenceId,
-        referenceKey: referenceKey, //temporary for biometric get from kyc check data
-        latitude: latitude,
-        longitude: longitude,
-        captureType: captureType,
-        biometricData: biometricData,
-        header: {
-          mcode: mcode,
-        },
-      },
+    console.log("Success Bl;ock Log");
 
-      response: response.data,
-      providerStatus: providerStatus,
-      responseTime,
-    });
+    try {
+      await InstantAepsLogs.insertOne({
+        providerTxnId: response?.data?.txn_ref || undefined,
+        userId: userId,
+        referenceId: client_referenceId,
+        type: "AEPS-BIOMETRIC-KYC",
+        providerName: "INSTANT_PAY",
+        endPoint: "aeps/BiometricKyc",
+        method: "POST",
+        request: {
+          externalRef: client_referenceId,
+          referenceKey: referenceKey, //temporary for biometric get from kyc check data
+          latitude: latitude,
+          longitude: longitude,
+          captureType: captureType,
+          // biometricData: biometricData,
+          header: {
+            mcode: mcode,
+          },
+        },
+
+        response: response?.data,
+        providerStatus: providerStatus,
+        responseTime,
+      });
+    } catch (logError) {
+      console.log("❌ LOG SAVE FAILED suCCESS:", logError);
+    }
 
     return response?.data;
   } catch (error) {
-    console.log("API Error Response:", error.response?.data || error.message);
+    console.log("API Error Response:", error?.response?.data || error?.message);
 
-    await InstantAepsLogs.create({
-      providerTxnId: error?.response?.data?.txn_ref || undefined,
-      userId: userId,
-      referenceId: client_referenceId,
-      type: "AEPS-BIOMETRIC-KYC",
-      providerName: "INSTANT_PAY",
-      endPoint: "aeps/BiometricKyc",
-      method: "POST",
-      request: {
-        externalRef: client_referenceId,
-        referenceKey: referenceKey, //temporary for biometric get from kyc check data
-        latitude: latitude,
-        longitude: longitude,
-        captureType: captureType,
-        biometricData: biometricData,
-        header: {
-          mcode: mcode,
+    console.log("Failed Block Log");
+    console.log("🚀 BEFORE LOG SAVE");
+
+    try {
+      await InstantAepsLogs.insertOne({
+        providerTxnId: error?.response?.data?.txn_ref || undefined,
+        userId: userId,
+        referenceId: client_referenceId,
+        type: "AEPS-BIOMETRIC-KYC",
+        providerName: "INSTANT_PAY",
+        endPoint: "aeps/BiometricKyc",
+        method: "POST",
+        request: {
+          externalRef: client_referenceId,
+          referenceKey: referenceKey, //temporary for biometric get from kyc check data
+          latitude: latitude,
+          longitude: longitude,
+          captureType: captureType,
+          // biometricData: biometricData,
+          header: {
+            mcode: mcode,
+          },
         },
-      },
-      response: error.response?.data || { message: error.message },
-      providerStatus: "FAILED",
-      responseTime: Date.now() - startTime,
-    });
+        response: error?.fullResponse ||
+          error?.response?.data || { message: error?.message },
+        providerStatus: "FAILED",
+        responseTime: Date.now() - startTime,
+      });
+    } catch (logError) {
+      console.log("❌ LOG SAVE FAILED:", logError);
+    }
+
+    console.log("✅ AFTER LOG SAVE");
+
     throw error;
   }
 };

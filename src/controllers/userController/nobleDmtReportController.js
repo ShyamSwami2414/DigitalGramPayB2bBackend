@@ -1,162 +1,20 @@
-const PayoutTransaction = require("../../models/sozopayoutTransactionModel");
+const DmtReport = require("../../models/dmtReportModel");
 const mongoose = require("mongoose");
 const User = require("../../models/userModel");
 const { paiseToRupee } = require("../../utils/money");
 
-// exports.myAllTransaction = async (req, res, next) => {
-//   try {
-//     let {
-//       user = "",
-//       status = "",
-//       from = "",
-//       to = "",
-//       range = "",
-//       page = 1,
-//       limit = 10,
-//     } = req.query;
-
-//     user = user?.trim();
-//     status = status?.trim().toLowerCase();
-
-//     page = parseInt(page) || 1;
-//     limit = parseInt(limit) || 10;
-//     const skip = (page - 1) * limit;
-
-//     const filter = {
-//       serviceType: "AEPS_PAYOUT",
-//     };
-
-//     // ✅ STATUS FILTER
-//     if (status) {
-//       filter.status = status.toUpperCase();
-//     }
-
-//     // ✅ DATE FILTER (simple version)
-//     if (from || to) {
-//       filter.createdAt = {};
-//       if (from) filter.createdAt.$gte = new Date(from);
-//       if (to) {
-//         const t = new Date(to);
-//         t.setHours(23, 59, 59, 999);
-//         filter.createdAt.$lte = t;
-//       }
-//     }
-
-//     // ✅ USER FILTER (SELF ONLY OR SPECIFIC)
-//     let userIds = [];
-
-//     if (user) {
-//       if (!mongoose.Types.ObjectId.isValid(user)) {
-//         const err = new Error("Invalid user ID");
-//         err.status = 400;
-//         throw err;
-//       }
-//       userIds = [new mongoose.Types.ObjectId(user)];
-//     } else {
-//       userIds = [new mongoose.Types.ObjectId(req.user.id)];
-//     }
-
-//     filter.userId = { $in: userIds };
-
-//     // ✅ AGGREGATION WITH LOOKUP
-//     const pipeline = [
-//       { $match: filter },
-
-//       {
-//         $lookup: {
-//           from: "users",
-//           localField: "userId",
-//           foreignField: "_id",
-//           as: "user",
-//         },
-//       },
-//       { $unwind: "$user" },
-
-//       {
-//         $project: {
-//           _id: 1,
-//           referenceId: 1,
-//           bankAccount: 1,
-//           ifsc: 1,
-//           beneficiaryName: 1,
-//           beneficiaryPhone: 1,
-//           amount: 1,
-//           status: 1,
-//           createdAt: 1,
-
-//           // ✅ user fields
-//           "user.firstName": 1,
-//           "user.lastName": 1,
-//           "user.mobile": 1,
-//           "user.email": 1,
-
-//           // ❌ hidden fields automatically excluded
-//         },
-//       },
-
-//       { $sort: { createdAt: -1 } },
-//       { $skip: skip },
-//       { $limit: limit },
-//     ];
-
-//     const [transactions, total] = await Promise.all([
-//       PayoutTransaction.aggregate(pipeline),
-//       PayoutTransaction.countDocuments(filter),
-//     ]);
-
-//     // ✅ FORMAT RESPONSE
-//     const formattedData = transactions.map((txn) => ({
-//       id: txn._id,
-//       referenceId: txn.referenceId,
-
-//       user: {
-//         name: `${txn.user.firstName || ""} ${txn.user.lastName || ""}`.trim(),
-//         phone: txn.user.mobile,
-//         email: txn.user.email,
-//       },
-
-//       bankAccount: txn.bankAccount,
-//       ifsc: txn.ifsc,
-//       beneficiaryName: txn.beneficiaryName,
-//       beneficiaryPhone: txn.beneficiaryPhone,
-
-//       // 💰 convert paise → rupee
-//       amount: paiseToRupee(txn.amount),
-
-//       status: txn.status,
-//       createdAt: txn.createdAt,
-//     }));
-
-//     return res.status(200).json({
-//       success: true,
-//       message: "AEPS Payout Report",
-//       data: formattedData,
-//       pagination: {
-//         total,
-//         page,
-//         limit,
-//         totalPages: Math.ceil(total / limit),
-//       },
-//     });
-//   } catch (error) {
-//     next(error);
-//   }
-// };
-
 //last 5 my dmt transaction history
-
-const getMyLastPayoutHistory = async (req, res, next) => {
+const getMyLastDmtHistory = async (req, res, next) => {
   try {
     let { search = "" } = req.query;
     search = search?.trim();
 
     const userId = req.user.id;
 
-    const result = await PayoutTransaction.aggregate([
+    const result = await DmtReport.aggregate([
       {
         $match: {
           userId: new mongoose.Types.ObjectId(userId),
-          serviceType: "AEPS_PAYOUT",
         },
       },
       ...(search
@@ -199,15 +57,15 @@ const getMyLastPayoutHistory = async (req, res, next) => {
       {
         $project: {
           beneficiaryName: 1,
-          beneficiaryPhone: 1,
-          ifsc: 1,
-          bankAccount: 1,
+          beneficiaryIfsc: 1,
+          beneficiaryAccount: 1,
           amount: 1,
           charge: 1,
           gst: 1,
           tds: 1,
-          totalAmount: "$totalDebit",
+          totalCharges: "$totalDebit",
           message: "$reason" || "$message",
+          mobileNumber: 1,
           status: "$status",
           createdAt: 1,
           referenceId: 1,
@@ -219,7 +77,7 @@ const getMyLastPayoutHistory = async (req, res, next) => {
     const formattedData = result.map((item) => ({
       ...item,
       amount: paiseToRupee(item?.amount),
-      totalAmount: paiseToRupee(item?.totalAmount),
+      totalCharges: paiseToRupee(item?.totalCharges),
       charge: paiseToRupee(item?.charge),
       tds: paiseToRupee(item?.tds),
       gst: paiseToRupee(item?.gst),
@@ -235,7 +93,7 @@ const getMyLastPayoutHistory = async (req, res, next) => {
   }
 };
 
-const getPayoutStats = async (req, res, next) => {
+const getDmtStats = async (req, res, next) => {
   try {
     let { user = "", status = "", from = "", to = "", range = "" } = req.query;
     console.log(req.query);
@@ -259,7 +117,7 @@ const getPayoutStats = async (req, res, next) => {
       range = undefined;
     }
 
-    const filter = { serviceType: "AEPS_PAYOUT" };
+    const filter = {};
 
     const now = new Date();
     let fromDate, toDate;
@@ -465,7 +323,6 @@ const getPayoutStats = async (req, res, next) => {
         {
           $match: {
             userId: new mongoose.Types.ObjectId(targetUserId),
-            serviceType: "AEPS_PAYOUT",
           },
         },
 
@@ -479,7 +336,7 @@ const getPayoutStats = async (req, res, next) => {
             _id: null,
             totalCount: { $sum: 1 },
             totalAmount: { $sum: "$amount" },
-            totalCharges: { $sum: "$charge" },
+            totalCharges: { $sum: "$netCharges" },
 
             successCount: {
               $sum: { $cond: [{ $eq: ["$status", "SUCCESS"] }, 1, 0] },
@@ -515,7 +372,7 @@ const getPayoutStats = async (req, res, next) => {
             total: {
               count: "$totalCount",
               amount: "$totalAmount",
-              charges: "$totalCharges",
+              charges: "$totalDebit",
             },
             success: {
               count: "$successCount",
@@ -558,17 +415,12 @@ const getPayoutStats = async (req, res, next) => {
         },
         {
           $lookup: {
-            from: "payouttransactions",
+            from: "dmtreports",
             let: { userIds: "$allUserIds" },
             pipeline: [
               {
                 $match: {
-                  $expr: {
-                    $and: [
-                      { $in: ["$userId", "$$userIds"] },
-                      { $eq: ["$serviceType", "AEPS_PAYOUT"] },
-                    ],
-                  },
+                  $expr: { $in: ["$userId", "$$userIds"] },
                 },
               },
 
@@ -582,7 +434,7 @@ const getPayoutStats = async (req, res, next) => {
                   _id: null,
                   totalCount: { $sum: 1 },
                   totalAmount: { $sum: "$amount" },
-                  totalAmount: { $sum: "$totalDebit" },
+                  totalCharges: { $sum: "$totalDebit" },
 
                   successCount: {
                     $sum: { $cond: [{ $eq: ["$status", "SUCCESS"] }, 1, 0] },
@@ -619,7 +471,7 @@ const getPayoutStats = async (req, res, next) => {
       );
     }
 
-    const Model = isSpecificUser ? PayoutTransaction : User;
+    const Model = isSpecificUser ? DmtReport : User;
     const [result] = await Model.aggregate(pipeline);
 
     const statsData = isSpecificUser ? result : result?.stats?.[0];
@@ -673,7 +525,7 @@ const getPayoutStats = async (req, res, next) => {
   }
 };
 
-const getCompletePayoutReport = async (req, res, next) => {
+const getCompleteDmtReport = async (req, res, next) => {
   try {
     let {
       page = 1,
@@ -850,7 +702,7 @@ const getCompletePayoutReport = async (req, res, next) => {
         });
       }
 
-      //  ONLY check if NOT self
+      // ✅ ONLY check if NOT self
       if (!userObjectId.equals(currentUserId)) {
         const downlineData = await User.aggregate([
           { $match: { _id: currentUserId } },
@@ -886,11 +738,35 @@ const getCompletePayoutReport = async (req, res, next) => {
       }
     }
 
-    const payoutReport = await User.aggregate([
+    // if (user) {
+    //   if (!mongoose.Types.ObjectId.isValid(user)) {
+    //     return res
+    //       .status(400)
+    //       .json({ success: false, message: "Invalid user ID" });
+    //   }
+
+    //   const userExist = await User.findOne({ _id: user }).lean();
+
+    //   if (!userExist) {
+    //     return res
+    //       .status(404)
+    //       .json({ success: false, message: "User not found" });
+    //   }
+
+    //   if (
+    //     userExist._id.toString() !== req.user.id.toString() && // not self
+    //     userExist.parentUserId?.toString() !== req.user.id.toString() // not child
+    //   ) {
+    //     return res.status(403).json({
+    //       success: false,
+    //       message: "Not allowed to access this user",
+    //     });
+    //   }
+    // }
+
+    const dmtReport = await User.aggregate([
       {
-        $match: {
-          _id: new mongoose.Types.ObjectId(userId),
-        },
+        $match: { _id: new mongoose.Types.ObjectId(userId) },
       },
 
       //  Get downline
@@ -917,16 +793,13 @@ const getCompletePayoutReport = async (req, res, next) => {
       //  Lookup recharge reports
       {
         $lookup: {
-          from: "payouttransactions",
+          from: "dmtreports",
           let: { userIds: "$allUserIds" },
           pipeline: [
             {
               $match: {
                 $expr: {
-                  $and: [
-                    { $in: ["$userId", "$$userIds"] },
-                    { $eq: ["$serviceType", "AEPS_PAYOUT"] },
-                  ],
+                  $in: ["$userId", "$$userIds"],
                 },
               },
             },
@@ -962,21 +835,21 @@ const getCompletePayoutReport = async (req, res, next) => {
               ? [{ $match: { createdAt: filter.createdAt } }]
               : []),
           ],
-          as: "payout",
+          as: "dmt",
         },
       },
 
       //  IMPORTANT: unwind BEFORE pagination
       {
         $unwind: {
-          path: "$payout",
+          path: "$dmt",
           preserveNullAndEmptyArrays: false,
         },
       },
 
       //  Replace root (flatten)
       {
-        $replaceRoot: { newRoot: "$payout" },
+        $replaceRoot: { newRoot: "$dmt" },
       },
 
       //  Apply user filter (IMPORTANT FIX)
@@ -1012,18 +885,16 @@ const getCompletePayoutReport = async (req, res, next) => {
 
             {
               $project: {
-                beneficiaryName: 1,
-                beneficiaryPhone: 1,
-                ifsc: 1,
-                bankAccount: 1,
                 amount: 1,
-                charge: 1,
-                gst: 1,
-                tds: 1,
-                totalAmount: "$totalDebit",
-
                 message: "$reason" || "$message",
+                beneficiaryName: 1,
+                beneficiaryIfsc: 1,
+                beneficiaryAccount: 1,
                 status: "$status",
+                charge: 1,
+                tds: 1,
+                gst: 1,
+                totalCharges: "$totalDebit",
                 referenceId: 1,
                 createdAt: 1,
                 userName: "$user.userName",
@@ -1046,8 +917,8 @@ const getCompletePayoutReport = async (req, res, next) => {
       },
     ]);
 
-    const data = payoutReport[0]?.data || [];
-    const total = payoutReport[0]?.totalCount[0]?.count || 0;
+    const data = dmtReport[0]?.data || [];
+    const total = dmtReport[0]?.totalCount[0]?.count || 0;
 
     const formattedData = data.map((item) => ({
       ...item,
@@ -1055,12 +926,12 @@ const getCompletePayoutReport = async (req, res, next) => {
       charge: paiseToRupee(item.charge),
       tds: paiseToRupee(item.tds),
       gst: paiseToRupee(item.gst),
-      totalAmount: paiseToRupee(item.totalAmount),
+      totalCharges: paiseToRupee(item.totalCharges),
     }));
 
     return res.status(200).json({
       success: true,
-      message: "Payout reports fetched successfully",
+      message: "Dmt reports fetched successfully",
 
       data: formattedData,
       pagination: {
@@ -1075,7 +946,7 @@ const getCompletePayoutReport = async (req, res, next) => {
   }
 };
 
-const getPayoutReportById = async (req, res, next) => {
+const getDmtReportById = async (req, res, next) => {
   try {
     const { id } = req.params;
 
@@ -1093,11 +964,10 @@ const getPayoutReportById = async (req, res, next) => {
       });
     }
 
-    const [report] = await PayoutTransaction.aggregate([
+    const [report] = await DmtReport.aggregate([
       {
         $match: {
           _id: new mongoose.Types.ObjectId(id),
-          serviceType: "AEPS_PAYOUT",
         },
       },
       {
@@ -1134,7 +1004,7 @@ const getPayoutReportById = async (req, res, next) => {
           userName: "$user.userName",
           email: "$user.email",
           phone: "$user.phone",
-          serviceName: "$serviceType",
+          serviceName: "DMT",
           providerTxnId: "$provider.providerTxnId",
           requestBody: "$provider.request",
           responseBody: "$provider.response",
@@ -1145,14 +1015,13 @@ const getPayoutReportById = async (req, res, next) => {
           amount: 1,
           message: "$reason" || "$message",
           beneficiaryName: 1,
-          beneficiaryPhone: 1,
-          ifsc: 1,
-          bankAccount: 1,
+          beneficiaryIfsc: 1,
+          beneficiaryAccount: 1,
           status: "$status",
           charge: 1,
           tds: 1,
           gst: 1,
-          totalAmount: "$totalDebit",
+          totalCharges: "$totalDebit",
           referenceId: 1,
           createdAt: 1,
           userName: "$user.userName",
@@ -1173,7 +1042,7 @@ const getPayoutReportById = async (req, res, next) => {
     if (!report) {
       return res.status(404).json({
         success: false,
-        message: "Aeps Payout Report not found",
+        message: "Dmt Report not found",
       });
     }
 
@@ -1184,13 +1053,13 @@ const getPayoutReportById = async (req, res, next) => {
           charge: paiseToRupee(report?.charge),
           tds: paiseToRupee(report?.tds),
           gst: paiseToRupee(report?.gst),
-          totalAmount: paiseToRupee(report?.totalAmount),
+          totalCharges: paiseToRupee(report?.totalCharges),
         }
       : null;
 
     return res.status(200).json({
       success: true,
-      message: "Aeps Payout report fetched successfully",
+      message: "DMT report fetched successfully",
       data: formattedData,
     });
   } catch (error) {
@@ -1199,8 +1068,8 @@ const getPayoutReportById = async (req, res, next) => {
 };
 
 module.exports = {
-  getMyLastPayoutHistory,
-  getPayoutStats,
-  getCompletePayoutReport,
-  getPayoutReportById,
+  getMyLastDmtHistory,
+  getDmtStats,
+  getCompleteDmtReport,
+  getDmtReportById,
 };

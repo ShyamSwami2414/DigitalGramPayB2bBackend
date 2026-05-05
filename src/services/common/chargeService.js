@@ -21,6 +21,7 @@ const processCharges = async ({
   serviceId,
   serviceType,
   serviceCategory,
+  walletType,
   operatorId = null,
   categoryId = null,
   pipeline,
@@ -47,6 +48,27 @@ const processCharges = async ({
   let openingBalance = 0;
   let closingBalance = 0;
   try {
+    if (!walletType) {
+      throw new Error(`Wallet Type is required`);
+    }
+
+    const walletConfig = {
+      main: {
+        balance: "mainWallet",
+        hold: "mainHoldAmount",
+      },
+      aeps: {
+        balance: "aepsWallet",
+        hold: "aepsHoldAmount",
+      },
+    };
+
+    if (!walletConfig[walletType]) {
+      throw new Error(`Invalid walletType: ${walletType}`);
+    }
+
+    const { balance, hold } = walletConfig[walletType];
+
     //this will calculate both charge and commission
     const charges = await calculateCommission({
       amount, //paise
@@ -65,25 +87,24 @@ const processCharges = async ({
     if (paiseToRupee(charges) > 0) {
       const wallet = await UserWallet.findOneAndUpdate(
         {
-          userId: userId,
+          userId,
           isActive: true,
           isDeleted: false,
           $expr: {
-            $gte: [
-              { $subtract: ["$mainWallet", "$mainHoldAmount"] },
-              totalCharges,
-            ],
+            $gte: [{ $subtract: [`$${balance}`, `$${hold}`] }, totalCharges],
           },
         },
-        { $inc: { mainWallet: -totalCharges } }, //this will deduct charges including gst
-        { new: true, session: session },
+        {
+          $inc: { [balance]: -totalCharges }, //this will deduct charges including gst
+        },
+        { new: true, session },
       );
 
       if (!wallet) {
         throw new Error(`Wallet not found for user ${userId}`);
       }
 
-      closingBalance = wallet.mainWallet;
+      closingBalance = wallet[balance];
       openingBalance = closingBalance + totalCharges;
 
       await WalletLedger.create(
@@ -93,7 +114,7 @@ const processCharges = async ({
             serviceType: serviceType,
             serviceCategory: serviceCategory,
             entryType: "CHARGES",
-            wallet: "main",
+            wallet: walletType,
             type: "debit",
             amount: totalCharges, //with gst
             referenceId: referenceId,
@@ -121,26 +142,28 @@ const processCharges = async ({
       );
     }
 
-    let payoutTxn = await PayoutTransaction.create(
-      [
-        {
-          userId: userId,
-          serviceType: serviceType,
-          referenceId: referenceId,
-          idempotencyKey: requestId,
-          bankAccount: bankAccountNumber,
-          ifsc: ifsc,
-          beneficiaryName: name,
-          beneficiaryPhone: phone,
-          amount: amount,
-          charge: charges,
-          gst: gstAmount,
-          totalDebit: totalDebitAmount,
-          status: "INITIATED",
-        },
-      ],
-      { session: session },
-    );
+    if (serviceType !== "DMT") {
+      await PayoutTransaction.create(
+        [
+          {
+            userId: userId,
+            serviceType: serviceType,
+            referenceId: referenceId,
+            idempotencyKey: requestId,
+            bankAccount: bankAccountNumber,
+            ifsc: ifsc,
+            beneficiaryName: name,
+            beneficiaryPhone: phone,
+            amount: amount,
+            charge: charges,
+            gst: gstAmount,
+            totalDebit: totalDebitAmount,
+            status: "INITIATED",
+          },
+        ],
+        { session: session },
+      );
+    }
 
     if (isInternalSession) {
       await session.commitTransaction();

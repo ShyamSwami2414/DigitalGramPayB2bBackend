@@ -31,7 +31,7 @@ const debitAepsWallet = async ({
     },
     {
       new: true,
-      session,
+      session: session,
     },
   );
 
@@ -59,7 +59,7 @@ const debitAepsWallet = async ({
         description,
       },
     ],
-    { session },
+    { session: session },
   );
 
   return { openingBalance, closingBalance };
@@ -95,7 +95,7 @@ const debitWallet = async ({
     },
     {
       new: true,
-      session,
+      session: session,
     },
   );
 

@@ -4,7 +4,7 @@ exports.calculateTds = (amount) => {
     return 0;
   }
 
-  const tdsPercent = 5;
+  const tdsPercent = 2; //vinod sir 2 , ashish sir 5
   const tdsAmount = Math.round((amount * tdsPercent) / 100);
   const netAmount = amount - tdsAmount;
   console.log(netAmount, "netAmount of commission");
