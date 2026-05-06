@@ -58,7 +58,7 @@ exports.payBbpsBillService = async ({
     }
 
     const billerCategory = await BbpsCategory.findOne({
-      name: biller.billerCategory,
+      name: biller?.billerCategory,
       isActive: true,
       isDeleted: false,
     })
@@ -98,7 +98,14 @@ exports.payBbpsBillService = async ({
       [
         {
           userId: userId,
-          mobileNumber: customerMobile, //customer mobile number not users
+          refId: refId,
+          customerName: customerName,
+          customerMobile: customerMobile, //customer mobile number not users
+          category: billerCategory?.name,
+          billerId: billerId,
+          billNumber: billNumber,
+          billDate: billDate,
+          billPeriod: billPeriod,
           amount: billamount, //paise
           referenceId: referenceId,
           status: "INITIATED",
@@ -158,6 +165,7 @@ exports.payBbpsBillService = async ({
         customerMobile,
         dueDate,
         billamount: billamount, //paise
+        catname: billerCategory?.name,
         billDate,
         billPeriod,
         billNumber,
@@ -172,7 +180,7 @@ exports.payBbpsBillService = async ({
           error?.response?.data?.message ||
           error.message ||
           "Something went wrong",
-        // data: error?.response?.data || null,
+        data: error?.data || error?.response?.data || null,
       };
     }
 
@@ -181,9 +189,9 @@ exports.payBbpsBillService = async ({
       JSON.stringify(result, null, 2),
     );
 
-    console.log("Status", result.status);
+    console.log("Status", result?.status);
 
-    if (result.status === "PENDING") {
+    if (result?.status === "PENDING") {
       console.log("Entered Pending Block");
       const pendingSession = await mongoose.startSession();
       try {
@@ -191,13 +199,21 @@ exports.payBbpsBillService = async ({
 
         await WalletLedger.updateOne(
           { referenceId: referenceId, serviceType: "BBPS" },
-          { status: "PENDING" },
+          { $set: { status: "PENDING" } },
           { session: pendingSession },
         );
 
         await BbpsReport.updateOne(
           { referenceId: referenceId },
-          { status: "PENDING" },
+          {
+            $set: {
+              status: "PENDING",
+              description:
+                result?.message ||
+                result?.data?.responseReason ||
+                "Transaction Pending",
+            },
+          },
           { session: pendingSession },
         );
 
@@ -226,7 +242,10 @@ exports.payBbpsBillService = async ({
       } finally {
         pendingSession.endSession();
       }
-    } else if (result.status === "SUCCESS") {
+    } else if (
+      (result?.status === "SUCCESS" || result.status === "SUCCESSFUL") &&
+      result?.data?.responseCode === "000"
+    ) {
       const { commission, tdsAmount, netCommission } = await processCommission({
         userId: userId,
         amount: billamount, //paise
@@ -240,11 +259,15 @@ exports.payBbpsBillService = async ({
         pipeline: "bbps1",
         reportModel: BbpsReport,
         description: "BBPS Commission",
+        apiMessage:
+          result?.message ||
+          result?.data?.responseReason ||
+          "Transaction Successful",
         apiResponse: result,
       });
-    }
 
-    if (result?.status === "FAILED" || result?.status === "ERROR") {
+      return result;
+    } else if (result?.status === "FAILED" || result?.status === "ERROR") {
       console.log("Entered");
       const { openingBalance, closingBalance } = await processRefund({
         userId: userId,
@@ -255,6 +278,10 @@ exports.payBbpsBillService = async ({
         walletType: "main",
         reportModel: BbpsReport,
         description: "Bbps Bill Failed Refund",
+        apiMessage:
+          result?.message ||
+          result?.data?.responseReason ||
+          "Transaction Successful",
         apiResponse: result,
       });
     }
@@ -263,13 +290,15 @@ exports.payBbpsBillService = async ({
       return result;
     }
 
-    if (result?.billerstatus?.responseCode) {
-      return result?.billerstatus;
-    } else {
-      const errorMessage = result?.billerstatus?.errorInfo?.error?.errorMessage;
-      console.log(errorMessage, "errorMessage");
-      throw new Error(errorMessage);
-    }
+    return result;
+
+    // if (result?.billerstatus?.responseCode) {
+    //   return result?.billerstatus;
+    // } else {
+    //   const errorMessage = result?.billerstatus?.errorInfo?.error?.errorMessage;
+    //   console.log(errorMessage, "errorMessage");
+    //   throw new Error(errorMessage);
+    // }
   } catch (error) {
     if (session.inTransaction()) {
       await session.abortTransaction();

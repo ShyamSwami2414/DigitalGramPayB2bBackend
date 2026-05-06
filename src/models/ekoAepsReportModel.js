@@ -38,7 +38,6 @@ const ekoAepsReportSchema = new mongoose.Schema(
     //external reference id
     providerTxnId: {
       type: String,
-      unique: true,
       index: true,
       sparse: true,
     },

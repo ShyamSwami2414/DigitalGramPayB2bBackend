@@ -11,6 +11,7 @@ exports.payBbpsBill = async ({
   customerMobile,
   dueDate,
   billamount, //paise
+  catname,
   billDate,
   billPeriod,
   billNumber,
@@ -18,7 +19,6 @@ exports.payBbpsBill = async ({
   paramValue,
   inputParams,
 }) => {
-
   // return console.log(billamount, "billamount  in paise");
   const timestamp = new Date().toISOString();
   const startTime = Date.now();
@@ -26,18 +26,19 @@ exports.payBbpsBill = async ({
     const response = await csplClient.post(
       "bbps/billpay",
       {
-        requestId,
-        billerId,
-        customerName,
-        customerMobile,
-        dueDate,
-        billamount, //paise always
-        billDate,
-        billPeriod,
-        billNumber,
-        placeholderValue,
-        paramValue,
-        inputParams,
+        requestId: requestId,
+        billerId: billerId,
+        customerName: customerName,
+        customerMobile: customerMobile,
+        dueDate: dueDate,
+        billamount: billamount, //paise always
+        catname: catname,
+        billDate: billDate,
+        billPeriod: billPeriod,
+        billNumber: billNumber,
+        placeholderValue: placeholderValue,
+        paramValue: paramValue,
+        inputParams: inputParams,
       },
       {
         headers: {
@@ -56,11 +57,29 @@ exports.payBbpsBill = async ({
 
     const responseTime = Date.now() - startTime;
 
-    let providerStatus =
-      response?.data?.status === "SUCCESS" ? "SUCCESS" : "FAILED";
+    let providerStatus;
+
+    if (["SUCCESS", "SUCCESSFUL"].includes(response?.data?.status)) {
+      providerStatus = "SUCCESS";
+    } else if (response?.data?.status === "PENDING") {
+      providerStatus = "PENDING";
+    } else {
+      providerStatus = "FAILED";
+    }
+
+    if (providerStatus === "FAILED") {
+      throw {
+        providerStatus: providerStatus,
+        message:
+          response?.data?.message ||
+          response?.data?.data?.errorInfo?.error?.[0]?.errorMessage,
+        txn_ref: response?.data?.txnid,
+        data: response?.data,
+      };
+    }
 
     await ProviderLogs.create({
-      providerTxnId: response?.data?.billerstatus?.txnRefId || undefined,
+      providerTxnId: response?.data?.txnid || undefined,
       serviceCategory: "BBPS",
       referenceId: client_referenceId,
       providerName: "CSPL",
@@ -89,10 +108,13 @@ exports.payBbpsBill = async ({
 
     return response?.data;
   } catch (error) {
-    console.log("API Error Response:", error.response?.data || error.message);
+    console.log(
+      "API Error Response:",
+      error?.data || error?.response?.data || error?.message,
+    );
 
     await ProviderLogs.create({
-      providerTxnId: error.response?.data?.txn_ref || undefined,
+      providerTxnId: error?.response?.data?.txn_ref || undefined,
       serviceCategory: "BBPS",
       referenceId: client_referenceId,
       providerName: "CSPL",
@@ -112,7 +134,8 @@ exports.payBbpsBill = async ({
         paramValue,
         client_referenceId: client_referenceId,
       },
-      response: error.response?.data || { message: error.message },
+      response: error?.data ||
+        error?.response?.data || { message: error?.message },
       providerStatus: "FAILED",
       responseTime: Date.now() - startTime,
     });

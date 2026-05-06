@@ -874,10 +874,110 @@ const getCompleteBillPaymentReport = async (req, res, next) => {
   }
 };
 
+const getBbpsReportById = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+
+    if (!id) {
+      return res.status(400).json({
+        success: false,
+        message: "Report Id required",
+      });
+    }
+
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid Report Id",
+      });
+    }
+
+    const [report] = await BbpsReport.aggregate([
+      {
+        $match: {
+          _id: new mongoose.Types.ObjectId(id),
+        },
+      },
+      {
+        $lookup: {
+          from: "users",
+          localField: "userId",
+          foreignField: "_id",
+          as: "user",
+        },
+      },
+      {
+        $unwind: {
+          path: "$user",
+          preserveNullAndEmptyArrays: true,
+        },
+      },
+      {
+        $lookup: {
+          from: "providerlogs",
+          localField: "referenceId",
+          foreignField: "referenceId",
+          as: "provider",
+        },
+      },
+      {
+        $unwind: {
+          path: "$provider",
+          preserveNullAndEmptyArrays: true,
+        },
+      },
+      {
+        $addFields: {
+          fullName: { $concat: ["$user.firstName", " ", "$user.lastName"] },
+          userName: "$user.userName",
+          email: "$user.email",
+          serviceName: "BBPS",
+          providerTxnId: "$provider.providerTxnId",
+          // requestBody: "$provider.request",
+          // responseBody: "$provider.response",
+        },
+      },
+      {
+        $project: {
+          user: 0,
+          provider: 0,
+          updatedAt: 0,
+        },
+      },
+    ]);
+
+    if (!report) {
+      return res.status(404).json({
+        success: false,
+        message: "Bbps Report not found",
+      });
+    }
+
+    const formattedData = report
+      ? {
+          ...report,
+          amount: paiseToRupee(report?.amount),
+          commission: paiseToRupee(report?.commission),
+          tds: paiseToRupee(report?.tds),
+          netCommission: paiseToRupee(report?.netCommission),
+        }
+      : null;
+
+    return res.status(200).json({
+      success: true,
+      message: "Bbps report fetched successfully",
+      data: formattedData,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports = {
   getMyLastBillPaymentHistory,
   getBillPaymentStats,
   getCompleteBillPaymentReport,
+  getBbpsReportById,
 };
 
 // const getBbpsStats = async (req, res, next) => {

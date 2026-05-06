@@ -29,7 +29,7 @@ exports.initiateTransfer = async ({
   console.log(amountInRupee, "amountInRupee");
 
   try {
-    const response = await appClient.post(
+    const response = await csplClient.post(
       "fi/dmt/transfer",
       {
         transactionId: client_referenceId,
