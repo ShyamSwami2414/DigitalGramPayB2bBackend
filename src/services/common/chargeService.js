@@ -87,7 +87,7 @@ const processCharges = async ({
     if (paiseToRupee(charges) > 0) {
       const wallet = await UserWallet.findOneAndUpdate(
         {
-          userId,
+          userId: userId,
           isActive: true,
           isDeleted: false,
           $expr: {
@@ -101,7 +101,9 @@ const processCharges = async ({
       );
 
       if (!wallet) {
-        throw new Error(`Wallet not found for user ${userId}`);
+        throw new Error(
+          `Insufficient Wallet Balance or Wallet not found for user ${userId}`,
+        );
       }
 
       closingBalance = wallet[balance];

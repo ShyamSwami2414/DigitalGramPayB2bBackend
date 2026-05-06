@@ -12,6 +12,7 @@ const processRefund = async ({
   walletType = "main",
   reportModel = null,
   description,
+  apiMessage = "",
   apiResponse = null,
   session: providedSession = null,
 }) => {
@@ -75,7 +76,9 @@ const processRefund = async ({
     if (reportModel) {
       await reportModel.updateOne(
         { referenceId },
-        { $set: { status: "FAILED", isRefunded: true } },
+        {
+          $set: { status: "FAILED", isRefunded: true, description: apiMessage },
+        },
         { session: session },
       );
 

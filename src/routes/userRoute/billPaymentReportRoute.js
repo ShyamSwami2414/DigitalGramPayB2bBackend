@@ -5,6 +5,7 @@ const {
   getMyLastBillPaymentHistory,
   getBillPaymentStats,
   getCompleteBillPaymentReport,
+  getBbpsReportById,
 } = require("../../controllers/userController/billPaymentReportController");
 
 const router = express.Router();
@@ -30,6 +31,13 @@ router.get(
   authenticateUser,
   checkUserPaymentAndKYC,
   getCompleteBillPaymentReport,
+);
+
+router.get(
+  "/report/:id",
+  authenticateUser,
+  checkUserPaymentAndKYC,
+  getBbpsReportById,
 );
 
 module.exports = router;

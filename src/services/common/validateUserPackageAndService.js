@@ -77,8 +77,8 @@ const validateUserPackageAndService = async ({
   console.log(commissionPlan, "commissionPlan");
 
   if (!commissionPlan) {
-    return { packageId: user.packageId, serviceId: service._id };
-    // throw new Error(`Commission Plan not configured for this slab`);
+    // return { packageId: user.packageId, serviceId: service._id };
+    throw new Error(`Commission Plan not configured for this slab`);
   }
 
   const validPlan = commissionPlan.plan.find(
@@ -86,6 +86,7 @@ const validateUserPackageAndService = async ({
   );
 
   if (!validPlan) {
+    // return { packageId: user.packageId, serviceId: service._id };
     throw new Error(`No valid slab found for this amount`);
   }
 

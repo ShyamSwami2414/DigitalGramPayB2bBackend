@@ -10,28 +10,66 @@ const bbpsReportSchema = new mongoose.Schema(
       index: true,
     },
 
+    refId: {
+      type: String,
+      required: true,
+      index: true,
+      unique: true,
+    },
+
     amount: {
       type: Number,
       required: true,
-      set: round2,
+    },
+
+    customerName: {
+      type: String,
+      default: "",
+    },
+
+    customerMobile: {
+      type: String,
+      default: "",
+    },
+
+    category: {
+      type: String,
+      default: "",
+    },
+
+    billerId: {
+      type: String,
+      default: "",
+    },
+
+    billNumber: {
+      type: String,
+      default: "",
+    },
+
+    billDate: {
+      type: String,
+      default: "",
+    },
+
+    billPeriod: {
+      type: String,
+      default: "",
     },
 
     commission: {
       type: Number,
       default: 0,
-      set: round2,
     },
 
     tds: {
       type: Number,
       default: 0,
-      set: round2,
     },
 
     netCommission: {
       type: Number,
       default: 0,
-      set: round2,
     },
 
     //internal reference id
@@ -45,7 +83,6 @@ const bbpsReportSchema = new mongoose.Schema(
     //external reference id
     providerTxnId: {
       type: String,
-      unique: true,
       index: true,
       sparse: true,
     },
@@ -61,6 +98,11 @@ const bbpsReportSchema = new mongoose.Schema(
     isRefunded: {
       type: Boolean,
       default: false,
+    },
+
+    description: {
+      type: String,
+      default: "",
     },
   },
   {

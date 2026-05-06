@@ -8,7 +8,7 @@ const {
   generateUniqueRefernceId,
 } = require("../utils/generateUniqueReferenceId");
 
-const { debitWallet } = require("./common/walletService");
+const { debitWallet, creditWallet } = require("./common/walletService");
 const { processRefund } = require("./common/refundService");
 
 const { encryptAadhaar } = require("../helpers/encryptDecryptAadhar");
@@ -26,6 +26,14 @@ const {
   aepsTransaction,
 } = require("../client/cspl/apis/aeps/eko/aepsTransaction");
 const { dailyEkoLogin } = require("../client/cspl/apis/aeps/eko/dailyLogin");
+const {
+  validateUserPackageAndService,
+} = require("./common/validateUserPackageAndService");
+const { calculateTds } = require("../helpers/calculateTds");
+const userWallet = require("../models/userWallet");
+const walletLedgerModel = require("../models/walletLedgerModel");
+const tdsLedgerModel = require("../models/tdsLedgerModel");
+const { processCommission } = require("./common/commissionService");
 
 exports.onboardEkoAepsUser = async ({
   userId,
@@ -668,6 +676,13 @@ exports.initiateAepsTransaction = async ({
 
     const referenceId = generateUniqueRefernceId();
 
+    const { packageId, serviceId } = await validateUserPackageAndService({
+      userId: userId,
+      serviceName: "aeps",
+      pipeline: "aeps2",
+      amount: amount, //paise
+    });
+
     const onboardMerchant = await EkoOnboardAepsUser.findOne({
       userId: userId,
     })
@@ -707,7 +722,7 @@ exports.initiateAepsTransaction = async ({
     try {
       result = await aepsTransaction({
         client_referenceId: referenceId, //auto genertae
-        userId,
+        userId: userId,
         requestId, //client send idempotency
         serviceType: serviceType,
         initiatorId: onboardMerchant?.initiatorId,
@@ -751,8 +766,93 @@ exports.initiateAepsTransaction = async ({
       result?.data?.response_status_id === 0 &&
       result?.data?.status === 0
     ) {
+      console.log("Entered Success Block");
+      const successSession = await mongoose.startSession();
       const data = result?.data?.data;
+
+      let openingBalance = 0;
+      let closingBalance = 0;
+
       try {
+        successSession.startTransaction();
+
+        if (serviceTypeName === "STATEMENT") {
+          const miniStatementCommission = 100; //in paise
+          const tdsAmount = calculateTds(miniStatementCommission); //paise
+          const netCommission = miniStatementCommission - tdsAmount; //payable to user
+
+          const wallet = await userWallet.findOneAndUpdate(
+            { userId: userId, isActive: true, isDeleted: false },
+            { $inc: { aepsWallet: netCommission } },
+            { new: true, session: successSession },
+          );
+
+          closingBalance = wallet.aepsWallet;
+          openingBalance = closingBalance - netCommission;
+
+          await walletLedgerModel.create(
+            [
+              {
+                userId: userId,
+                serviceType: "AEPS",
+                serviceCategory: "MINI_STATEMENT",
+                entryType: "COMMISSION",
+                wallet: "aeps",
+                type: "credit",
+                amount: netCommission,
+                referenceId: referenceId,
+                openingBalance: openingBalance,
+                closingBalance: closingBalance,
+                description: "Aeps Mini Statement Commission",
+              },
+            ],
+            { session: successSession },
+          );
+
+          await tdsLedgerModel.create(
+            [
+              {
+                userId: userId,
+                referenceId: referenceId,
+                commissionAmount: miniStatementCommission,
+                tdsRate: 2, //percent
+                netCommission: netCommission,
+                tdsAmount: tdsAmount,
+              },
+            ],
+            { session: successSession },
+          );
+        } else if (serviceTypeName === "WITHDRAW") {
+          const { openingBalance, closingBalance } = await creditWallet({
+            userId: userId,
+            amount: amount, // paise
+            walletType: "aeps",
+            serviceType: "AEPS",
+            serviceCategory: "CASH_WITHDRAW",
+            referenceId: referenceId,
+            description: "Aeps Cash Withdrawal",
+            session: successSession,
+          });
+
+          const { commission, tdsAmount, netCommission } =
+            await processCommission({
+              userId: userId,
+              amount: amount, //paise
+              packageId: packageId,
+              serviceId: serviceId,
+              serviceType: "AEPS",
+              walletType: "aeps",
+              serviceCategory: "CASH_WITHDRAW",
+              pipeline: "aeps2",
+              referenceId: referenceId,
+              providerTxnId: result?.txn_ref,
+              description: "Aeps Withdraw Commission",
+              apiMessage: result?.message,
+              apiResponse: result,
+              session: successSession,
+            });
+        }
+
         await EkoAepsReport.findOneAndUpdate(
           { referenceId: referenceId },
           {
