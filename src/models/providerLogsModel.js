@@ -4,7 +4,6 @@ const providerLogsSchema = new mongoose.Schema(
   {
     providerTxnId: {
       type: String,
-      unique: true,
       index: true,
       sparse: true,
     },

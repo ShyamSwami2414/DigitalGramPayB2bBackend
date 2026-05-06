@@ -130,7 +130,7 @@ exports.applyChargeHierarchy = async ({
               userId: uplineUser._id,
               referenceId: referenceId,
               commissionAmount: margin,
-              tdsRate: 5,
+              tdsRate: 2,
               netCommission: netAmount,
               tdsAmount: tdsAmount,
             },

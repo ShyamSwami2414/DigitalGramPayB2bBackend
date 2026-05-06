@@ -81,7 +81,7 @@ const debitWallet = async ({
 
   const wallet = await UserWallet.findOneAndUpdate(
     {
-      userId,
+      userId: userId,
       isActive: true,
       isDeleted: false,
       $expr: {

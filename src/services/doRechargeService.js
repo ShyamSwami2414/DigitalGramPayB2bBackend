@@ -123,13 +123,13 @@ exports.doRechargeService = async ({
 
         await WalletLedger.updateOne(
           { referenceId: referenceId, serviceType: "RECHARGE" },
-          { status: "PENDING" },
+          { $set: { status: "PENDING" } },
           { session: pendingSession },
         );
 
         await RechargeReport.updateOne(
           { referenceId: referenceId },
-          { status: "PENDING" },
+          { $set: { status: "PENDING", description: result?.message } },
           { session: pendingSession },
         );
 
@@ -176,6 +176,7 @@ exports.doRechargeService = async ({
             providerTxnId: result?.txn_ref,
             reportModel: RechargeReport,
             description: "Recharge Commission",
+            apiMessage: result?.message,
             apiResponse: result,
           });
 
@@ -196,6 +197,7 @@ exports.doRechargeService = async ({
           walletType: "main",
           reportModel: RechargeReport,
           description: "Recharge Failed Refund",
+          apiMessage: result?.message,
           apiResponse: result,
         });
 

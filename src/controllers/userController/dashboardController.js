@@ -5,6 +5,7 @@ const { rupeeToPaise, paiseToRupee } = require("../../utils/money");
 const {
   generateUniqueRefernceId,
 } = require("../../utils/generateUniqueReferenceId");
+const Payout = require("../../models/sozopayoutTransactionModel");
 
 exports.getTopupStats = async (req, res, next) => {
   try {
@@ -223,6 +224,93 @@ exports.getTopupStats = async (req, res, next) => {
       success: true,
       message: "Topup Request Stats",
       data: formattedData,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+exports.getPayoutMonthlyStats = async (req, res, next) => {
+  try {
+    let { year, serviceType } = req.query;
+    serviceType = serviceType?.trim().toLowerCase();
+    console.log();
+
+    const userId = new mongoose.Types.ObjectId(req.user.id);
+    const selectedYear = year ? parseInt(year) : new Date().getFullYear();
+
+    const allowedServiceTypes = ["aeps", "xpress"];
+
+    if (serviceType && !allowedServiceTypes.includes(serviceType)) {
+      const err = new Error("Invalid serviceType");
+      err.statusCode = 400;
+      throw err;
+    }
+
+    const startDate = new Date(`${selectedYear}-01-01T00:00:00.000Z`);
+    const endDate = new Date(`${selectedYear}-12-31T23:59:59.999Z`);
+
+    const match = {
+      userId,
+      createdAt: { $gte: startDate, $lte: endDate },
+    };
+
+    if (serviceType === "aeps") {
+       match.serviceType = "AEPS_PAYOUT";
+     
+    }else if(serviceType === "xpress"){
+       match.serviceType = "XPRESS_PAYOUT";
+    }
+
+    const data = await Payout.aggregate([
+      { $match: match },
+
+      {
+        $group: {
+          _id: { month: { $month: "$createdAt" } },
+          totalAmount: { $sum: "$amount" },
+        },
+      },
+
+      {
+        $project: {
+          _id: 0,
+          month: "$_id.month",
+          totalAmount: 1,
+        },
+      },
+
+      { $sort: { month: 1 } },
+    ]);
+
+    const monthNames = [
+      "January",
+      "February",
+      "March",
+      "April",
+      "May",
+      "June",
+      "July",
+      "August",
+      "September",
+      "October",
+      "November",
+      "December",
+    ];
+
+    const formatted = monthNames.map((name, index) => {
+      const found = data.find((d) => d.month === index + 1);
+
+      return {
+        month: name,
+        amount: paiseToRupee(found?.totalAmount) || 0,
+      };
+    });
+
+    return res.status(200).json({
+      success: true,
+      message: "Monthly payout stats fetched",
+      data: formatted,
     });
   } catch (error) {
     next(error);

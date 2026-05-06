@@ -137,7 +137,7 @@ exports.fetchBbpsBill = async (req, res, next) => {
 exports.validateBbpsBill = async (req, res, next) => {
   try {
     const userId = req.user.id;
-    let { billerId, paramName, paramValue } = req.body;
+    let { billerId, inputParams, paramName, paramValue } = req.body;
     billerId = billerId?.trim();
     paramName = paramName?.trim();
     paramValue = paramValue?.trim();
@@ -191,9 +191,11 @@ exports.payBbpsBill = async (req, res, next) => {
       placeholderValue,
       paramValue,
       inputParams,
+      data,
     } = req.body;
 
     console.log(req.body, "req.body");
+    console.log(data, "data");
 
     refid = refid?.trim();
     billerId = billerId?.trim();
@@ -340,8 +342,8 @@ exports.payBbpsBill = async (req, res, next) => {
         response?.data?.errorInfo?.error?.[0];
       return res.status(500).json({
         success: false,
-        message: data?.errorMessage || "Bill Payment Failed",
-        // data: response?.data || null,
+        message: response?.message || "Bill Payment Failed",
+        data: response?.data || null,
       });
     }
 
@@ -354,7 +356,17 @@ exports.payBbpsBill = async (req, res, next) => {
     return res.status(200).json({
       success: true,
       message: "Bill Paid Successfully",
-      data: response,
+      data: {
+        status: response?.status,
+        txnid: response?.txnid,
+        RespAmount: response?.data?.RespAmount,
+        responseReason: response?.data?.responseReason,
+        RespBillDate: response?.data?.RespBillDate,
+        RespBillNumber: response?.data?.RespBillNumber,
+        RespBillPeriod: response?.data?.RespBillPeriod,
+        RespCustomerName: response?.data?.RespCustomerName,
+        RespDueDate: response?.data?.RespDueDate,
+      },
     });
   } catch (error) {
     next(error);

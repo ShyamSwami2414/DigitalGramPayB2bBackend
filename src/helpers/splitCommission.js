@@ -10,6 +10,7 @@ exports.splitCommission = async ({
   userId, // transaction user
   amount, // paise
   serviceId,
+  walletType = "main",
   serviceType = null,
   serviceCategory = null,
   operatorId = null,
@@ -18,6 +19,12 @@ exports.splitCommission = async ({
   referenceId,
   session,
 }) => {
+  if (!["main", "aeps"].includes(walletType)) {
+    throw new Error("Invalid wallet type");
+  }
+
+  const walletField = walletType === "main" ? "mainWallet" : "aepsWallet";
+
   try {
     console.log("Entered Split Commission ");
     let currentUser = await User.findOne({
@@ -84,7 +91,7 @@ exports.splitCommission = async ({
             isActive: true,
             isDeleted: false,
           },
-          { $inc: { mainWallet: netAmount } },
+          { $inc: { [walletField]: netAmount } },
           { new: true, session: session },
         );
 
@@ -92,7 +99,7 @@ exports.splitCommission = async ({
           throw new Error(`Wallet not found for user ${uplineUser._id}`);
         }
 
-        const closingBalance = wallet.mainWallet;
+        const closingBalance = wallet[walletField];
         const openingBalance = closingBalance - netAmount;
 
         //  Wallet Ledger
@@ -103,7 +110,7 @@ exports.splitCommission = async ({
               serviceType: serviceType,
               serviceCategory: serviceCategory,
               entryType: "COMMISSION",
-              wallet: "main",
+              wallet: [walletField],
               type: "credit",
               amount: netAmount,
               referenceId: referenceId,
@@ -122,12 +129,12 @@ exports.splitCommission = async ({
               userId: uplineUser._id,
               referenceId: referenceId,
               commissionAmount: margin,
-              tdsRate: 5,
+              tdsRate: 2,
               netCommission: netAmount,
               tdsAmount: tdsAmount,
             },
           ],
-          { session },
+          { session: session },
         );
 
         //  Move upward

@@ -21,7 +21,12 @@ router.get(
   getMyLastPayoutHistory,
 );
 
-router.get("/payout-stats", authenticateUser, checkUserPaymentAndKYC, getPayoutStats);
+router.get(
+  "/payout-stats",
+  authenticateUser,
+  checkUserPaymentAndKYC,
+  getPayoutStats,
+);
 
 //get all aeps transaction of me and my downline
 router.get(

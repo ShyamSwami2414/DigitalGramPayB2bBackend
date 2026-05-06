@@ -14,6 +14,7 @@ const processCommission = async ({
   packageId,
   serviceId,
   serviceType,
+  walletType = "main",
   serviceCategory,
   operatorId = null,
   categoryId = null,
@@ -22,12 +23,28 @@ const processCommission = async ({
   providerTxnId = null,
   reportModel, //dynamic (RechargeReport, BBPSReport, etc.)
   description,
+  apiMessage = "",
   apiResponse = null,
+  session: providedSession = null,
 }) => {
-  const session = await mongoose.startSession();
-  session.startTransaction();
+  if (!["main", "aeps"].includes(walletType)) {
+    throw new Error("Invalid wallet type");
+  }
+
+  const walletField = walletType === "main" ? "mainWallet" : "aepsWallet";
+
+  let session = providedSession;
+  let isInternalSession = false;
+
+  if (!session) {
+    session = await mongoose.startSession();
+    session.startTransaction();
+    isInternalSession = true;
+  }
+
   let openingBalance = 0;
   let closingBalance = 0;
+
   try {
     const commission = await calculateCommission({
       amount, //paise
@@ -45,11 +62,11 @@ const processCommission = async ({
     if (paiseToRupee(commission) > 0) {
       const wallet = await UserWallet.findOneAndUpdate(
         { userId, isActive: true, isDeleted: false },
-        { $inc: { mainWallet: netCommission } },
+        { $inc: { [walletField]: netCommission } },
         { new: true, session },
       );
 
-      closingBalance = wallet.mainWallet;
+      closingBalance = wallet[walletField];
       openingBalance = closingBalance - netCommission;
 
       await WalletLedger.updateOne(
@@ -65,29 +82,32 @@ const processCommission = async ({
             serviceType: serviceType,
             serviceCategory: serviceCategory,
             entryType: "COMMISSION",
-            wallet: "main",
+            wallet: walletType,
             type: "credit",
             amount: netCommission,
-            referenceId,
-            openingBalance,
-            closingBalance,
-            description,
+            referenceId: referenceId,
+            openingBalance: openingBalance,
+            closingBalance: closingBalance,
+            description: description,
           },
         ],
         { session: session },
       );
 
-      await reportModel.updateOne(
-        { referenceId },
-        {
-          status: "SUCCESS",
-          commission,
-          tds: tdsAmount,
-          netCommission,
-          providerTxnId: referenceId,
-        },
-        { session },
-      );
+      if (reportModel) {
+        await reportModel.updateOne(
+          { referenceId },
+          {
+            status: "SUCCESS",
+            commission,
+            tds: tdsAmount,
+            netCommission,
+            providerTxnId: referenceId,
+            description: apiMessage,
+          },
+          { session: session },
+        );
+      }
 
       await TdsLedger.create(
         [
@@ -95,7 +115,7 @@ const processCommission = async ({
             userId: userId,
             referenceId: referenceId,
             commissionAmount: commission,
-            tdsRate: 5, //percent
+            tdsRate: 2, //percent
             netCommission: netCommission,
             tdsAmount: tdsAmount,
           },
@@ -116,7 +136,7 @@ const processCommission = async ({
           "meta.response": apiResponse,
         },
       },
-      { session },
+      { session: session },
     );
 
     await splitCommission({
@@ -124,23 +144,29 @@ const processCommission = async ({
       amount: amount, //paise
       serviceId: serviceId,
       serviceType: serviceType,
+      walletType: "main",
       serviceCategory: serviceCategory,
       operatorId: operatorId,
+      categoryId: categoryId,
       pipeline: pipeline,
       referenceId: referenceId,
       session: session,
     });
 
-    await session.commitTransaction();
+    if (isInternalSession) {
+      await session.commitTransaction();
+    }
 
     return { commission, tdsAmount, netCommission };
   } catch (error) {
-    if (session.inTransaction()) {
+    if (isInternalSession && session.inTransaction()) {
       await session.abortTransaction();
     }
     throw error;
   } finally {
-    session.endSession();
+    if (isInternalSession) {
+      session.endSession();
+    }
   }
 };
 
