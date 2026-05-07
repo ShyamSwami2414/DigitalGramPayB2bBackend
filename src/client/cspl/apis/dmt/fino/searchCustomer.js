@@ -71,7 +71,7 @@ exports.searchCustomer = async ({
       type: "SEARCH-CUSTOMER",
       referenceId: client_referenceId,
       providerName: "NOBLE_FINO",
-      endPoint: "dmt/search-customer",
+      endPoint: "fi/dmt/search-customer",
       method: "POST",
       request: {
         merchantMobileNo: merchantMobileNumber,
@@ -97,7 +97,7 @@ exports.searchCustomer = async ({
       type: "SEARCH-CUSTOMER",
       referenceId: client_referenceId,
       providerName: "NOBLE_FINO",
-      endPoint: "dmt/search-customer",
+      endPoint: "fi/dmt/search-customer",
       method: "POST",
       request: {
         merchantMobileNo: merchantMobileNumber,

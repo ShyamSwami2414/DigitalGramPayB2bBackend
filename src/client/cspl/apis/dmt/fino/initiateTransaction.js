@@ -88,7 +88,7 @@ exports.initiateTransfer = async ({
       type: "FUND-TRANSFER",
       referenceId: client_referenceId,
       providerName: "NOBLE_FINO",
-      endPoint: "dmt/transfer",
+      endPoint: "fi/dmt/transfer",
       method: "POST",
       request: {
         transactionId: client_referenceId,
@@ -124,7 +124,7 @@ exports.initiateTransfer = async ({
       type: "FUND-TRANSFER",
       referenceId: client_referenceId,
       providerName: "NOBLE_FINO",
-      endPoint: "dmt/transfer",
+      endPoint: "fi/dmt/transfer",
       method: "POST",
       request: {
         transactionId: client_referenceId,

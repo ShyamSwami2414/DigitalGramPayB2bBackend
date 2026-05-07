@@ -8,6 +8,7 @@ const {
   fetchPlan,
   doMobilePrepaidRecharge,
 } = require("../../controllers/userController/rechargeController");
+const validatePipeline = require("../../middleware/pipelineCheckMiddleware");
 const idempotencyMiddleware = require("../../middleware/idempotencyMiddleware");
 const apiLogger = require("../../middleware/apiLogger");
 const router = express.Router();
@@ -25,6 +26,7 @@ router.get(
   getAllCircleCodeList,
 );
 
+router.use(validatePipeline("recharge1"));
 router.get(
   "/mobile-verify/:mobile",
   authenticateUser,

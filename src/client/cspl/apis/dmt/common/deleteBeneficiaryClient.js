@@ -58,7 +58,7 @@ exports.deleteNobleDmtBeneficiary = async ({
       type: "BEN-DELETE",
       referenceId: client_referenceId,
       providerName: "NOBLE",
-      endPoint: "bene/delete",
+      endPoint: "ar/bene/delete",
       method: "POST",
       request: {
         remitterMobile: remitterMobile,
@@ -81,7 +81,7 @@ exports.deleteNobleDmtBeneficiary = async ({
       type: "BEN-DELETE",
       referenceId: client_referenceId,
       providerName: "NOBLE",
-      endPoint: "bene/delete",
+      endPoint: "ar/bene/delete",
       method: "POST",
       request: {
         remitterMobile: remitterMobile,

@@ -50,36 +50,37 @@ exports.initiateXpressPayoutTransfer = async ({
     });
 
     //for main amount
-    const { openingBalance, closingBalance } = await debitWallet({
-      userId: userId,
-      amount: amount, //paise
-      serviceType: "XPRESS_PAYOUT",
-      referenceId: referenceId,
-      description: `Xpress Payout for ${purpose}`,
-      session: session,
-    });
+    // const { openingBalance, closingBalance } = await debitWallet({
+    //   userId: userId,
+    //   amount: amount, //paise
+    //   serviceType: "XPRESS_PAYOUT",
+    //   referenceId: referenceId,
+    //   description: `Xpress Payout for ${purpose}`,
+    //   session: session,
+    // });
 
-    const { charges, gstAmount, totalCharges } = await processCharges({
-      userId: userId,
-      amount: amount, //paise
-      packageId: packageId,
-      serviceId: serviceId,
-      serviceType: "XPRESS_PAYOUT",
-      walletType: "main",
+    const { charges, gstAmount, totalCharges, totalDebitAmount } =
+      await processCharges({
+        userId: userId,
+        amount: amount, //paise
+        packageId: packageId,
+        serviceId: serviceId,
+        serviceType: "XPRESS_PAYOUT",
+        walletType: "main",
 
-      pipeline: "xpress-payout1",
-      referenceId: referenceId,
-      reportModel: PayoutTransaction,
-      description: "Xpress Payout Charges",
+        pipeline: "xpress-payout1",
+        referenceId: referenceId,
+        reportModel: PayoutTransaction,
+        description: "Xpress Payout Charges",
 
-      requestId: requestId,
-      bankAccountNumber: bankAccountNumber,
-      ifsc: ifsc,
-      name: name,
-      phone: phone,
+        requestId: requestId,
+        bankAccountNumber: bankAccountNumber,
+        ifsc: ifsc,
+        name: name,
+        phone: phone,
 
-      session: session,
-    });
+        session: session,
+      });
 
     await Transaction.create(
       [
@@ -133,6 +134,7 @@ exports.initiateXpressPayoutTransfer = async ({
         latitude,
         longitude,
         remarks: purpose,
+        apiEndPoint: "imps-payout",
       });
     } catch (error) {
       result = {
@@ -146,14 +148,11 @@ exports.initiateXpressPayoutTransfer = async ({
       };
     }
 
-    console.log("aeps payout service", JSON.stringify(result, null, 2));
+    console.log("xpress payout service", JSON.stringify(result, null, 2));
 
     console.log("Success", result?.success || result?.status);
 
-    if (
-      result?.data?.status === "SUCCESS" ||
-      result?.data?.status === "PENDING"
-    ) {
+    if (result?.status === "SUCCESS" || result?.status === "PENDING") {
       console.log("Entered Success/Pending Block");
 
       const successSesion = await mongoose.startSession();
@@ -162,13 +161,13 @@ exports.initiateXpressPayoutTransfer = async ({
         successSesion.startTransaction();
         await WalletLedger.updateOne(
           { referenceId: referenceId, serviceType: "XPRESS_PAYOUT" },
-          { $set: { status: result?.data?.status } },
+          { $set: { status: result?.status } },
           { session: successSesion },
         );
 
         await PayoutTransaction.updateOne(
           { referenceId: referenceId, serviceType: "XPRESS_PAYOUT" },
-          { $set: { status: result?.data?.status } },
+          { $set: { status: result?.status } },
           { session: successSesion },
         );
 
@@ -178,8 +177,8 @@ exports.initiateXpressPayoutTransfer = async ({
           },
           {
             $set: {
-              status: result?.data?.status,
-              providerTxnId: result?.txn_ref,
+              status: result?.status,
+              providerTxnId: result?.txnid,
               remark: result ? result?.message : "",
               "meta.response": result,
             },
@@ -229,7 +228,7 @@ exports.initiateXpressPayoutTransfer = async ({
 
         await PayoutTransaction.findOneAndUpdate(
           { referenceId },
-          { $set: { status: "REVERSED" } },
+          { $set: { status: "FAILED", isRefunded: true } },
           { session: refundSession },
         );
 

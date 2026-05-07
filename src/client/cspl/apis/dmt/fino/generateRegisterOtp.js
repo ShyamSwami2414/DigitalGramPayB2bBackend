@@ -65,7 +65,7 @@ exports.generateRegisterOtp = async ({
       type: "REGISTER-OTP",
       referenceId: client_referenceId,
       providerName: "NOBLE_FINO",
-      endPoint: "dmt/generate-otp-registration",
+      endPoint: "fi/dmt/generate-otp-registration",
       method: "POST",
       request: {
         merchantMobileNo: merchantMobileNumber,
@@ -91,7 +91,7 @@ exports.generateRegisterOtp = async ({
       type: "REGISTER-OTP",
       referenceId: client_referenceId,
       providerName: "NOBLE_FINO",
-      endPoint: "dmt/generate-otp-registration",
+      endPoint: "fi/dmt/generate-otp-registration",
       method: "POST",
       request: {
         merchantMobileNo: merchantMobileNumber,

@@ -73,7 +73,7 @@ exports.registerCustomer = async ({
       type: "REGISTER-CUSTOMER",
       referenceId: client_referenceId,
       providerName: "NOBLE_FINO",
-      endPoint: "dmt/customer-registration",
+      endPoint: "fi/dmt/customer-registration",
       method: "POST",
       request: {
         transactionId: client_referenceId,
@@ -103,7 +103,7 @@ exports.registerCustomer = async ({
       type: "REGISTER-CUSTOMER",
       referenceId: client_referenceId,
       providerName: "NOBLE_FINO",
-      endPoint: "dmt/customer-registration",
+      endPoint: "fi/dmt/customer-registration",
       method: "POST",
       request: {
         transactionId: client_referenceId,

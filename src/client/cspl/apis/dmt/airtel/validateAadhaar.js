@@ -62,7 +62,7 @@ exports.validateAadhaar = async ({
       userId: userId,
       referenceId: client_referenceId,
       providerName: "NOBLE_AIRTEL",
-      endPoint: "validate-aadhar",
+      endPoint: "ar/validate-aadhar",
       method: "POST",
       request: {
         mobileNumber: mobile,
@@ -87,7 +87,7 @@ exports.validateAadhaar = async ({
       userId: userId,
       referenceId: client_referenceId,
       providerName: "NOBLE_AIRTEL",
-      endPoint: "validate-aadhar",
+      endPoint: "ar/validate-aadhar",
       method: "POST",
       request: {
         mobileNumber: mobile,

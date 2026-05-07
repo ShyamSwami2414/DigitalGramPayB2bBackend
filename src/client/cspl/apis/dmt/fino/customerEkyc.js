@@ -68,7 +68,7 @@ exports.customerEkyc = async ({
       type: "CUSTOMER-EKYC",
       referenceId: client_referenceId,
       providerName: "NOBLE_FINO",
-      endPoint: "dmt/customer-ekyc",
+      endPoint: "fi/dmt/customer-ekyc",
       method: "POST",
       request: {
         merchantMobileNo: merchantMobileNumber,
@@ -96,7 +96,7 @@ exports.customerEkyc = async ({
       type: "CUSTOMER-EKYC",
       referenceId: client_referenceId,
       providerName: "NOBLE_FINO",
-      endPoint: "dmt/customer-ekyc",
+      endPoint: "fi/dmt/customer-ekyc",
       method: "POST",
       request: {
         merchantMobileNo: merchantMobileNumber,

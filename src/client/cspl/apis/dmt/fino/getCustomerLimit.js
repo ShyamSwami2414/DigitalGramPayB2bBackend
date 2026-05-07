@@ -55,7 +55,7 @@ exports.getCustomerLimit = async ({
       type: "CUSTOMER-LIMIT",
       referenceId: client_referenceId,
       providerName: "NOBLE_FINO",
-      endPoint: "dmt/customer-limit",
+      endPoint: "fi/dmt/customer-limit",
       method: "POST",
       request: {
         customerMobileNo: mobileNumber,
@@ -77,7 +77,7 @@ exports.getCustomerLimit = async ({
       type: "CUSTOMER-LIMIT",
       referenceId: client_referenceId,
       providerName: "NOBLE_FINO",
-      endPoint: "dmt/customer-limit",
+      endPoint: "fi/dmt/customer-limit",
       method: "POST",
       request: {
         customerMobileNo: mobileNumber,

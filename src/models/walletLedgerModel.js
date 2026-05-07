@@ -31,6 +31,7 @@ const walletLedgerSchema = new mongoose.Schema(
         "CHARGES",
         "BONUS", //upline earns when doenline pwrform charge based transaction
         "REFUND",
+        "PAYOUT",
         "WALLET_REFILL",
         "AEPS_TO_MAIN",
         "FUND_REQUEST",

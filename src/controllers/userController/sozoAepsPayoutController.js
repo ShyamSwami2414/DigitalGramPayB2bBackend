@@ -74,10 +74,10 @@ exports.initiateAepsPayout = async (req, res, next) => {
       });
     }
 
-    if (amount < 10) {
+    if (amount < 1000) {
       return res.status(400).json({
         success: false,
-        message: "Minimum payout amount is 10 rupees",
+        message: "Minimum payout amount is 1000 rupees",
       });
     }
 
@@ -166,18 +166,18 @@ exports.initiateAepsPayout = async (req, res, next) => {
 
     if (
       response &&
-      response.success === true &&
-      (response?.data?.status === "PENDING" ||
-        response?.data?.status === "SUCCESS")
+      response?.data?.success === true &&
+      (response?.data?.data?.status === "PENDING" ||
+        response?.data?.data?.status === "SUCCESS")
     ) {
-      const data = response?.data?.data;
+      const data = response?.data?.data?.data;
 
       return res.status(200).json({
         success: true,
-        message: response?.data?.message,
+        message: response?.message,
         data: {
-          status: response?.data?.status,
-          transactionId: data?.client_referenceId,
+          status: response?.data?.data?.status,
+          transactionId: response?.txnid,
         },
       });
     } else {

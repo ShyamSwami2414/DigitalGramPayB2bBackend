@@ -54,7 +54,7 @@ exports.listNobleDmtBeneficiary = async ({
       type: "BEN-GET",
       referenceId: client_referenceId,
       providerName: "NOBLE",
-      endPoint: "bene/list",
+      endPoint: "ar/bene/list",
       method: "POST",
       request: {
         remitterMobile: remitterMobile,
@@ -75,7 +75,7 @@ exports.listNobleDmtBeneficiary = async ({
       type: "BEN-GET",
       referenceId: client_referenceId,
       providerName: "NOBLE",
-      endPoint: "bene/list",
+      endPoint: "ar/bene/list",
       method: "POST",
       request: {
         remitterMobile: remitterMobile,
