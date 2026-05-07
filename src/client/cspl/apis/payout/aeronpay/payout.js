@@ -23,6 +23,7 @@ exports.initiatePayout = async ({
   latitude,
   longitude,
   remarks,
+  apiEndPoint,
 }) => {
   const timestamp = new Date().toISOString();
   const startTime = Date.now();
@@ -33,7 +34,7 @@ exports.initiatePayout = async ({
 
   try {
     const response = await csplClient.post(
-      "aer/payout/imps-payout",
+      `aer/payout/${apiEndPoint}`,
       {
         amount: amountInRupee, //rupee
         reference: client_referenceId,
@@ -65,7 +66,7 @@ exports.initiatePayout = async ({
 
     const responseTime = Date.now() - startTime;
 
-    let apiStatus = response?.data?.data?.status;
+    let apiStatus = response?.data?.status;
 
     let providerStatus =
       apiStatus === "SUCCESS"
@@ -84,12 +85,12 @@ exports.initiatePayout = async ({
     }
 
     await SozoPayoutLog.create({
-      providerTxnId: response?.data?.data?.transactionId || undefined,
+      providerTxnId: response?.data?.txnid || undefined,
       userId: userId,
       type: "PAYOUT",
       referenceId: client_referenceId,
       providerName: "SOZO_WALLET",
-      endPoint: "v1/payout/s/imps-payout",
+      endPoint: `aer/payout/${apiEndPoint}`,
       method: "POST",
 
       request: {
@@ -116,16 +117,20 @@ exports.initiatePayout = async ({
   } catch (error) {
     console.log(
       "API Error Response:",
-      error?.errors || error.response?.data || error?.message,
+      error?.fullResponse ||
+        error?.errors ||
+        error.response?.data ||
+        error?.message,
     );
 
     await SozoPayoutLog.create({
-      providerTxnId: error.response?.data?.transactionId || undefined,
+      providerTxnId:
+        error?.response?.txnid || error?.response?.data?.txnid || undefined,
       userId: userId,
       type: "PAYOUT",
       referenceId: client_referenceId,
       providerName: "SOZO_WALLET",
-      endPoint: "v1/payout/s/imps-payout",
+      endPoint: `aer/payout/${apiEndPoint}`,
       method: "POST",
       request: {
         amount: amountInRupee, //rupee

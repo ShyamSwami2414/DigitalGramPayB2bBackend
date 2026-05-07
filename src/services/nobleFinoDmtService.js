@@ -601,38 +601,37 @@ exports.transferFund = async ({
       amount: amount, //paise
     });
 
-    const { openingBalance, closingBalance } = await debitWallet({
-      userId: userId,
-      amount: amount, //paise
-      serviceType: "DMT",
-      referenceId: referenceId,
-      description: "DMT - Money Transfer",
-      session: session,
-    });
+    // const { openingBalance, closingBalance } = await debitWallet({
+    //   userId: userId,
+    //   amount: amount, //paise
+    //   serviceType: "DMT",
+    //   referenceId: referenceId,
+    //   description: "DMT - Money Transfer",
+    //   session: session,
+    // });
 
-    const { charges, gstAmount, totalCharges } = await processCharges({
-      userId: userId,
-      amount: amount, //paise
-      packageId: packageId,
-      serviceId: serviceId,
-      serviceType: "DMT",
-      walletType: "main",
+    const { charges, gstAmount, totalCharges, totalDebitAmount } =
+      await processCharges({
+        userId: userId,
+        amount: amount, //paise
+        packageId: packageId,
+        serviceId: serviceId,
+        serviceType: "DMT",
+        walletType: "main",
 
-      pipeline: "dmt1",
-      referenceId: referenceId,
-      reportModel: DmtReport,
-      description: "Dmt  Charges",
+        pipeline: "dmt1",
+        referenceId: referenceId,
+        reportModel: DmtReport,
+        description: "Dmt  Charges",
 
-      requestId: requestId,
-      bankAccountNumber: beneficiaryAccount,
-      ifsc: beneficiaryIfsc,
-      name: beneficiaryName,
-      phone: dmtCustomer?.mobile,
+        requestId: requestId,
+        bankAccountNumber: beneficiaryAccount,
+        ifsc: beneficiaryIfsc,
+        name: beneficiaryName,
+        phone: dmtCustomer?.mobile,
 
-      session: session,
-    });
-
-    const totalDebitAmount = amount + totalCharges;
+        session: session,
+      });
 
     await DmtReport.create(
       [
@@ -744,13 +743,13 @@ exports.transferFund = async ({
         successSesion.startTransaction();
         await WalletLedger.updateOne(
           { referenceId: referenceId, serviceType: "DMT" },
-          { $set: { status: "SUCCESS" } },
+          { $set: { status: "SUCCESS", description: result?.message } },
           { session: successSesion },
         );
 
         await DmtReport.updateOne(
           { referenceId: referenceId },
-          { $set: { status: "SUCCESS" } },
+          { $set: { status: "SUCCESS", message: result?.message } },
           { session: successSesion },
         );
 

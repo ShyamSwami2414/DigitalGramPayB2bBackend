@@ -11,9 +11,11 @@ const {
   cashWithdraw,
 } = require("../../controllers/userController/instantAepsController");
 const idempotencyMiddleware = require("../../middleware/idempotencyMiddleware");
+const validatePipeline = require("../../middleware/pipelineCheckMiddleware");
 const apiLogger = require("../../middleware/apiLogger");
 const checkAepsSession = require("../../middleware/instantAepsOutletAuth");
 const router = express.Router();
+router.use(validatePipeline("aeps1"));
 
 // get all list whether approved or not
 router.post(
@@ -50,6 +52,7 @@ router.get(
   checkAepsSession,
   (req, res) => {
     res.json({
+      success: true,
       status: "SUCCESS",
       message: "AEPS session active",
       code: "LOGIN_NOT_REQUIRED",

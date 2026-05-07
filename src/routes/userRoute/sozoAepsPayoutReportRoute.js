@@ -1,7 +1,7 @@
 const express = require("express");
 const { authenticateUser } = require("../../middleware/authMiddleware");
 const {
-  //
+  myAllTransaction,
   getMyLastPayoutHistory,
   getPayoutStats,
   getCompletePayoutReport,
@@ -11,7 +11,7 @@ const checkUserPaymentAndKYC = require("../../middleware/kycPaymentCheckMiddlewa
 
 const router = express.Router();
 
-// router.get("/list-all", authenticateUser, myAllTransaction);
+router.get("/list-all", authenticateUser, myAllTransaction);
 
 //get my last 5 payout transaction
 router.get(

@@ -1,26 +1,27 @@
 const express = require("express");
 const {
-    listAllOfflineServices,
-    getFormByServiceId,
+  listAllOfflineServices,
+  getFormByServiceId,
 } = require("../../controllers/userController/offlineServiceController");
 const { authenticateUser } = require("../../middleware/authMiddleware");
 const { authorizeRoles } = require("../../middleware/roleMiddleware");
 const checkUserPaymentAndKYC = require("../../middleware/kycPaymentCheckMiddleware");
+const validatePipeline = require("../../middleware/pipelineCheckMiddleware");
 const router = express.Router();
-
+router.use(validatePipeline("offline-service"));
 
 router.get(
-    "/all-offline-service",
-    authenticateUser,
-    checkUserPaymentAndKYC,
-    listAllOfflineServices,
+  "/all-offline-service",
+  authenticateUser,
+  checkUserPaymentAndKYC,
+  listAllOfflineServices,
 );
 
 router.get(
-    "/offline-service-form/:id",
-    authenticateUser,
-    checkUserPaymentAndKYC,
-    getFormByServiceId,
+  "/offline-service-form/:id",
+  authenticateUser,
+  checkUserPaymentAndKYC,
+  getFormByServiceId,
 );
 
 module.exports = router;

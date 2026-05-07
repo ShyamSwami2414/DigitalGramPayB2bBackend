@@ -64,7 +64,7 @@ exports.addNobleDmtBeneficiary = async ({
       type: "BEN-ADD",
       referenceId: client_referenceId,
       providerName: "NOBLE",
-      endPoint: "bene/add",
+      endPoint: "ar/bene/add",
       method: "POST",
       request: {
         remitterMobile: remitterMobile,
@@ -90,7 +90,7 @@ exports.addNobleDmtBeneficiary = async ({
       type: "BEN-ADD",
       referenceId: client_referenceId,
       providerName: "NOBLE",
-      endPoint: "bene/add",
+      endPoint: "ar/bene/add",
       method: "POST",
       request: {
         remitterMobile: remitterMobile,

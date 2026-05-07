@@ -11,8 +11,11 @@ const {
   initiateTransaction,
 } = require("../../controllers/userController/nobleFinoDmtController");
 const idempotencyMiddleware = require("../../middleware/idempotencyMiddleware");
+const validatePipeline = require("../../middleware/pipelineCheckMiddleware");
 const apiLogger = require("../../middleware/apiLogger");
 const router = express.Router();
+router.use(validatePipeline("dmt1"));
+
 
 // get all list whether approved or not
 router.post(

@@ -1,6 +1,7 @@
 const express = require("express");
 const { authenticateUser } = require("../../middleware/authMiddleware");
 const checkUserPaymentAndKYC = require("../../middleware/kycPaymentCheckMiddleware");
+
 const {
   fetchBbpsCategories,
   fetchParticularCategoryBillersList,
@@ -10,8 +11,12 @@ const {
   payBbpsBill,
 } = require("../../controllers/userController/billPaymentController");
 const idempotencyMiddleware = require("../../middleware/idempotencyMiddleware");
+
 const apiLogger = require("../../middleware/apiLogger");
+const validatePipeline = require("../../middleware/pipelineCheckMiddleware");
 const router = express.Router();
+
+router.use(validatePipeline("bbps1"));
 
 router.get(
   "/fetch-bbps-categories",
