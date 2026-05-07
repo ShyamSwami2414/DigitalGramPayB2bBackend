@@ -2301,15 +2301,18 @@ exports.getWalletReport = async (req, res, next) => {
     // ===============================
     const formattedData = walletLedger.map((item) => ({
       ...item,
-      amount: paiseToRupee(item.amount),
-      openingBalance: paiseToRupee(item.openingBalance),
-      closingBalance: paiseToRupee(item.closingBalance),
-      commission: paiseToRupee(item.commission || 0),
-      bonus: paiseToRupee(item.bonus || 0),
-      charge: paiseToRupee(item.chargesAmount || 0),
-      gstAmount: paiseToRupee(item.gstAmount || 0),
-      totalCharges: paiseToRupee(item.charges || 0),
-      tdsAmount: paiseToRupee(item.tdsAmount || 0),
+      amount: paiseToRupee(item?.amount),
+      openingBalance: paiseToRupee(item?.openingBalance),
+      closingBalance: paiseToRupee(item?.closingBalance),
+      commission: paiseToRupee(item?.commission || 0),
+      bonus: paiseToRupee(item?.bonus || 0),
+      chargesAmount: paiseToRupee(item?.chargesAmount || 0),
+      gstAmount: paiseToRupee(item?.gstAmount || 0),
+
+      totalCharges: paiseToRupee(
+        (item?.chargesAmount || 0) + (item?.gstAmount || 0),
+      ),
+      tdsAmount: paiseToRupee(item?.tdsAmount || 0),
     }));
 
     return res.status(200).json({

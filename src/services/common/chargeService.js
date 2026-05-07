@@ -84,18 +84,21 @@ const processCharges = async ({
     const totalCharges = charges + gstAmount; //payable by user
     const totalDebitAmount = amount + totalCharges; //payable by user
 
-    if (paiseToRupee(charges) > 0) {
+    if (paiseToRupee(totalDebitAmount) > 0) {
       const wallet = await UserWallet.findOneAndUpdate(
         {
           userId: userId,
           isActive: true,
           isDeleted: false,
           $expr: {
-            $gte: [{ $subtract: [`$${balance}`, `$${hold}`] }, totalCharges],
+            $gte: [
+              { $subtract: [`$${balance}`, `$${hold}`] },
+              totalDebitAmount,
+            ],
           },
         },
         {
-          $inc: { [balance]: -totalCharges }, //this will deduct charges including gst
+          $inc: { [balance]: -totalDebitAmount }, //this will deduct amount charges including gst
         },
         { new: true, session },
       );
@@ -107,7 +110,7 @@ const processCharges = async ({
       }
 
       closingBalance = wallet[balance];
-      openingBalance = closingBalance + totalCharges;
+      openingBalance = closingBalance + totalDebitAmount;
 
       await WalletLedger.create(
         [
@@ -115,10 +118,10 @@ const processCharges = async ({
             userId: userId,
             serviceType: serviceType,
             serviceCategory: serviceCategory,
-            entryType: "CHARGES",
+            entryType: "PAYOUT",
             wallet: walletType,
             type: "debit",
-            amount: totalCharges, //with gst
+            amount: totalDebitAmount, //with charge and gst
             referenceId: referenceId,
             openingBalance: openingBalance,
             closingBalance: closingBalance,
@@ -171,7 +174,7 @@ const processCharges = async ({
       await session.commitTransaction();
     }
 
-    return { charges, gstAmount, totalCharges };
+    return { charges, gstAmount, totalCharges, totalDebitAmount };
   } catch (error) {
     if (isInternalSession && session.inTransaction()) {
       await session.abortTransaction();

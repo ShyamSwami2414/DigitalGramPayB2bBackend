@@ -63,7 +63,7 @@ const getMyLastDmtHistory = async (req, res, next) => {
           charge: 1,
           gst: 1,
           tds: 1,
-          totalCharges: "$totalDebit",
+          totalAmount: "$totalDebit",
           message: "$reason" || "$message",
           mobileNumber: 1,
           status: "$status",
@@ -77,7 +77,7 @@ const getMyLastDmtHistory = async (req, res, next) => {
     const formattedData = result.map((item) => ({
       ...item,
       amount: paiseToRupee(item?.amount),
-      totalCharges: paiseToRupee(item?.totalCharges),
+      totalAmount: paiseToRupee(item?.totalAmount),
       charge: paiseToRupee(item?.charge),
       tds: paiseToRupee(item?.tds),
       gst: paiseToRupee(item?.gst),
@@ -926,7 +926,7 @@ const getCompleteDmtReport = async (req, res, next) => {
       charge: paiseToRupee(item.charge),
       tds: paiseToRupee(item.tds),
       gst: paiseToRupee(item.gst),
-      totalCharges: paiseToRupee(item.totalCharges),
+      totalAmount: paiseToRupee(item.totalCharges),
     }));
 
     return res.status(200).json({
@@ -1025,6 +1025,7 @@ const getDmtReportById = async (req, res, next) => {
           referenceId: 1,
           createdAt: 1,
           userName: "$user.userName",
+          message: 1,
           fullName: {
             $concat: ["$user.firstName", " ", "$user.lastName"],
           },

@@ -17,6 +17,8 @@ const {
 } = require("./common/validateUserPackageAndService");
 const { processCharges } = require("./common/chargeService");
 const Transaction = require("../models/transactionModel");
+const walletLedgerModel = require("../models/walletLedgerModel");
+const { applyChargeHierarchy } = require("../helpers/applyChargeHierarchy");
 
 exports.initiateAepsPayoutTransfer = async ({
   userId,
@@ -47,37 +49,38 @@ exports.initiateAepsPayoutTransfer = async ({
       amount: amount, //paise
     });
 
-    const { openingBalance, closingBalance } = await debitAepsWallet({
-      userId: userId,
-      amount: amount, //paise
-      serviceType: "AEPS_PAYOUT",
-      serviceCategory: "PAYOUT",
-      referenceId: referenceId,
-      description: `Aeps Payout for ${purpose}`,
-      session: session,
-    });
+    // const { openingBalance, closingBalance } = await debitAepsWallet({
+    //   userId: userId,
+    //   amount: amount, //paise
+    //   serviceType: "AEPS_PAYOUT",
+    //   serviceCategory: "PAYOUT",
+    //   referenceId: referenceId,
+    //   description: `Aeps Payout for ${purpose}`,
+    //   session: session,
+    // });
 
-    const { charges, gstAmount, totalCharges } = await processCharges({
-      userId: userId,
-      amount: amount, //paise
-      packageId: packageId,
-      serviceId: serviceId,
-      serviceType: "AEPS_PAYOUT",
-      walletType: "aeps",
+    const { charges, gstAmount, totalCharges, totalDebitAmount } =
+      await processCharges({
+        userId: userId,
+        amount: amount, //paise
+        packageId: packageId,
+        serviceId: serviceId,
+        serviceType: "AEPS_PAYOUT",
+        walletType: "aeps",
 
-      pipeline: "aeps-payout1",
-      referenceId: referenceId,
-      reportModel: PayoutTransaction,
-      description: "Aeps Payout Charges",
+        pipeline: "aeps-payout1",
+        referenceId: referenceId,
+        reportModel: PayoutTransaction,
+        description: "Aeps Payout Charges",
 
-      requestId: requestId,
-      bankAccountNumber: bankAccountNumber,
-      ifsc: ifsc,
-      name: name,
-      phone: phone,
+        requestId: requestId,
+        bankAccountNumber: bankAccountNumber,
+        ifsc: ifsc,
+        name: name,
+        phone: phone,
 
-      session: session,
-    });
+        session: session,
+      });
 
     await Transaction.create(
       [
@@ -131,6 +134,7 @@ exports.initiateAepsPayoutTransfer = async ({
         latitude,
         longitude,
         remarks: purpose,
+        apiEndPoint: "aeps-payout",
       });
     } catch (error) {
       result = {
@@ -148,43 +152,85 @@ exports.initiateAepsPayoutTransfer = async ({
 
     console.log("Success", result?.success || result?.status);
 
-    if (
-      result?.data?.status === "SUCCESS" ||
-      result?.data?.status === "PENDING"
-    ) {
+    if (result?.status === "SUCCESS" || result?.status === "PENDING") {
+      console.log("Entered Success/Pending Block");
+
+      const successSesion = await mongoose.startSession();
       try {
+        successSesion.startTransaction();
+        await walletLedgerModel.updateOne(
+          { referenceId: referenceId, serviceType: "AEPS_PAYOUT" },
+          { $set: { status: result?.status } },
+          { session: successSesion },
+        );
+
         await PayoutTransaction.findOneAndUpdate(
-          { referenceId: referenceId },
+          { referenceId: referenceId, serviceType: "AEPS_PAYOUT" },
           {
             $set: {
-              status: result?.data?.status,
+              status: result?.status,
             },
           },
-          { new: true },
+          { session: successSesion },
         );
+
+        await Transaction.updateOne(
+          {
+            referenceId: referenceId,
+          },
+          {
+            $set: {
+              status: result?.status,
+              providerTxnId: result?.txnid,
+              remark: result ? result?.message : "",
+              "meta.response": result,
+            },
+          },
+          { session: successSesion },
+        );
+
+        await applyChargeHierarchy({
+          userId: userId,
+          amount: amount, //paise
+          serviceId: serviceId,
+          serviceType: "AEPS_PAYOUT",
+          pipeline: "aeps-payout1",
+          referenceId: referenceId,
+          session: successSesion,
+        });
+
+        await successSesion.commitTransaction();
 
         console.log(result, "result");
         return result;
       } catch (error) {
+        if (successSesion.inTransaction()) {
+          await successSesion.abortTransaction();
+          console.error("Charges Processing failed:", error);
+        }
         throw error;
+      } finally {
+        successSesion.endSession();
       }
     } else if (result?.status === "FAILED") {
       const refundSession = await mongoose.startSession();
       try {
         refundSession.startTransaction();
 
+        const amountInPaiseWithChargeGst = amount + totalCharges; //paise
+
         await processRefund({
           userId: userId,
-          amount: amount, //paise
+          amount: amountInPaiseWithChargeGst, //paise
           referenceId: referenceId,
           walletType: "aeps",
-          description: `Refund: AepsPayout Failed`,
+          description: `Complete Refund With Charges: AepsPayout Failed`,
           session: refundSession,
         });
 
         await PayoutTransaction.findOneAndUpdate(
           { referenceId },
-          { $set: { status: "REVERSED" } },
+          { $set: { status: "FAILED", isRefunded: true } },
           { session: refundSession },
         );
 

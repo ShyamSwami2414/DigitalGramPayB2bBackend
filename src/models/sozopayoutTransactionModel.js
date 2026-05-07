@@ -85,6 +85,11 @@ const payoutTransactionSchema = new mongoose.Schema(
       index: true,
     },
 
+    isRefunded: {
+      type: Boolean,
+      default: false,
+    },
+
     failureReason: {
       type: String,
     },

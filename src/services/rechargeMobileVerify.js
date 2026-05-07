@@ -14,7 +14,7 @@ exports.rechargeMobileVerify = async (mobileNumber, referenceId) => {
 
     console.log(firstResult, "firstResult");
 
-    if (firstResult.status === "FAILED") {
+    if (firstResult.status === "FAILED" || firstResult.status === "ERROR") {
       throw firstResult;
     }
 

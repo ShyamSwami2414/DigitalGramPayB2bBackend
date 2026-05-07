@@ -110,7 +110,7 @@ exports.splitCommission = async ({
               serviceType: serviceType,
               serviceCategory: serviceCategory,
               entryType: "COMMISSION",
-              wallet: [walletField],
+              wallet: walletType,
               type: "credit",
               amount: netAmount,
               referenceId: referenceId,

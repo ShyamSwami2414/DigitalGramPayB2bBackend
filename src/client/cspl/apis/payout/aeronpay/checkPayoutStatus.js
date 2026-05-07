@@ -60,7 +60,7 @@ exports.aepsPayoutStatus = async ({
       type: "PAYOUT_STATUS",
       referenceId: client_referenceId,
       providerName: "SOZO_WALLET",
-      endPoint: "payout/s/check-status",
+      endPoint: "aer/payout/check-status",
       method: "POST",
 
       request: {
@@ -85,7 +85,7 @@ exports.aepsPayoutStatus = async ({
       type: "PAYOUT_STATUS",
       referenceId: client_referenceId,
       providerName: "SOZO_WALLET",
-      endPoint: "payout/s/check-status",
+      endPoint: "aer/payout/check-status",
       method: "POST",
       request: {
         txn_id: transactionId,

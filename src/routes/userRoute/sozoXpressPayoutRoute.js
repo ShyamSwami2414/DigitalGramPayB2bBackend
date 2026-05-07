@@ -7,8 +7,10 @@ const {
   checkPayoutStatus,
 } = require("../../controllers/userController/sozoXpressPayoutController");
 const idempotencyMiddleware = require("../../middleware/idempotencyMiddleware");
+const validatePipeline = require("../../middleware/pipelineCheckMiddleware");
 const apiLogger = require("../../middleware/apiLogger");
 const router = express.Router();
+router.use(validatePipeline("xpress-payout1"));
 
 router.post(
   "/initiate-payout-transfer",

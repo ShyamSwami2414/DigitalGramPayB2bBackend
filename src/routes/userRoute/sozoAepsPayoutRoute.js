@@ -7,8 +7,10 @@ const {
   checkPayoutStatus,
 } = require("../../controllers/userController/sozoAepsPayoutController");
 const idempotencyMiddleware = require("../../middleware/idempotencyMiddleware");
+const validatePipeline = require("../../middleware/pipelineCheckMiddleware");
 const apiLogger = require("../../middleware/apiLogger");
 const router = express.Router();
+router.use(validatePipeline("aeps-payout1"));
 
 router.post(
   "/initiate-payout-transfer",

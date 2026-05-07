@@ -62,7 +62,7 @@ exports.getCustomer = async ({
       userId: userId,
       referenceId: client_referenceId,
       providerName: "NOBLE_AIRTEL",
-      endPoint: "get-customer",
+      endPoint: "ar/get-customer",
       method: "POST",
       request: {
         mobileNumber: mobile,
@@ -86,7 +86,7 @@ exports.getCustomer = async ({
       userId: userId,
       referenceId: client_referenceId,
       providerName: "NOBLE_AIRTEL",
-      endPoint: "get-customer",
+      endPoint: "ar/get-customer",
       method: "POST",
       request: {
         mobileNumber: mobile,

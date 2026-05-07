@@ -75,7 +75,7 @@ exports.generateTransactionOtp = async ({
       type: "T-OTP",
       referenceId: client_referenceId,
       providerName: "NOBLE_FINO",
-      endPoint: "dmt/generate-otp-transaction",
+      endPoint: "fi/dmt/generate-otp-transaction",
       method: "POST",
       request: {
         merchantMobileNo: merchantMobileNumber,
@@ -101,7 +101,7 @@ exports.generateTransactionOtp = async ({
       type: "T-OTP",
       referenceId: client_referenceId,
       providerName: "NOBLE_FINO",
-      endPoint: "dmt/generate-otp-transaction",
+      endPoint: "fi/dmt/generate-otp-transaction",
       method: "POST",
       request: {
         merchantMobileNo: merchantMobileNumber,

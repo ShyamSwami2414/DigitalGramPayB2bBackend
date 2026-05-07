@@ -14,8 +14,10 @@ const idempotencyMiddleware = require("../../middleware/idempotencyMiddleware");
 const apiLogger = require("../../middleware/apiLogger");
 const multerErrorHandler = require("../../middleware/multerErrorHandler");
 const createUploader = require("../../middleware/uploadMiddleware");
+const validatePipeline = require("../../middleware/pipelineCheckMiddleware");
 
 const router = express.Router();
+router.use(validatePipeline("aeps2"));
 
 const upload = createUploader("ekoAepsActivateDocument", /jpeg|jpg|png/, 2048);
 
