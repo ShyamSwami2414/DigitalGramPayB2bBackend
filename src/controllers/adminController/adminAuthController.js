@@ -8,7 +8,7 @@ const { sendEmail } = require("../../utils/email");
 
 exports.adminRegister = async (req, res, next) => {
   try {
-    const { name, userName, phone, email, password } = req.body;
+    const { name, userName, phone, email, password, permissionIds } = req.body;
 
     if (!name || !userName || !phone || !email || !password) {
       return res
@@ -29,6 +29,7 @@ exports.adminRegister = async (req, res, next) => {
       userName,
       phone,
       email,
+      permissionIds: permissionIds,
       password: hashedPassword,
     });
 
@@ -269,8 +270,8 @@ exports.fetchProfile = async (req, res, next) => {
             },
             {
               $project: {
-                _id: 1, 
-                name: 1, 
+                _id: 1,
+                name: 1,
               },
             },
           ],
