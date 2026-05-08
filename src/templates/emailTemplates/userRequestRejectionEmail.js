@@ -4,7 +4,7 @@ exports.generateRejectionEmail = ({
   reason,
   supportEmail = "ayusydigital233@gmail.com",
   companyName = "Digital Gram Pay",
-  logoUrl = "https://b2bdigitalgrampay.co.in/logo.png",
+  logoUrl = "https://b2b.digitalgrampay.co.in/api/logo.png",
 }) => {
   return `
   <!DOCTYPE html>

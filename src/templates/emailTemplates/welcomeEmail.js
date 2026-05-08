@@ -22,7 +22,7 @@ exports.generateWelcomeEmail = ({
             <!-- Logo -->
             <tr>
               <td align="center">
-                <img src="https://b2bdigitalgrampay.co.in/logo.png" alt="Digital Gram Pay Logo" width="150" />
+                <img src="https://b2b.digitalgrampay.co.in/api/logo.png" alt="Digital Gram Pay Logo" width="150" />
               </td>
             </tr>
 
