@@ -14,7 +14,7 @@ exports.deleteNobleDmtBeneficiary = async ({
 
   try {
     const response = await csplClient.post(
-      "ar/bene/delete",
+      "fi/bene/delete",
       {
         remitterMobile: remitterMobile,
         accountNumber: accountNumber,
@@ -58,7 +58,7 @@ exports.deleteNobleDmtBeneficiary = async ({
       type: "BEN-DELETE",
       referenceId: client_referenceId,
       providerName: "NOBLE",
-      endPoint: "ar/bene/delete",
+      endPoint: "fi/bene/delete",
       method: "POST",
       request: {
         remitterMobile: remitterMobile,
@@ -81,7 +81,7 @@ exports.deleteNobleDmtBeneficiary = async ({
       type: "BEN-DELETE",
       referenceId: client_referenceId,
       providerName: "NOBLE",
-      endPoint: "ar/bene/delete",
+      endPoint: "fi/bene/delete",
       method: "POST",
       request: {
         remitterMobile: remitterMobile,

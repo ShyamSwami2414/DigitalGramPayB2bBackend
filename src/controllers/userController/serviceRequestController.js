@@ -121,7 +121,7 @@ exports.addServiceRequest = async (req, res, next) => {
     });
 
     await sendEmail(
-      "rahul.camlenio@gmail.com",
+      "ayusydigital233@gmail.com",
       "",
       "",
       "New Service Request",

@@ -1,11 +1,11 @@
 {
-  "name": "b2b backend",
+  "name": "Digital Gram Pay b2b backend",
   "version": "1.0.0",
-  "description": "B2B Backend",
-  "main": "src/server.js",
+  "description": "Digital Gram Pay B2B Backend",
+  "main": "server.js",
   "scripts": {
-    "start": "nodemon src/server.js",
-    "dev": "nodemon src/server.js"
+    "start": "nodemon server.js",
+    "dev": "nodemon server.js"
   },
   "keywords": [
     "nodejs",
