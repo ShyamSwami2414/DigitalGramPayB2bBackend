@@ -5,7 +5,7 @@ const getRolePrefix = (role) => {
   if (!role) return "U";
 
   const roleMap = {
-    "STATE HEAD": "ST",
+    "STATE HEAD": "SH",
     "MASTER DISTRIBUTOR": "MD",
     DISTRIBUTOR: "DT",
     RETAILER: "RT",
