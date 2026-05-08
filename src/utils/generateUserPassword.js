@@ -6,6 +6,6 @@ exports.generateUserPassword = () => {
 
   const password = crypto.randomInt(min, max + 1).toString();
   console.log(password, "password");
-  // return password;
-  return 123456789;
+  return password;
+  // return 123456789;
 };
