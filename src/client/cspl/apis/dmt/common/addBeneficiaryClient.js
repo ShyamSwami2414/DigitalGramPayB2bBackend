@@ -17,7 +17,7 @@ exports.addNobleDmtBeneficiary = async ({
 
   try {
     const response = await csplClient.post(
-      "ar/bene/add",
+      "fi/bene/add",
       {
         remitterMobile: remitterMobile,
         accountHolderName: accountHolderName,
@@ -64,7 +64,7 @@ exports.addNobleDmtBeneficiary = async ({
       type: "BEN-ADD",
       referenceId: client_referenceId,
       providerName: "NOBLE",
-      endPoint: "ar/bene/add",
+      endPoint: "fi/bene/add",
       method: "POST",
       request: {
         remitterMobile: remitterMobile,
@@ -90,7 +90,7 @@ exports.addNobleDmtBeneficiary = async ({
       type: "BEN-ADD",
       referenceId: client_referenceId,
       providerName: "NOBLE",
-      endPoint: "ar/bene/add",
+      endPoint: "fi/bene/add",
       method: "POST",
       request: {
         remitterMobile: remitterMobile,
