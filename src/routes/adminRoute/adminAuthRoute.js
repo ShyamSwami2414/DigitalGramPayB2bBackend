@@ -12,7 +12,7 @@ const router = express.Router();
 
 router.post("/super-login", superAdminLogin);
 router.post("/verify-otp", verifySuperAdminOtp);
-router.post("/admin-register", adminRegister);
+// router.post("/admin-register", adminRegister);
 router.patch("/change-password", authenticateUser, changePassword);
 router.patch("/update-profile", authenticateUser, updateProfile);
 router.get("/fetch-profile", authenticateUser, fetchProfile);
