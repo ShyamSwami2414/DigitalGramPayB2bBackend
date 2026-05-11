@@ -4,7 +4,7 @@ const {
   getPayoutStats,
   getCompletePayoutReport,
   getPayoutReportById,
-} = require("../../controllers/adminController/sozoAepsPayoutReportController");
+} = require("../../controllers/adminController/sozoXpressPayoutReportController");
 const checkUserPaymentAndKYC = require("../../middleware/kycPaymentCheckMiddleware");
 const { authorizeRoles } = require("../../middleware/roleMiddleware");
 
