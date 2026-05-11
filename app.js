@@ -13,10 +13,10 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // Serve static files from the public folder
-app.use(express.static(path.join(__dirname, "public")));
+app.use(express.static(path.join(__dirname, "api1/public")));
 
 // Serve user uploads
-console.log("path", path.join(__dirname, "../api/uploads"))
+console.log("path", path.join(__dirname, "../api1/uploads"))
 
 app.use(
   "/api1/uploads",

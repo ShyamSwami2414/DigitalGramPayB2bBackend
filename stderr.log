@@ -3348,3 +3348,2076 @@ Error Occured MW: {
   message: 'Payment received for the billing period - no bill due',
   billerstatus: '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><billFetchResponse><responseCode>001</responseCode><errorInfo><error><errorCode>BFR004</errorCode><errorMessage>Payment received for the billing period - no bill due</errorMessage></error></errorInfo></billFetchResponse>'
 }
+(node:2105649) [MONGOOSE] Warning: Duplicate schema index on {"adminId":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:2105649) [MONGOOSE] Warning: Duplicate schema index on {"name":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+(node:2105649) [MONGOOSE] Warning: Duplicate schema index on {"packageCode":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+(node:2105649) [MONGOOSE] Warning: Duplicate schema index on {"name":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+(node:2105649) [MONGOOSE] Warning: Duplicate schema index on {"serviceCode":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+(node:2105649) [MONGOOSE] Warning: Duplicate schema index on {"ekycRequestId":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+(node:2788085) [MONGOOSE] Warning: Duplicate schema index on {"adminId":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:2788085) [MONGOOSE] Warning: Duplicate schema index on {"name":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+(node:2788085) [MONGOOSE] Warning: Duplicate schema index on {"packageCode":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+(node:2788085) [MONGOOSE] Warning: Duplicate schema index on {"name":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+(node:2788085) [MONGOOSE] Warning: Duplicate schema index on {"serviceCode":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+(node:2788085) [MONGOOSE] Warning: Duplicate schema index on {"ekycRequestId":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+(node:2792873) [MONGOOSE] Warning: Duplicate schema index on {"adminId":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:2792873) [MONGOOSE] Warning: Duplicate schema index on {"name":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+(node:2792873) [MONGOOSE] Warning: Duplicate schema index on {"packageCode":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+(node:2792873) [MONGOOSE] Warning: Duplicate schema index on {"name":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+(node:2792873) [MONGOOSE] Warning: Duplicate schema index on {"serviceCode":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+(node:2792873) [MONGOOSE] Warning: Duplicate schema index on {"ekycRequestId":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Error Occured MW: Error: MDM Fetch Daily limit exceeds
+    at exports.fetchBbpsBillerInfoService (/home/oseuqxlt/camlenio.co.in/api/src/services/fetchBbpsBillerInfoService.js:36:13)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async exports.fetchBbpsBillerInfo (/home/oseuqxlt/camlenio.co.in/api/src/controllers/userController/billPaymentController.js:87:22)
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+(node:3134840) [MONGOOSE] Warning: Duplicate schema index on {"adminId":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:3134840) [MONGOOSE] Warning: Duplicate schema index on {"name":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+(node:3134840) [MONGOOSE] Warning: Duplicate schema index on {"packageCode":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+(node:3134840) [MONGOOSE] Warning: Duplicate schema index on {"name":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+(node:3134840) [MONGOOSE] Warning: Duplicate schema index on {"serviceCode":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+(node:3134840) [MONGOOSE] Warning: Duplicate schema index on {"ekycRequestId":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+(node:3233055) [MONGOOSE] Warning: Duplicate schema index on {"adminId":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:3233055) [MONGOOSE] Warning: Duplicate schema index on {"name":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+(node:3233055) [MONGOOSE] Warning: Duplicate schema index on {"packageCode":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+(node:3233055) [MONGOOSE] Warning: Duplicate schema index on {"name":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+(node:3233055) [MONGOOSE] Warning: Duplicate schema index on {"serviceCode":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+(node:3233055) [MONGOOSE] Warning: Duplicate schema index on {"ekycRequestId":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+(node:3233632) [MONGOOSE] Warning: Duplicate schema index on {"adminId":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:3233632) [MONGOOSE] Warning: Duplicate schema index on {"name":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+(node:3233632) [MONGOOSE] Warning: Duplicate schema index on {"packageCode":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+(node:3233632) [MONGOOSE] Warning: Duplicate schema index on {"name":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+(node:3233632) [MONGOOSE] Warning: Duplicate schema index on {"serviceCode":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+(node:3233632) [MONGOOSE] Warning: Duplicate schema index on {"ekycRequestId":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+Error Occured MW: Error: Validation failed: businessAddress.address: Path `businessAddress.address` (`358-b Ground Floor, Gopi Tower...`, length 140) is longer than the maximum allowed length (100).
+    at ValidationError.inspect (/home/oseuqxlt/nodevenv/camlenio.co.in/api/20/lib/node_modules/mongoose/lib/error/validation.js:52:26)
+    at formatValue (node:internal/util/inspect:833:19)
+    at inspect (node:internal/util/inspect:376:10)
+    at formatWithOptionsInternal (node:internal/util/inspect:2377:40)
+    at formatWithOptions (node:internal/util/inspect:2239:10)
+    at console.value (node:internal/console/constructor:350:14)
+    at console.warn (node:internal/console/constructor:383:61)
+    at errorHandler (/home/oseuqxlt/camlenio.co.in/api/src/middleware/errorHandler.js:2:11)
+    at Layer.handle_error (/home/oseuqxlt/nodevenv/camlenio.co.in/api/20/lib/node_modules/express/lib/router/layer.js:71:5)
+    at trim_prefix (/home/oseuqxlt/nodevenv/camlenio.co.in/api/20/lib/node_modules/express/lib/router/index.js:326:13) {
+  errors: {
+    'businessAddress.address': ValidatorError: Path `businessAddress.address` (`358-b Ground Floor, Gopi Tower...`, length 140) is longer than the maximum allowed length (100).
+        at validate (/home/oseuqxlt/nodevenv/camlenio.co.in/api/20/lib/node_modules/mongoose/lib/schemaType.js:1440:13)
+        at SchemaType.doValidate (/home/oseuqxlt/nodevenv/camlenio.co.in/api/20/lib/node_modules/mongoose/lib/schemaType.js:1424:7)
+        at /home/oseuqxlt/nodevenv/camlenio.co.in/api/20/lib/node_modules/mongoose/lib/helpers/updateValidators.js:150:22
+        at module.exports (/home/oseuqxlt/nodevenv/camlenio.co.in/api/20/lib/node_modules/mongoose/lib/helpers/updateValidators.js:201:7)
+        at /home/oseuqxlt/nodevenv/camlenio.co.in/api/20/lib/node_modules/mongoose/lib/query.js:4115:7
+        at new Promise (<anonymous>)
+        at model.Query.validate (/home/oseuqxlt/nodevenv/camlenio.co.in/api/20/lib/node_modules/mongoose/lib/query.js:4114:11)
+        at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+        at async model.Query._findOneAndUpdate (/home/oseuqxlt/nodevenv/camlenio.co.in/api/20/lib/node_modules/mongoose/lib/query.js:3529:5)
+        at async model.Query.exec (/home/oseuqxlt/nodevenv/camlenio.co.in/api/20/lib/node_modules/mongoose/lib/query.js:4627:63) {
+      properties: [Object],
+      kind: 'maxlength',
+      path: 'businessAddress.address',
+      value: '358-b Ground Floor, Gopi Tower, Ajmer Rd, Near Kamla Devi Govt. School, Satya Colony, Tagore Nagar, Vaishali Nagar, Jaipur, Rajasthan 302021',
+      reason: undefined,
+      [Symbol(mongoose#validatorError)]: true
+    }
+  },
+  _message: 'Validation failed'
+}
+Error Occured MW: Error: Validation failed: businessAddress.address: Path `businessAddress.address` (`358-b Ground Floor, Gopi Tower...`, length 140) is longer than the maximum allowed length (100).
+    at ValidationError.inspect (/home/oseuqxlt/nodevenv/camlenio.co.in/api/20/lib/node_modules/mongoose/lib/error/validation.js:52:26)
+    at formatValue (node:internal/util/inspect:833:19)
+    at inspect (node:internal/util/inspect:376:10)
+    at formatWithOptionsInternal (node:internal/util/inspect:2377:40)
+    at formatWithOptions (node:internal/util/inspect:2239:10)
+    at console.value (node:internal/console/constructor:350:14)
+    at console.warn (node:internal/console/constructor:383:61)
+    at errorHandler (/home/oseuqxlt/camlenio.co.in/api/src/middleware/errorHandler.js:2:11)
+    at Layer.handle_error (/home/oseuqxlt/nodevenv/camlenio.co.in/api/20/lib/node_modules/express/lib/router/layer.js:71:5)
+    at trim_prefix (/home/oseuqxlt/nodevenv/camlenio.co.in/api/20/lib/node_modules/express/lib/router/index.js:326:13) {
+  errors: {
+    'businessAddress.address': ValidatorError: Path `businessAddress.address` (`358-b Ground Floor, Gopi Tower...`, length 140) is longer than the maximum allowed length (100).
+        at validate (/home/oseuqxlt/nodevenv/camlenio.co.in/api/20/lib/node_modules/mongoose/lib/schemaType.js:1440:13)
+        at SchemaType.doValidate (/home/oseuqxlt/nodevenv/camlenio.co.in/api/20/lib/node_modules/mongoose/lib/schemaType.js:1424:7)
+        at /home/oseuqxlt/nodevenv/camlenio.co.in/api/20/lib/node_modules/mongoose/lib/helpers/updateValidators.js:150:22
+        at module.exports (/home/oseuqxlt/nodevenv/camlenio.co.in/api/20/lib/node_modules/mongoose/lib/helpers/updateValidators.js:201:7)
+        at /home/oseuqxlt/nodevenv/camlenio.co.in/api/20/lib/node_modules/mongoose/lib/query.js:4115:7
+        at new Promise (<anonymous>)
+        at model.Query.validate (/home/oseuqxlt/nodevenv/camlenio.co.in/api/20/lib/node_modules/mongoose/lib/query.js:4114:11)
+        at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+        at async model.Query._findOneAndUpdate (/home/oseuqxlt/nodevenv/camlenio.co.in/api/20/lib/node_modules/mongoose/lib/query.js:3529:5)
+        at async model.Query.exec (/home/oseuqxlt/nodevenv/camlenio.co.in/api/20/lib/node_modules/mongoose/lib/query.js:4627:63) {
+      properties: [Object],
+      kind: 'maxlength',
+      path: 'businessAddress.address',
+      value: '358-b Ground Floor, Gopi Tower, Ajmer Rd, Near Kamla Devi Govt. School, Satya Colony, Tagore Nagar, Vaishali Nagar, Jaipur, Rajasthan 302021',
+      reason: undefined,
+      [Symbol(mongoose#validatorError)]: true
+    }
+  },
+  _message: 'Validation failed'
+}
+Error Occured MW: Error: Validation failed: businessAddress.address: Path `businessAddress.address` (`358-b Ground Floor, Gopi Tower...`, length 140) is longer than the maximum allowed length (100).
+    at ValidationError.inspect (/home/oseuqxlt/nodevenv/camlenio.co.in/api/20/lib/node_modules/mongoose/lib/error/validation.js:52:26)
+    at formatValue (node:internal/util/inspect:833:19)
+    at inspect (node:internal/util/inspect:376:10)
+    at formatWithOptionsInternal (node:internal/util/inspect:2377:40)
+    at formatWithOptions (node:internal/util/inspect:2239:10)
+    at console.value (node:internal/console/constructor:350:14)
+    at console.warn (node:internal/console/constructor:383:61)
+    at errorHandler (/home/oseuqxlt/camlenio.co.in/api/src/middleware/errorHandler.js:2:11)
+    at Layer.handle_error (/home/oseuqxlt/nodevenv/camlenio.co.in/api/20/lib/node_modules/express/lib/router/layer.js:71:5)
+    at trim_prefix (/home/oseuqxlt/nodevenv/camlenio.co.in/api/20/lib/node_modules/express/lib/router/index.js:326:13) {
+  errors: {
+    'businessAddress.address': ValidatorError: Path `businessAddress.address` (`358-b Ground Floor, Gopi Tower...`, length 140) is longer than the maximum allowed length (100).
+        at validate (/home/oseuqxlt/nodevenv/camlenio.co.in/api/20/lib/node_modules/mongoose/lib/schemaType.js:1440:13)
+        at SchemaType.doValidate (/home/oseuqxlt/nodevenv/camlenio.co.in/api/20/lib/node_modules/mongoose/lib/schemaType.js:1424:7)
+        at /home/oseuqxlt/nodevenv/camlenio.co.in/api/20/lib/node_modules/mongoose/lib/helpers/updateValidators.js:150:22
+        at module.exports (/home/oseuqxlt/nodevenv/camlenio.co.in/api/20/lib/node_modules/mongoose/lib/helpers/updateValidators.js:201:7)
+        at /home/oseuqxlt/nodevenv/camlenio.co.in/api/20/lib/node_modules/mongoose/lib/query.js:4115:7
+        at new Promise (<anonymous>)
+        at model.Query.validate (/home/oseuqxlt/nodevenv/camlenio.co.in/api/20/lib/node_modules/mongoose/lib/query.js:4114:11)
+        at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+        at async model.Query._findOneAndUpdate (/home/oseuqxlt/nodevenv/camlenio.co.in/api/20/lib/node_modules/mongoose/lib/query.js:3529:5)
+        at async model.Query.exec (/home/oseuqxlt/nodevenv/camlenio.co.in/api/20/lib/node_modules/mongoose/lib/query.js:4627:63) {
+      properties: [Object],
+      kind: 'maxlength',
+      path: 'businessAddress.address',
+      value: '358-b Ground Floor, Gopi Tower, Ajmer Rd, Near Kamla Devi Govt. School, Satya Colony, Tagore Nagar, Vaishali Nagar, Jaipur, Rajasthan 302021',
+      reason: undefined,
+      [Symbol(mongoose#validatorError)]: true
+    }
+  },
+  _message: 'Validation failed'
+}
+Error sending email: Cannot read properties of undefined (reading 'length')
+Error Occured MW: Error: Insufficient Wallet Balance, Contact to Admin
+    at debitWallet (/home/oseuqxlt/camlenio.co.in/api/src/services/common/walletService.js:105:11)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async exports.doRechargeService (/home/oseuqxlt/camlenio.co.in/api/src/services/doRechargeService.js:46:48)
+    at async exports.doMobilePrepaidRecharge (/home/oseuqxlt/camlenio.co.in/api/src/controllers/userController/rechargeController.js:229:22)
+Error Occured MW: Error: Recharge Failed
+    at exports.doRechargeService (/home/oseuqxlt/camlenio.co.in/api/src/services/doRechargeService.js:202:21)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async exports.doMobilePrepaidRecharge (/home/oseuqxlt/camlenio.co.in/api/src/controllers/userController/rechargeController.js:229:22) {
+  statusCode: 400,
+  data: { status: 'FAILED', message: 'Recharge Failed' }
+}
+Error Occured MW: Error: Recharge Failed
+    at exports.doRechargeService (/home/oseuqxlt/camlenio.co.in/api/src/services/doRechargeService.js:202:21)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async exports.doMobilePrepaidRecharge (/home/oseuqxlt/camlenio.co.in/api/src/controllers/userController/rechargeController.js:229:22) {
+  statusCode: 400,
+  data: { status: 'FAILED', message: 'Recharge Failed' }
+}
+Error Occured MW: { status: 'FAILED', message: 'Customer is not registered' }
+(node:3695142) [MONGOOSE] Warning: Duplicate schema index on {"adminId":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:3695142) [MONGOOSE] Warning: Duplicate schema index on {"name":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+(node:3695142) [MONGOOSE] Warning: Duplicate schema index on {"packageCode":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+(node:3695142) [MONGOOSE] Warning: Duplicate schema index on {"name":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+(node:3695142) [MONGOOSE] Warning: Duplicate schema index on {"serviceCode":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+(node:3695142) [MONGOOSE] Warning: Duplicate schema index on {"ekycRequestId":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+Error Occured MW: Error: Insufficient Wallet Balance, Contact to Admin
+    at debitWallet (/home/oseuqxlt/camlenio.co.in/api/src/services/common/walletService.js:105:11)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async exports.transferFund (/home/oseuqxlt/camlenio.co.in/api/src/services/nobleFinoDmtService.js:604:48)
+    at async initiateTransaction (/home/oseuqxlt/camlenio.co.in/api/src/controllers/userController/nobleFinoDmtController.js:999:22)
+Error Occured MW: Error: Wallet not found for user 69faf02d876b33b64d08dafd
+    at processCharges (/home/oseuqxlt/camlenio.co.in/api/src/services/common/chargeService.js:104:15)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async exports.transferFund (/home/oseuqxlt/camlenio.co.in/api/src/services/nobleFinoDmtService.js:613:50)
+    at async initiateTransaction (/home/oseuqxlt/camlenio.co.in/api/src/controllers/userController/nobleFinoDmtController.js:999:22)
+Error Occured MW: Error: Wallet not found for user 69faf02d876b33b64d08dafd
+    at processCharges (/home/oseuqxlt/camlenio.co.in/api/src/services/common/chargeService.js:104:15)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async exports.transferFund (/home/oseuqxlt/camlenio.co.in/api/src/services/nobleFinoDmtService.js:613:50)
+    at async initiateTransaction (/home/oseuqxlt/camlenio.co.in/api/src/controllers/userController/nobleFinoDmtController.js:999:22)
+Error Occured MW: Error: appClient is not defined
+    at initiateTransaction (/home/oseuqxlt/camlenio.co.in/api/src/controllers/userController/nobleFinoDmtController.js:1040:13)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+Error Occured MW: Error: appClient is not defined
+    at initiateTransaction (/home/oseuqxlt/camlenio.co.in/api/src/controllers/userController/nobleFinoDmtController.js:1040:13)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+Error Occured MW: Error: Aadhaar Number not validating with Profile, please try again with the correct details.
+    at exports.dailyLogin (/home/oseuqxlt/camlenio.co.in/api/src/services/instantAepsService.js:478:19)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async dailyAepsLogin (/home/oseuqxlt/camlenio.co.in/api/src/controllers/userController/instantAepsController.js:577:22) {
+  statusCode: 400,
+  data: {
+    status_code: 'ERR',
+    message: 'Aadhaar Number not validating with Profile, please try again with the correct details.',
+    data: {
+      statuscode: 'ERR',
+      actcode: null,
+      status: 'Aadhaar Number not validating with Profile, please try again with the correct details.',
+      data: null,
+      timestamp: '2026-05-06 15:46:02',
+      ipay_uuid: 'h000a1b6bebd-d786-448c-bf4a-3e027e28e1c0-AR9VjuOg08Cl',
+      orderid: null,
+      environment: 'LIVE'
+    }
+  }
+}
+Error Occured MW: Error: Customer Bank Account not linked with Aadhaar
+    at exports.doBalanceEnquiry (/home/oseuqxlt/camlenio.co.in/api/src/services/instantAepsService.js:620:21)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async balanceEnquiry (/home/oseuqxlt/camlenio.co.in/api/src/controllers/userController/instantAepsController.js:791:22) {
+  statusCode: 400,
+  data: undefined
+}
+Error Occured MW: Error: Customer Bank Account not linked with Aadhaar
+    at exports.doBalanceEnquiry (/home/oseuqxlt/camlenio.co.in/api/src/services/instantAepsService.js:620:21)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async balanceEnquiry (/home/oseuqxlt/camlenio.co.in/api/src/controllers/userController/instantAepsController.js:791:22) {
+  statusCode: 400,
+  data: undefined
+}
+Error Occured MW: Error: The aadhaar is invalid.
+    at exports.doBalanceEnquiry (/home/oseuqxlt/camlenio.co.in/api/src/services/instantAepsService.js:620:21)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async balanceEnquiry (/home/oseuqxlt/camlenio.co.in/api/src/controllers/userController/instantAepsController.js:791:22) {
+  statusCode: 400,
+  data: undefined
+}
+Error Occured MW: Error: Customer Bank Account not linked with Aadhaar
+    at exports.doBalanceEnquiry (/home/oseuqxlt/camlenio.co.in/api/src/services/instantAepsService.js:620:21)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async balanceEnquiry (/home/oseuqxlt/camlenio.co.in/api/src/controllers/userController/instantAepsController.js:791:22) {
+  statusCode: 400,
+  data: undefined
+}
+Error Occured MW: Error: Customer Bank Account not linked with Aadhaar
+    at exports.doBalanceEnquiry (/home/oseuqxlt/camlenio.co.in/api/src/services/instantAepsService.js:620:21)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async balanceEnquiry (/home/oseuqxlt/camlenio.co.in/api/src/controllers/userController/instantAepsController.js:791:22) {
+  statusCode: 400,
+  data: undefined
+}
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Error Occured MW: Error: HTTP request returned status code 400:
+{"status":"FAILED","statusCode":"400","message":"Minimum Transaction Rs. 1000 is Allowed for the use-case of your busine (truncated...)
+
+    at exports.initiateXpressPayoutTransfer (/home/oseuqxlt/camlenio.co.in/api/src/services/sozoXpressPayoutService.js:259:19)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async exports.initiateXpressPayout (/home/oseuqxlt/camlenio.co.in/api/src/controllers/userController/sozoXpressPayoutController.js:147:22) {
+  statusCode: 400,
+  data: {
+    status: 'FAILED',
+    message: 'HTTP request returned status code 400:\n' +
+      '{"status":"FAILED","statusCode":"400","message":"Minimum Transaction Rs. 1000 is Allowed for the use-case of your busine (truncated...)\n'
+  }
+}
+Error Occured MW: Error: Insufficient Wallet Balance, Contact to Admin
+    at debitWallet (/home/oseuqxlt/camlenio.co.in/api/src/services/common/walletService.js:105:11)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async exports.initiateXpressPayoutTransfer (/home/oseuqxlt/camlenio.co.in/api/src/services/sozoXpressPayoutService.js:53:48)
+    at async exports.initiateXpressPayout (/home/oseuqxlt/camlenio.co.in/api/src/controllers/userController/sozoXpressPayoutController.js:147:22)
+(node:59821) [MONGOOSE] Warning: Duplicate schema index on {"adminId":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:59821) [MONGOOSE] Warning: Duplicate schema index on {"name":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+(node:59821) [MONGOOSE] Warning: Duplicate schema index on {"packageCode":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+(node:59821) [MONGOOSE] Warning: Duplicate schema index on {"name":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+(node:59821) [MONGOOSE] Warning: Duplicate schema index on {"serviceCode":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+(node:59821) [MONGOOSE] Warning: Duplicate schema index on {"ekycRequestId":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+(node:1633725) [MONGOOSE] Warning: Duplicate schema index on {"adminId":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:1633725) [MONGOOSE] Warning: Duplicate schema index on {"name":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+(node:1633725) [MONGOOSE] Warning: Duplicate schema index on {"packageCode":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+(node:1633725) [MONGOOSE] Warning: Duplicate schema index on {"name":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+(node:1633725) [MONGOOSE] Warning: Duplicate schema index on {"serviceCode":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+(node:1633725) [MONGOOSE] Warning: Duplicate schema index on {"ekycRequestId":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+(node:1633839) [MONGOOSE] Warning: Duplicate schema index on {"adminId":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:1633839) [MONGOOSE] Warning: Duplicate schema index on {"name":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+(node:1633839) [MONGOOSE] Warning: Duplicate schema index on {"packageCode":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+(node:1633839) [MONGOOSE] Warning: Duplicate schema index on {"name":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+(node:1633839) [MONGOOSE] Warning: Duplicate schema index on {"serviceCode":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+(node:1633839) [MONGOOSE] Warning: Duplicate schema index on {"ekycRequestId":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+Error Occured MW: Error: OTP not found
+    at exports.verifyUserOtp (/home/oseuqxlt/camlenio.co.in/api/src/controllers/userController/userAuthController.js:347:19)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5) {
+  statusCode: 404
+}
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Error Occured MW: Error: Aadhaar Number not validating with Profile, please try again with the correct details.
+    at exports.dailyLogin (/home/oseuqxlt/camlenio.co.in/api/src/services/instantAepsService.js:486:19)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async dailyAepsLogin (/home/oseuqxlt/camlenio.co.in/api/src/controllers/userController/instantAepsController.js:577:22) {
+  statusCode: 400,
+  data: {
+    status_code: 'ERR',
+    message: 'Aadhaar Number not validating with Profile, please try again with the correct details.',
+    data: {
+      statuscode: 'ERR',
+      actcode: null,
+      status: 'Aadhaar Number not validating with Profile, please try again with the correct details.',
+      data: null,
+      timestamp: '2026-05-08 10:53:33',
+      ipay_uuid: 'h000a1ba5c1c-0f86-44f5-99e8-46f61946679c-yKELMlcIXKyl',
+      orderid: null,
+      environment: 'LIVE'
+    }
+  }
+}
+Error Occured MW: Error: Aadhaar Number not validating with Profile, please try again with the correct details.
+    at exports.dailyLogin (/home/oseuqxlt/camlenio.co.in/api/src/services/instantAepsService.js:486:19)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async dailyAepsLogin (/home/oseuqxlt/camlenio.co.in/api/src/controllers/userController/instantAepsController.js:577:22) {
+  statusCode: 400,
+  data: {
+    status_code: 'ERR',
+    message: 'Aadhaar Number not validating with Profile, please try again with the correct details.',
+    data: {
+      statuscode: 'ERR',
+      actcode: null,
+      status: 'Aadhaar Number not validating with Profile, please try again with the correct details.',
+      data: null,
+      timestamp: '2026-05-08 10:53:53',
+      ipay_uuid: 'h000a1ba5c3a-e11a-4069-a611-c886bb4363d8-d94mlXylWUfH',
+      orderid: null,
+      environment: 'LIVE'
+    }
+  }
+}
+Error Occured MW: Error: SQLSTATE[22007]: Invalid datetime format: 1366 Incorrect decimal value: '' for column `csplcamlenio_api_db`.`aeps_txn_in`.`bank_account_balance` at row 1 (Connection: mysql, SQL: insert into `aeps_txn_in` (`user_id`, `service_type`, `mobile`, `external_ref`, `ipay_id`, `ipay_uuid`, `bank_name`, `account_number`, `bankiin`, `transaction_value`, `bank_account_balance`, `transaction_mode`, `status`, `statuscode`, `txn_timestamp`, `created_at`, `updated_at`) values (2, CASH_WITHDRAWAL, 7062033036, REF-KwNawONIYC, P260508105534UESXJ, ?, BANK OF INDIA, xxxxxxxx3543, 508505, 500, , CR, FAILED, ERR, 2026-05-08 10:55:36, 2026-05-08 10:55:36, 2026-05-08 10:55:36))
+    at exports.doCashWithdraw (/home/oseuqxlt/camlenio.co.in/api/src/services/instantAepsService.js:1033:21)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async cashWithdraw (/home/oseuqxlt/camlenio.co.in/api/src/controllers/userController/instantAepsController.js:1257:22) {
+  statusCode: 400,
+  data: undefined
+}
+Error Occured MW: Error: SQLSTATE[22007]: Invalid datetime format: 1366 Incorrect decimal value: '' for column `csplcamlenio_api_db`.`aeps_txn_in`.`bank_account_balance` at row 1 (Connection: mysql, SQL: insert into `aeps_txn_in` (`user_id`, `service_type`, `mobile`, `external_ref`, `ipay_id`, `ipay_uuid`, `bank_name`, `account_number`, `bankiin`, `transaction_value`, `bank_account_balance`, `transaction_mode`, `status`, `statuscode`, `txn_timestamp`, `created_at`, `updated_at`) values (2, CASH_WITHDRAWAL, 7062033036, REF-61CmkG7W3X, P260508105605MEJEZ, ?, BANK OF INDIA, xxxxxxxx3543, 508505, 500, , CR, FAILED, ERR, 2026-05-08 10:56:07, 2026-05-08 10:56:07, 2026-05-08 10:56:07))
+    at exports.doCashWithdraw (/home/oseuqxlt/camlenio.co.in/api/src/services/instantAepsService.js:1033:21)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async cashWithdraw (/home/oseuqxlt/camlenio.co.in/api/src/controllers/userController/instantAepsController.js:1257:22) {
+  statusCode: 400,
+  data: undefined
+}
+Error Occured MW: Error: DailyMonthly limit exhausted for customer account
+    at exports.doCashWithdraw (/home/oseuqxlt/camlenio.co.in/api/src/services/instantAepsService.js:1033:21)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async cashWithdraw (/home/oseuqxlt/camlenio.co.in/api/src/controllers/userController/instantAepsController.js:1257:22) {
+  statusCode: 400,
+  data: undefined
+}
+Error Occured MW: {
+  status: 'FAILED',
+  message: 'Service/provider not enabled for this user'
+}
+Error Occured MW: {
+  status: 'FAILED',
+  message: 'Service/provider not enabled for this user'
+}
+Error Occured MW: {
+  status: 'FAILED',
+  message: 'Service/provider not enabled for this user'
+}
+Error Occured MW: {
+  status: 'FAILED',
+  message: 'Service/provider not enabled for this user'
+}
+Error Occured MW: {
+  status: 'FAILED',
+  message: 'Service/provider not enabled for this user'
+}
+Commission failed: TypeError: Cannot read properties of null (reading 'parentUserId')
+    at exports.splitCommission (/home/oseuqxlt/camlenio.co.in/api/src/helpers/splitCommission.js:51:24)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async processCommission (/home/oseuqxlt/camlenio.co.in/api/src/services/common/commissionService.js:142:5)
+    at async exports.doRechargeService (/home/oseuqxlt/camlenio.co.in/api/src/services/doRechargeService.js:166:11)
+    at async exports.doMobilePrepaidRecharge (/home/oseuqxlt/camlenio.co.in/api/src/controllers/userController/rechargeController.js:229:22)
+node:internal/modules/cjs/loader:1210
+  throw err;
+  ^
+
+Error: Cannot find module '/home/oseuqxlt/camlenio.co.in/api/server.js'
+Require stack:
+- /usr/local/lsws/fcgi-bin/lsnode.js
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1207:15)
+    at Module._load (node:internal/modules/cjs/loader:1038:27)
+    at Module.require (node:internal/modules/cjs/loader:1289:19)
+    at require (node:internal/modules/helpers:182:18)
+    at startApplication (/usr/local/lsws/fcgi-bin/lsnode.js:51:15)
+    at Object.<anonymous> (/usr/local/lsws/fcgi-bin/lsnode.js:16:1)
+    at Module._compile (node:internal/modules/cjs/loader:1521:14)
+    at Module._extensions..js (node:internal/modules/cjs/loader:1623:10)
+    at Module.load (node:internal/modules/cjs/loader:1266:32)
+    at Module._load (node:internal/modules/cjs/loader:1091:12) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [ '/usr/local/lsws/fcgi-bin/lsnode.js' ]
+}
+
+Node.js v20.20.2
+node:internal/modules/cjs/loader:1210
+  throw err;
+  ^
+
+Error: Cannot find module '/home/oseuqxlt/camlenio.co.in/api/server.js'
+Require stack:
+- /usr/local/lsws/fcgi-bin/lsnode.js
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1207:15)
+    at Module._load (node:internal/modules/cjs/loader:1038:27)
+    at Module.require (node:internal/modules/cjs/loader:1289:19)
+    at require (node:internal/modules/helpers:182:18)
+    at startApplication (/usr/local/lsws/fcgi-bin/lsnode.js:51:15)
+    at Object.<anonymous> (/usr/local/lsws/fcgi-bin/lsnode.js:16:1)
+    at Module._compile (node:internal/modules/cjs/loader:1521:14)
+    at Module._extensions..js (node:internal/modules/cjs/loader:1623:10)
+    at Module.load (node:internal/modules/cjs/loader:1266:32)
+    at Module._load (node:internal/modules/cjs/loader:1091:12) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [ '/usr/local/lsws/fcgi-bin/lsnode.js' ]
+}
+
+Node.js v20.20.2
+node:internal/modules/cjs/loader:1210
+  throw err;
+  ^
+
+Error: Cannot find module '/home/oseuqxlt/camlenio.co.in/api/server.js'
+Require stack:
+- /usr/local/lsws/fcgi-bin/lsnode.js
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1207:15)
+    at Module._load (node:internal/modules/cjs/loader:1038:27)
+    at Module.require (node:internal/modules/cjs/loader:1289:19)
+    at require (node:internal/modules/helpers:182:18)
+    at startApplication (/usr/local/lsws/fcgi-bin/lsnode.js:51:15)
+    at Object.<anonymous> (/usr/local/lsws/fcgi-bin/lsnode.js:16:1)
+    at Module._compile (node:internal/modules/cjs/loader:1521:14)
+    at Module._extensions..js (node:internal/modules/cjs/loader:1623:10)
+    at Module.load (node:internal/modules/cjs/loader:1266:32)
+    at Module._load (node:internal/modules/cjs/loader:1091:12) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [ '/usr/local/lsws/fcgi-bin/lsnode.js' ]
+}
+
+Node.js v20.20.2
+node:internal/modules/cjs/loader:1210
+  throw err;
+  ^
+
+Error: Cannot find module '/home/oseuqxlt/camlenio.co.in/api/server.js'
+Require stack:
+- /usr/local/lsws/fcgi-bin/lsnode.js
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1207:15)
+    at Module._load (node:internal/modules/cjs/loader:1038:27)
+    at Module.require (node:internal/modules/cjs/loader:1289:19)
+    at require (node:internal/modules/helpers:182:18)
+    at startApplication (/usr/local/lsws/fcgi-bin/lsnode.js:51:15)
+    at Object.<anonymous> (/usr/local/lsws/fcgi-bin/lsnode.js:16:1)
+    at Module._compile (node:internal/modules/cjs/loader:1521:14)
+    at Module._extensions..js (node:internal/modules/cjs/loader:1623:10)
+    at Module.load (node:internal/modules/cjs/loader:1266:32)
+    at Module._load (node:internal/modules/cjs/loader:1091:12) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [ '/usr/local/lsws/fcgi-bin/lsnode.js' ]
+}
+
+Node.js v20.20.2
+node:internal/modules/cjs/loader:1210
+  throw err;
+  ^
+
+Error: Cannot find module '/home/oseuqxlt/camlenio.co.in/api/server.js'
+Require stack:
+- /usr/local/lsws/fcgi-bin/lsnode.js
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1207:15)
+    at Module._load (node:internal/modules/cjs/loader:1038:27)
+    at Module.require (node:internal/modules/cjs/loader:1289:19)
+    at require (node:internal/modules/helpers:182:18)
+    at startApplication (/usr/local/lsws/fcgi-bin/lsnode.js:51:15)
+    at Object.<anonymous> (/usr/local/lsws/fcgi-bin/lsnode.js:16:1)
+    at Module._compile (node:internal/modules/cjs/loader:1521:14)
+    at Module._extensions..js (node:internal/modules/cjs/loader:1623:10)
+    at Module.load (node:internal/modules/cjs/loader:1266:32)
+    at Module._load (node:internal/modules/cjs/loader:1091:12) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [ '/usr/local/lsws/fcgi-bin/lsnode.js' ]
+}
+
+Node.js v20.20.2
+node:internal/modules/cjs/loader:1210
+  throw err;
+  ^
+
+Error: Cannot find module '/home/oseuqxlt/camlenio.co.in/api/server.js'
+Require stack:
+- /usr/local/lsws/fcgi-bin/lsnode.js
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1207:15)
+    at Module._load (node:internal/modules/cjs/loader:1038:27)
+    at Module.require (node:internal/modules/cjs/loader:1289:19)
+    at require (node:internal/modules/helpers:182:18)
+    at startApplication (/usr/local/lsws/fcgi-bin/lsnode.js:51:15)
+    at Object.<anonymous> (/usr/local/lsws/fcgi-bin/lsnode.js:16:1)
+    at Module._compile (node:internal/modules/cjs/loader:1521:14)
+    at Module._extensions..js (node:internal/modules/cjs/loader:1623:10)
+    at Module.load (node:internal/modules/cjs/loader:1266:32)
+    at Module._load (node:internal/modules/cjs/loader:1091:12) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [ '/usr/local/lsws/fcgi-bin/lsnode.js' ]
+}
+
+Node.js v20.20.2
+node:internal/modules/cjs/loader:1210
+  throw err;
+  ^
+
+Error: Cannot find module '/home/oseuqxlt/camlenio.co.in/api/server.js'
+Require stack:
+- /usr/local/lsws/fcgi-bin/lsnode.js
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1207:15)
+    at Module._load (node:internal/modules/cjs/loader:1038:27)
+    at Module.require (node:internal/modules/cjs/loader:1289:19)
+    at require (node:internal/modules/helpers:182:18)
+    at startApplication (/usr/local/lsws/fcgi-bin/lsnode.js:51:15)
+    at Object.<anonymous> (/usr/local/lsws/fcgi-bin/lsnode.js:16:1)
+    at Module._compile (node:internal/modules/cjs/loader:1521:14)
+    at Module._extensions..js (node:internal/modules/cjs/loader:1623:10)
+    at Module.load (node:internal/modules/cjs/loader:1266:32)
+    at Module._load (node:internal/modules/cjs/loader:1091:12) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [ '/usr/local/lsws/fcgi-bin/lsnode.js' ]
+}
+
+Node.js v20.20.2
+node:internal/modules/cjs/loader:1210
+  throw err;
+  ^
+
+Error: Cannot find module '/home/oseuqxlt/camlenio.co.in/api/server.js'
+Require stack:
+- /usr/local/lsws/fcgi-bin/lsnode.js
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1207:15)
+    at Module._load (node:internal/modules/cjs/loader:1038:27)
+    at Module.require (node:internal/modules/cjs/loader:1289:19)
+    at require (node:internal/modules/helpers:182:18)
+    at startApplication (/usr/local/lsws/fcgi-bin/lsnode.js:51:15)
+    at Object.<anonymous> (/usr/local/lsws/fcgi-bin/lsnode.js:16:1)
+    at Module._compile (node:internal/modules/cjs/loader:1521:14)
+    at Module._extensions..js (node:internal/modules/cjs/loader:1623:10)
+    at Module.load (node:internal/modules/cjs/loader:1266:32)
+    at Module._load (node:internal/modules/cjs/loader:1091:12) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [ '/usr/local/lsws/fcgi-bin/lsnode.js' ]
+}
+
+Node.js v20.20.2
+node:internal/modules/cjs/loader:1210
+  throw err;
+  ^
+
+Error: Cannot find module '/home/oseuqxlt/camlenio.co.in/api/server.js'
+Require stack:
+- /usr/local/lsws/fcgi-bin/lsnode.js
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1207:15)
+    at Module._load (node:internal/modules/cjs/loader:1038:27)
+    at Module.require (node:internal/modules/cjs/loader:1289:19)
+    at require (node:internal/modules/helpers:182:18)
+    at startApplication (/usr/local/lsws/fcgi-bin/lsnode.js:51:15)
+    at Object.<anonymous> (/usr/local/lsws/fcgi-bin/lsnode.js:16:1)
+    at Module._compile (node:internal/modules/cjs/loader:1521:14)
+    at Module._extensions..js (node:internal/modules/cjs/loader:1623:10)
+    at Module.load (node:internal/modules/cjs/loader:1266:32)
+    at Module._load (node:internal/modules/cjs/loader:1091:12) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [ '/usr/local/lsws/fcgi-bin/lsnode.js' ]
+}
+
+Node.js v20.20.2
+node:internal/modules/cjs/loader:1210
+  throw err;
+  ^
+
+Error: Cannot find module '/home/oseuqxlt/camlenio.co.in/api/server.js'
+Require stack:
+- /usr/local/lsws/fcgi-bin/lsnode.js
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1207:15)
+    at Module._load (node:internal/modules/cjs/loader:1038:27)
+    at Module.require (node:internal/modules/cjs/loader:1289:19)
+    at require (node:internal/modules/helpers:182:18)
+    at startApplication (/usr/local/lsws/fcgi-bin/lsnode.js:51:15)
+    at Object.<anonymous> (/usr/local/lsws/fcgi-bin/lsnode.js:16:1)
+    at Module._compile (node:internal/modules/cjs/loader:1521:14)
+    at Module._extensions..js (node:internal/modules/cjs/loader:1623:10)
+    at Module.load (node:internal/modules/cjs/loader:1266:32)
+    at Module._load (node:internal/modules/cjs/loader:1091:12) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [ '/usr/local/lsws/fcgi-bin/lsnode.js' ]
+}
+
+Node.js v20.20.2
+node:internal/modules/cjs/loader:1210
+  throw err;
+  ^
+
+Error: Cannot find module '/home/oseuqxlt/camlenio.co.in/api/server.js'
+Require stack:
+- /usr/local/lsws/fcgi-bin/lsnode.js
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1207:15)
+    at Module._load (node:internal/modules/cjs/loader:1038:27)
+    at Module.require (node:internal/modules/cjs/loader:1289:19)
+    at require (node:internal/modules/helpers:182:18)
+    at startApplication (/usr/local/lsws/fcgi-bin/lsnode.js:51:15)
+    at Object.<anonymous> (/usr/local/lsws/fcgi-bin/lsnode.js:16:1)
+    at Module._compile (node:internal/modules/cjs/loader:1521:14)
+    at Module._extensions..js (node:internal/modules/cjs/loader:1623:10)
+    at Module.load (node:internal/modules/cjs/loader:1266:32)
+    at Module._load (node:internal/modules/cjs/loader:1091:12) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [ '/usr/local/lsws/fcgi-bin/lsnode.js' ]
+}
+
+Node.js v20.20.2
+node:internal/modules/cjs/loader:1210
+  throw err;
+  ^
+
+Error: Cannot find module '/home/oseuqxlt/camlenio.co.in/api/server.js'
+Require stack:
+- /usr/local/lsws/fcgi-bin/lsnode.js
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1207:15)
+    at Module._load (node:internal/modules/cjs/loader:1038:27)
+    at Module.require (node:internal/modules/cjs/loader:1289:19)
+    at require (node:internal/modules/helpers:182:18)
+    at startApplication (/usr/local/lsws/fcgi-bin/lsnode.js:51:15)
+    at Object.<anonymous> (/usr/local/lsws/fcgi-bin/lsnode.js:16:1)
+    at Module._compile (node:internal/modules/cjs/loader:1521:14)
+    at Module._extensions..js (node:internal/modules/cjs/loader:1623:10)
+    at Module.load (node:internal/modules/cjs/loader:1266:32)
+    at Module._load (node:internal/modules/cjs/loader:1091:12) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [ '/usr/local/lsws/fcgi-bin/lsnode.js' ]
+}
+
+Node.js v20.20.2
+node:internal/modules/cjs/loader:1210
+  throw err;
+  ^
+
+Error: Cannot find module '/home/oseuqxlt/camlenio.co.in/api/server.js'
+Require stack:
+- /usr/local/lsws/fcgi-bin/lsnode.js
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1207:15)
+    at Module._load (node:internal/modules/cjs/loader:1038:27)
+    at Module.require (node:internal/modules/cjs/loader:1289:19)
+    at require (node:internal/modules/helpers:182:18)
+    at startApplication (/usr/local/lsws/fcgi-bin/lsnode.js:51:15)
+    at Object.<anonymous> (/usr/local/lsws/fcgi-bin/lsnode.js:16:1)
+    at Module._compile (node:internal/modules/cjs/loader:1521:14)
+    at Module._extensions..js (node:internal/modules/cjs/loader:1623:10)
+    at Module.load (node:internal/modules/cjs/loader:1266:32)
+    at Module._load (node:internal/modules/cjs/loader:1091:12) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [ '/usr/local/lsws/fcgi-bin/lsnode.js' ]
+}
+
+Node.js v20.20.2
+node:internal/modules/cjs/loader:1210
+  throw err;
+  ^
+
+Error: Cannot find module '/home/oseuqxlt/camlenio.co.in/api/server.js'
+Require stack:
+- /usr/local/lsws/fcgi-bin/lsnode.js
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1207:15)
+    at Module._load (node:internal/modules/cjs/loader:1038:27)
+    at Module.require (node:internal/modules/cjs/loader:1289:19)
+    at require (node:internal/modules/helpers:182:18)
+    at startApplication (/usr/local/lsws/fcgi-bin/lsnode.js:51:15)
+    at Object.<anonymous> (/usr/local/lsws/fcgi-bin/lsnode.js:16:1)
+    at Module._compile (node:internal/modules/cjs/loader:1521:14)
+    at Module._extensions..js (node:internal/modules/cjs/loader:1623:10)
+    at Module.load (node:internal/modules/cjs/loader:1266:32)
+    at Module._load (node:internal/modules/cjs/loader:1091:12) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [ '/usr/local/lsws/fcgi-bin/lsnode.js' ]
+}
+
+Node.js v20.20.2
+node:internal/modules/cjs/loader:1210
+  throw err;
+  ^
+
+Error: Cannot find module '/home/oseuqxlt/camlenio.co.in/api/server.js'
+Require stack:
+- /usr/local/lsws/fcgi-bin/lsnode.js
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1207:15)
+    at Module._load (node:internal/modules/cjs/loader:1038:27)
+    at Module.require (node:internal/modules/cjs/loader:1289:19)
+    at require (node:internal/modules/helpers:182:18)
+    at startApplication (/usr/local/lsws/fcgi-bin/lsnode.js:51:15)
+    at Object.<anonymous> (/usr/local/lsws/fcgi-bin/lsnode.js:16:1)
+    at Module._compile (node:internal/modules/cjs/loader:1521:14)
+    at Module._extensions..js (node:internal/modules/cjs/loader:1623:10)
+    at Module.load (node:internal/modules/cjs/loader:1266:32)
+    at Module._load (node:internal/modules/cjs/loader:1091:12) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [ '/usr/local/lsws/fcgi-bin/lsnode.js' ]
+}
+
+Node.js v20.20.2
+node:internal/modules/cjs/loader:1210
+  throw err;
+  ^
+
+Error: Cannot find module '/home/oseuqxlt/camlenio.co.in/api/server.js'
+Require stack:
+- /usr/local/lsws/fcgi-bin/lsnode.js
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1207:15)
+    at Module._load (node:internal/modules/cjs/loader:1038:27)
+    at Module.require (node:internal/modules/cjs/loader:1289:19)
+    at require (node:internal/modules/helpers:182:18)
+    at startApplication (/usr/local/lsws/fcgi-bin/lsnode.js:51:15)
+    at Object.<anonymous> (/usr/local/lsws/fcgi-bin/lsnode.js:16:1)
+    at Module._compile (node:internal/modules/cjs/loader:1521:14)
+    at Module._extensions..js (node:internal/modules/cjs/loader:1623:10)
+    at Module.load (node:internal/modules/cjs/loader:1266:32)
+    at Module._load (node:internal/modules/cjs/loader:1091:12) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [ '/usr/local/lsws/fcgi-bin/lsnode.js' ]
+}
+
+Node.js v20.20.2
+(node:2405141) [MONGOOSE] Warning: Duplicate schema index on {"adminId":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:2405141) [MONGOOSE] Warning: Duplicate schema index on {"name":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+(node:2405141) [MONGOOSE] Warning: Duplicate schema index on {"packageCode":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+(node:2405141) [MONGOOSE] Warning: Duplicate schema index on {"name":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+(node:2405141) [MONGOOSE] Warning: Duplicate schema index on {"serviceCode":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+(node:2405141) [MONGOOSE] Warning: Duplicate schema index on {"ekycRequestId":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+(node:2528034) [MONGOOSE] Warning: Duplicate schema index on {"adminId":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:2528034) [MONGOOSE] Warning: Duplicate schema index on {"name":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+(node:2528034) [MONGOOSE] Warning: Duplicate schema index on {"packageCode":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+(node:2528034) [MONGOOSE] Warning: Duplicate schema index on {"name":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+(node:2528034) [MONGOOSE] Warning: Duplicate schema index on {"serviceCode":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+(node:2528034) [MONGOOSE] Warning: Duplicate schema index on {"ekycRequestId":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+(node:2622011) [MONGOOSE] Warning: Duplicate schema index on {"adminId":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:2622011) [MONGOOSE] Warning: Duplicate schema index on {"name":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+(node:2622011) [MONGOOSE] Warning: Duplicate schema index on {"packageCode":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+(node:2622011) [MONGOOSE] Warning: Duplicate schema index on {"name":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+(node:2622011) [MONGOOSE] Warning: Duplicate schema index on {"serviceCode":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+(node:2622011) [MONGOOSE] Warning: Duplicate schema index on {"ekycRequestId":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+(node:2766422) [MONGOOSE] Warning: Duplicate schema index on {"adminId":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:2766422) [MONGOOSE] Warning: Duplicate schema index on {"name":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+(node:2766422) [MONGOOSE] Warning: Duplicate schema index on {"packageCode":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+(node:2766422) [MONGOOSE] Warning: Duplicate schema index on {"name":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+(node:2766422) [MONGOOSE] Warning: Duplicate schema index on {"serviceCode":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+(node:2766422) [MONGOOSE] Warning: Duplicate schema index on {"ekycRequestId":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+(node:2777389) [MONGOOSE] Warning: Duplicate schema index on {"adminId":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:2777389) [MONGOOSE] Warning: Duplicate schema index on {"name":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+(node:2777389) [MONGOOSE] Warning: Duplicate schema index on {"packageCode":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+(node:2777389) [MONGOOSE] Warning: Duplicate schema index on {"name":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+(node:2777389) [MONGOOSE] Warning: Duplicate schema index on {"serviceCode":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+(node:2777389) [MONGOOSE] Warning: Duplicate schema index on {"ekycRequestId":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+(node:2817971) [MONGOOSE] Warning: Duplicate schema index on {"adminId":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:2817971) [MONGOOSE] Warning: Duplicate schema index on {"name":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+(node:2817971) [MONGOOSE] Warning: Duplicate schema index on {"packageCode":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+(node:2817971) [MONGOOSE] Warning: Duplicate schema index on {"name":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+(node:2817971) [MONGOOSE] Warning: Duplicate schema index on {"serviceCode":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+(node:2817971) [MONGOOSE] Warning: Duplicate schema index on {"ekycRequestId":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+Error Occured MW: Error: Invalid OTP
+    at exports.verifyUserOtp (/home/oseuqxlt/camlenio.co.in/api/src/controllers/userController/userAuthController.js:353:19)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5) {
+  statusCode: 400
+}
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Error Occured MW: Error: Insufficient wallet balance
+    at initiateTransaction (/home/oseuqxlt/camlenio.co.in/api/src/controllers/userController/nobleFinoDmtController.js:1040:13)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+Error Occured MW: Error: Insufficient wallet balance
+    at initiateTransaction (/home/oseuqxlt/camlenio.co.in/api/src/controllers/userController/nobleFinoDmtController.js:1040:13)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+Error Occured MW: Error: Insufficient wallet balance
+    at initiateTransaction (/home/oseuqxlt/camlenio.co.in/api/src/controllers/userController/nobleFinoDmtController.js:1040:13)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+(node:2923940) [MONGOOSE] Warning: Duplicate schema index on {"adminId":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:2923940) [MONGOOSE] Warning: Duplicate schema index on {"name":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+(node:2923940) [MONGOOSE] Warning: Duplicate schema index on {"packageCode":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+(node:2923940) [MONGOOSE] Warning: Duplicate schema index on {"name":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+(node:2923940) [MONGOOSE] Warning: Duplicate schema index on {"serviceCode":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+(node:2923940) [MONGOOSE] Warning: Duplicate schema index on {"ekycRequestId":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+(node:2977367) [MONGOOSE] Warning: Duplicate schema index on {"adminId":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:2977367) [MONGOOSE] Warning: Duplicate schema index on {"name":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+(node:2977367) [MONGOOSE] Warning: Duplicate schema index on {"packageCode":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+(node:2977367) [MONGOOSE] Warning: Duplicate schema index on {"name":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+(node:2977367) [MONGOOSE] Warning: Duplicate schema index on {"serviceCode":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+(node:2977367) [MONGOOSE] Warning: Duplicate schema index on {"ekycRequestId":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+Error Occured MW: Error: Insufficient wallet balance
+    at initiateTransaction (/home/oseuqxlt/camlenio.co.in/api/src/controllers/userController/nobleFinoDmtController.js:1040:13)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+(node:3002442) [MONGOOSE] Warning: Duplicate schema index on {"adminId":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:3002442) [MONGOOSE] Warning: Duplicate schema index on {"name":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+(node:3002442) [MONGOOSE] Warning: Duplicate schema index on {"packageCode":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+(node:3002442) [MONGOOSE] Warning: Duplicate schema index on {"name":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+(node:3002442) [MONGOOSE] Warning: Duplicate schema index on {"serviceCode":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+(node:3002442) [MONGOOSE] Warning: Duplicate schema index on {"ekycRequestId":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+Error Occured MW: { status: 'FAILED', message: 'Customer is not registered' }
+Charges Processing failed: TypeError: Cannot read properties of null (reading 'parentUserId')
+    at exports.applyChargeHierarchy (/home/oseuqxlt/camlenio.co.in/api/src/helpers/applyChargeHierarchy.js:46:24)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async exports.transferFund (/home/oseuqxlt/camlenio.co.in/api/src/services/nobleFinoDmtService.js:771:9)
+    at async initiateTransaction (/home/oseuqxlt/camlenio.co.in/api/src/controllers/userController/nobleFinoDmtController.js:999:22)
+Error Occured MW: Error
+    at initiateTransaction (/home/oseuqxlt/camlenio.co.in/api/src/controllers/userController/nobleFinoDmtController.js:1040:13)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+Error Occured MW: Error: Invalid OTP
+    at exports.verifyUserOtp (/home/oseuqxlt/camlenio.co.in/api/src/controllers/userController/userAuthController.js:353:19)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5) {
+  statusCode: 400
+}
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Error Occured MW: Error: Transaction Failed
+    at exports.doRechargeService (/home/oseuqxlt/camlenio.co.in/api/src/services/doRechargeService.js:204:21)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async exports.doMobilePrepaidRecharge (/home/oseuqxlt/camlenio.co.in/api/src/controllers/userController/rechargeController.js:229:22) {
+  statusCode: 400,
+  data: { status: 'FAILED', message: 'Transaction Failed' }
+}
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+(node:2334529) [MONGOOSE] Warning: Duplicate schema index on {"adminId":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:2334529) [MONGOOSE] Warning: Duplicate schema index on {"name":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+(node:2334529) [MONGOOSE] Warning: Duplicate schema index on {"packageCode":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+(node:2334529) [MONGOOSE] Warning: Duplicate schema index on {"name":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+(node:2334529) [MONGOOSE] Warning: Duplicate schema index on {"serviceCode":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+(node:2334529) [MONGOOSE] Warning: Duplicate schema index on {"ekycRequestId":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+(node:2337497) [MONGOOSE] Warning: Duplicate schema index on {"adminId":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:2337497) [MONGOOSE] Warning: Duplicate schema index on {"name":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+(node:2337497) [MONGOOSE] Warning: Duplicate schema index on {"packageCode":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+(node:2337497) [MONGOOSE] Warning: Duplicate schema index on {"name":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+(node:2337497) [MONGOOSE] Warning: Duplicate schema index on {"serviceCode":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+(node:2337497) [MONGOOSE] Warning: Duplicate schema index on {"ekycRequestId":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
