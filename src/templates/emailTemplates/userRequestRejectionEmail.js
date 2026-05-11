@@ -5,6 +5,7 @@ exports.generateRejectionEmail = ({
   supportEmail = "support@camlenio.com",
   companyName = "Camlenio Software",
   logoUrl = "https://camlenio.co.in/api1/logo.png"
+
 }) => {
   return `
   <!DOCTYPE html>

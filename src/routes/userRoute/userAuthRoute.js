@@ -10,12 +10,13 @@ const {
 const { authenticateUser } = require("../../middleware/authMiddleware");
 const checkUserPaymentAndKYC = require("../../middleware/kycPaymentCheckMiddleware");
 const router = express.Router();
+const asyncHandler = require("../../utils/asyncHandler");
 
 router.post("/user-register", userRegister);
 
-router.post("/user-login", userLogin);
+router.post("/user-login", asyncHandler(userLogin));
 
-router.post("/verify-user-otp", verifyUserOtp);
+router.post("/verify-user-otp", asyncHandler(verifyUserOtp));
 
 router.patch("/forgot-password", forgotPassword);
 

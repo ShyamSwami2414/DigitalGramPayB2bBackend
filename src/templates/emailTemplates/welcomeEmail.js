@@ -4,7 +4,7 @@ exports.generateWelcomeEmail = ({
   userName,
   password,
   pin,
-  loginUrl
+  loginUrl,
 }) => {
   return `
   <!DOCTYPE html>

@@ -5,6 +5,7 @@ const cors = require("cors");
 const path = require("path");
 const dbConnection = require("../src/config/dbConfig");
 const errorHandler = require("./middleware/errorHandler");
+const { globalErrorHandler } = require("./middleware/errorMiddleware");
 
 dbConnection();
 app.use(cors());
@@ -33,6 +34,21 @@ app.use(
 require("../src/routes/adminRoute/index")(app);
 require("../src/routes/userRoute/index")(app);
 
+process.on("uncaughtException", async (err) => {
+  await logError({
+    title: "UNCAUGHT_EXCEPTION",
+    error: err,
+  });
+});
+
+process.on("unhandledRejection", async (err) => {
+  await logError({
+    title: "UNHANDLED_REJECTION",
+    error: err,
+  });
+});
+
+app.use(globalErrorHandler);
 app.use(errorHandler);
 
 const PORT = process.env.PORT || 8000;
