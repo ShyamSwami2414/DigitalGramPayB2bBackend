@@ -43,7 +43,7 @@ exports.applyChargeHierarchy = async ({
     });
 
     //  Traverse ONLY uplines
-    while (currentUser.parentUserId) {
+    while (currentUser && currentUser.parentUserId) {
       const uplineUser = await User.findOne({
         _id: currentUser.parentUserId,
         isDeleted: false,
@@ -56,8 +56,15 @@ exports.applyChargeHierarchy = async ({
         currentUser = await User.findById(currentUser.parentUserId).select(
           "_id parentUserId",
         );
+
+        if (!currentUser) {
+          console.log("Broken hierarchy detected");
+          break;
+        }
+
         continue;
       }
+
       //  Calculate upline charges
       const uplineUserCharges = await calculateCommission({
         amount: amount, //paise
@@ -97,6 +104,7 @@ exports.applyChargeHierarchy = async ({
         );
 
         if (!wallet) {
+          console.log("Wallet missing for:", uplineUser._id);
           throw new Error(`Wallet not found for user ${uplineUser._id}`);
         }
 
@@ -145,6 +153,11 @@ exports.applyChargeHierarchy = async ({
       currentUser = uplineUser;
     }
   } catch (error) {
+    console.error("ApplyChargeHierarchy Error:");
+
+    console.error(error);
+
+    console.error(error.stack);
     throw error;
   }
 };

@@ -190,7 +190,7 @@ exports.addEmployee = async (req, res, next) => {
       userName: employee.userName,
       password: password,
       pin: pin,
-      loginUrl: "http://localhost:3000",
+      loginUrl: "https://camlenio.co.in/user-camlenio/login",
     });
 
     await sendEmail(employee.email, [], [], "Welcome to B2B", html);

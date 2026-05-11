@@ -4,7 +4,7 @@ exports.generateWelcomeEmail = ({
   userName,
   password,
   pin,
-  loginUrl
+  loginUrl,
 }) => {
   return `
   <!DOCTYPE html>
@@ -22,7 +22,7 @@ exports.generateWelcomeEmail = ({
             <!-- Logo -->
             <tr>
               <td align="center">
-                <img src="http://localhost:8000/logo.png" alt="Camlenio Logo" width="150" />
+                <img src="https://camlenio.co.in/api1/logo.png" alt="Camlenio Logo" width="150" />
               </td>
             </tr>
 
