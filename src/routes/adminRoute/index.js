@@ -1,8 +1,8 @@
-const apiPrefix = "/api1/admin";
+const apiPrefix = "/admin";
 console.log("Admin Route Index Loaded");
 
 module.exports = (app) => {
-  app.use(`/api1`, require("./adminAuthRoute"));
+  app.use(`/`, require("./adminAuthRoute"));
   app.use(`${apiPrefix}/role`, require("./roleRoute"));
   app.use(`${apiPrefix}/kyc`, require("./kycRoute"));
   app.use(`${apiPrefix}/package`, require("./packageRoute"));
@@ -42,6 +42,19 @@ module.exports = (app) => {
   // app.use(`${apiPrefix}/report`, require("./reportRoute"));
   app.use(`${apiPrefix}/rechargeReport`, require("./rechargeReportRoute"));
   app.use(`${apiPrefix}/bbpsReport`, require("./bbpsReportRoute"));
+  app.use(`${apiPrefix}/aepsReport`, require("./instantAepsReportRoute"));
+  app.use(`${apiPrefix}/eAepsReport`, require("./ekoAepsReportRoute"));
+  app.use(`${apiPrefix}/dmtReport`, require("./nobleDmtReportRoute"));
+  app.use(
+    `${apiPrefix}/aepsPayoutReport`,
+    require("./sozoAepsPayoutReportRoute"),
+  );
+
+  app.use(
+    `${apiPrefix}/xpressPayoutReport`,
+    require("./sozoXpressPayoutReportRoute"),
+  );
+
   app.use(`${apiPrefix}/notification`, require("./notificationRoute"));
   app.use(`${apiPrefix}/banner`, require("./bannerRoute"));
   app.use(`${apiPrefix}/dashboard`, require("./dashboardRoute"));

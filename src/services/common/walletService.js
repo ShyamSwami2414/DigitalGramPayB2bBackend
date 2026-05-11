@@ -1,6 +1,74 @@
 const UserWallet = require("../../models/userWallet");
 const WalletLedger = require("../../models/walletLedgerModel");
 
+//for recharge p2p system
+const debitP2PWallet = async ({
+  userId,
+  amount, //paise amount of recahrge by frontend
+  p2pAmount, //amount after cutting commission
+  serviceType = null,
+  serviceCategory = null,
+  referenceId,
+  description,
+  session,
+}) => {
+  let openingBalance = 0;
+  let closingBalance = 0;
+
+  console.log(amount, "debit wallet amount value");
+  console.log(p2pAmount, "p2pAmount debit wallet amount value");
+
+  const wallet = await UserWallet.findOneAndUpdate(
+    {
+      userId: userId,
+      isActive: true,
+      isDeleted: false,
+      $expr: {
+        $gte: [{ $subtract: ["$mainWallet", "$mainHoldAmount"] }, p2pAmount],
+      },
+    },
+    {
+      $inc: {
+        mainWallet: -p2pAmount,
+      },
+    },
+    {
+      new: true,
+      session: session,
+    },
+  );
+
+  console.log("wallet from db", wallet);
+
+  if (!wallet) {
+    throw new Error("Insufficient Wallet Balance, Contact to Admin");
+  }
+
+  closingBalance = wallet.mainWallet;
+  openingBalance = closingBalance + p2pAmount;
+
+  await WalletLedger.create(
+    [
+      {
+        userId: userId,
+        serviceType: serviceType,
+        serviceCategory: serviceCategory, //dynamic like operator for recharge, aeps withdraw service types, bbps categories etc
+        wallet: "main",
+        type: "debit",
+        amount: p2pAmount,
+        openingBalance: openingBalance,
+        closingBalance: closingBalance,
+        referenceId: referenceId,
+        description: description,
+        status: "INITIATED",
+      },
+    ],
+    { session: session },
+  );
+
+  return { openingBalance, closingBalance };
+};
+
 const debitAepsWallet = async ({
   userId,
   amount, //paise
@@ -198,6 +266,7 @@ const creditWallet = async ({
 };
 
 module.exports = {
+  debitP2PWallet,
   debitWallet,
   creditWallet,
   debitAepsWallet,
