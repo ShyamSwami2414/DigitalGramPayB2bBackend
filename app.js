@@ -16,7 +16,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, "api1/public")));
 
 // Serve user uploads
-console.log("path", path.join(__dirname, "../api1/uploads"))
+console.log("path", path.join(__dirname, "api1/uploads"))
 
 app.use(
   "/api1/uploads",

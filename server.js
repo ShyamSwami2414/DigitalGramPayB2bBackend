@@ -13,14 +13,14 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // Serve static files from the public folder
-app.use(express.static(path.join(__dirname, "../public")));
+app.use(express.static(path.join(__dirname, "public")));
 
 // Serve user uploads
-console.log("path", path.join(__dirname, "../uploads"));
+console.log("path", path.join(__dirname, "uploads"));
 
 app.use(
   "/uploads",
-  express.static(path.join(__dirname, "../uploads"), {
+  express.static(path.join(__dirname, "uploads"), {
     setHeaders: (res, filePath) => {
       if (filePath.endsWith(".pdf")) {
         res.setHeader("Content-Type", "application/pdf");
