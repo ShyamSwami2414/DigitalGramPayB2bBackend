@@ -3,9 +3,9 @@ const app = express();
 const dotenv = require("dotenv").config();
 const cors = require("cors");
 const path = require("path");
-const dbConnection = require("../src/config/dbConfig");
-const errorHandler = require("./middleware/errorHandler");
-const { globalErrorHandler } = require("./middleware/errorMiddleware");
+const dbConnection = require("./src/config/dbConfig");
+const errorHandler = require("./src/middleware/errorHandler");
+const { globalErrorHandler } = require("./src/middleware/errorMiddleware");
 
 dbConnection();
 app.use(cors());
@@ -31,8 +31,8 @@ app.use(
 );
 
 // Register API routes before fallback
-require("../src/routes/adminRoute/index")(app);
-require("../src/routes/userRoute/index")(app);
+require("./src/routes/adminRoute/index")(app);
+require("./src/routes/userRoute/index")(app);
 
 process.on("uncaughtException", async (err) => {
   await logError({

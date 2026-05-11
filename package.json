@@ -2,10 +2,10 @@
   "name": "b2b backend",
   "version": "1.0.0",
   "description": "B2B Backend",
-  "main": "app.js",
+  "main": "server.js",
   "scripts": {
-    "start": "nodemon app.js",
-    "dev": "nodemon app.js"
+    "start": "nodemon server.js",
+    "dev": "nodemon server.js"
   },
   "keywords": [
     "nodejs",
