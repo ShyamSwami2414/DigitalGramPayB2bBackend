@@ -5421,3 +5421,119 @@ Invalid paise value: undefined
 (node:2337497) [MONGOOSE] Warning: Duplicate schema index on {"name":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
 (node:2337497) [MONGOOSE] Warning: Duplicate schema index on {"serviceCode":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
 (node:2337497) [MONGOOSE] Warning: Duplicate schema index on {"ekycRequestId":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+(node:2487485) [MONGOOSE] Warning: Duplicate schema index on {"adminId":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:2487485) [MONGOOSE] Warning: Duplicate schema index on {"name":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+(node:2487485) [MONGOOSE] Warning: Duplicate schema index on {"packageCode":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+(node:2487485) [MONGOOSE] Warning: Duplicate schema index on {"name":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+(node:2487485) [MONGOOSE] Warning: Duplicate schema index on {"serviceCode":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+(node:2487485) [MONGOOSE] Warning: Duplicate schema index on {"ekycRequestId":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+Error sending email: Cannot read properties of undefined (reading 'length')
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
+Invalid paise value: undefined
