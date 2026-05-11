@@ -311,7 +311,7 @@ exports.getRechargeReportById = async (req, res, next) => {
     const formattedData = report
       ? {
           ...report,
-          amount: paiseToRupee(report?.amount),
+          amount: paiseToRupee(report?.amount || 0),
           commission: paiseToRupee(report?.commission),
           tds: paiseToRupee(report?.tds),
           netCommission: paiseToRupee(report?.netCommission),
@@ -582,7 +582,7 @@ exports.getRechargeReport = async (req, res, next) => {
 
     const formattedData = data.map((item) => ({
       ...item,
-      amount: paiseToRupee(item?.amount),
+      amount: paiseToRupee(item?.amount || 0),
       commission: paiseToRupee(item?.commission),
       tds: paiseToRupee(item?.tds),
       netCommission: paiseToRupee(item?.netCommission),

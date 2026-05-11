@@ -15,10 +15,13 @@ const { calculateTds } = require("../helpers/calculateTds");
 const {
   validateUserPackageAndService,
 } = require("./common/validateUserPackageAndService");
-const { debitWallet } = require("./common/walletService");
+const { debitWallet, debitP2PWallet } = require("./common/walletService");
 const { processCommission } = require("./common/commissionService");
 const { processRefund } = require("./common/refundService");
 const Transaction = require("../models/transactionModel");
+const walletLedgerModel = require("../models/walletLedgerModel");
+const { splitCommission } = require("../helpers/splitCommission");
+const tdsLedgerModel = require("../models/tdsLedgerModel");
 
 exports.doRechargeService = async ({
   userId,
@@ -43,9 +46,25 @@ exports.doRechargeService = async ({
       amount: amount, //paise
     });
 
-    const { openingBalance, closingBalance } = await debitWallet({
-      userId: userId,
+    const commission = await calculateCommission({
       amount: amount, //paise
+      packageId: packageId,
+      serviceId: serviceId,
+      operatorId: operatorId,
+      pipeline: "recharge1",
+    });
+
+    console.log("commission paise", commission);
+
+    const tdsAmount = calculateTds(commission); //paise
+    const netCommission = commission - tdsAmount; //payable to user
+
+    const amountAfterCommission = amount - netCommission;
+
+    const { openingBalance, closingBalance } = await debitP2PWallet({
+      userId: userId,
+      amount: amount, // recharge amount paise
+      p2pAmount: amountAfterCommission, // amount paise
       serviceType: "RECHARGE",
       serviceCategory: operatorName,
       referenceId: referenceId,
@@ -61,6 +80,7 @@ exports.doRechargeService = async ({
           operatorName: operatorName,
           mobileNumber: number,
           amount: amount, //paise
+          p2pAmount: amountAfterCommission, //paise
           referenceId: referenceId,
           status: "INITIATED",
         },
@@ -75,7 +95,7 @@ exports.doRechargeService = async ({
           referenceId: referenceId,
           serviceType: "RECHARGE",
           serviceCategory: operatorName,
-          amount: amount, //paise
+          amount: amountAfterCommission, //paise
           wallet: "main",
           type: "debit",
           status: "INITIATED",
@@ -160,29 +180,83 @@ exports.doRechargeService = async ({
       }
     } else if (result?.status === "SUCCESS") {
       console.log("Entered Success Block");
+      const successSession = await mongoose.startSession();
 
       try {
-        const { commission, tdsAmount, netCommission } =
-          await processCommission({
-            userId: userId,
-            amount: amount, //paise
-            packageId: packageId,
-            serviceId: serviceId,
-            serviceType: "RECHARGE",
-            serviceCategory: operatorName,
-            operatorId: operatorId,
-            pipeline: "recharge1",
+        successSession.startTransaction();
+        await walletLedgerModel.updateOne(
+          { referenceId: referenceId, serviceType: "RECHARGE" },
+          { status: "SUCCESS" },
+          { session: successSession },
+        );
+
+        await RechargeReport.updateOne(
+          { referenceId: referenceId },
+          {
+            status: "SUCCESS",
+            commission: commission,
+            tds: tdsAmount,
+            netCommission: netCommission,
+            providerTxnId: referenceId,
+            description: result?.message,
+          },
+          { session: successSession },
+        );
+
+        await tdsLedgerModel.create(
+          [
+            {
+              userId: userId,
+              referenceId: referenceId,
+              commissionAmount: commission,
+              tdsRate: 2, //percent
+              netCommission: netCommission,
+              tdsAmount: tdsAmount,
+            },
+          ],
+          { session: successSession },
+        );
+
+        await Transaction.updateOne(
+          {
             referenceId: referenceId,
-            providerTxnId: result?.txn_ref,
-            reportModel: RechargeReport,
-            description: "Recharge Commission",
-            apiMessage: result?.message,
-            apiResponse: result,
-          });
+          },
+          {
+            $set: {
+              status: "SUCCESS",
+              providerTxnId: result?.txn_ref,
+              remark: result ? result?.message : "",
+              "meta.response": result ? result : "",
+            },
+          },
+          { session: successSession },
+        );
+
+        await splitCommission({
+          userId: userId,
+          amount: amount, //paise
+          serviceId: serviceId,
+          serviceType: "RECHARGE",
+          walletType: "main",
+          serviceCategory: operatorName,
+          operatorId: operatorId,
+          categoryId: null,
+          pipeline: "recharge1",
+          referenceId: referenceId,
+          session: successSession,
+        });
+
+        await successSession.commitTransaction();
 
         return result;
       } catch (error) {
         console.error("Commission failed:", error);
+        if (successSession.inTransaction()) {
+          await successSession.abortTransaction();
+        }
+        throw error;
+      } finally {
+        successSession.endSession();
       }
     } else {
       console.log("Entered Failed Block");
@@ -190,7 +264,7 @@ exports.doRechargeService = async ({
       try {
         const { openingBalance, closingBalance } = await processRefund({
           userId: userId,
-          amount: amount, //paise
+          amount: amountAfterCommission, //paise
           referenceId: referenceId,
           serviceType: "RECHARGE",
           serviceCategory: operatorName,
