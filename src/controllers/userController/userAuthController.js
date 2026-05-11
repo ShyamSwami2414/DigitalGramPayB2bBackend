@@ -101,7 +101,7 @@ exports.userRegister = async (req, res, next) => {
       userName: userName,
       password,
       pin,
-      loginUrl: "http://localhost:8000/user-login",
+      loginUrl: "https://camlenio.co.in/user-camlenio/login",
     });
 
     sendEmail(email, [], [], "Welcome to Camlenio Software", html);
