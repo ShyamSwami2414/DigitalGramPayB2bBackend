@@ -34,14 +34,10 @@ const rechargeReportSchema = new mongoose.Schema(
     amount: {
       type: Number,
       required: true,
-<<<<<<< HEAD
-      set: round2,
-=======
     },
 
     p2pAmount: {
       type: Number,
->>>>>>> core/main
     },
 
     type: {

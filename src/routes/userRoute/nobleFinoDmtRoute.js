@@ -13,17 +13,10 @@ const {
 const idempotencyMiddleware = require("../../middleware/idempotencyMiddleware");
 const validatePipeline = require("../../middleware/pipelineCheckMiddleware");
 const apiLogger = require("../../middleware/apiLogger");
-<<<<<<< HEAD
-const router = express.Router();
-router.use(validatePipeline("dmt1"));
-
-
-=======
 const asyncHandler = require("../../utils/asyncHandler");
 const router = express.Router();
 router.use(validatePipeline("dmt1"));
 
->>>>>>> core/main
 // get all list whether approved or not
 router.post(
   "/get-customer",
@@ -85,11 +78,7 @@ router.post(
   checkUserPaymentAndKYC,
   idempotencyMiddleware,
   apiLogger,
-<<<<<<< HEAD
-  initiateTransaction,
-=======
   asyncHandler(initiateTransaction),
->>>>>>> core/main
 );
 
 module.exports = router;
