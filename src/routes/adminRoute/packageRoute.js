@@ -11,6 +11,7 @@ const {
 const { authenticateUser } = require("../../middleware/authMiddleware");
 const { authorizeRoles } = require("../../middleware/roleMiddleware");
 const checkAllowedPermission = require("../../middleware/adminPermissionCheck");
+const asyncHandler = require("../../utils/asyncHandler");
 const router = express.Router();
 
 router.post(
@@ -18,7 +19,7 @@ router.post(
   authenticateUser,
   authorizeRoles("admin"),
   checkAllowedPermission("PACKAGE"),
-  createPackage,
+  asyncHandler(createPackage),
 );
 
 router.get(
@@ -26,7 +27,7 @@ router.get(
   authenticateUser,
   authorizeRoles("admin"),
   checkAllowedPermission("PACKAGE"),
-  getAllPackages,
+  asyncHandler(getAllPackages),
 );
 
 router.get(
@@ -34,7 +35,7 @@ router.get(
   authenticateUser,
   authorizeRoles("admin"),
   checkAllowedPermission("PACKAGE"),
-  getPackagesByRoleId,
+  asyncHandler(getPackagesByRoleId),
 );
 
 router.get(
@@ -42,7 +43,7 @@ router.get(
   authenticateUser,
   authorizeRoles("admin"),
   checkAllowedPermission("PACKAGE"),
-  getActivePackageList,
+  asyncHandler(getActivePackageList),
 );
 
 router.put(
@@ -50,7 +51,7 @@ router.put(
   authenticateUser,
   authorizeRoles("admin"),
   checkAllowedPermission("PACKAGE"),
-  updatePackage,
+  asyncHandler(updatePackage),
 );
 
 router.patch(
@@ -58,7 +59,7 @@ router.patch(
   authenticateUser,
   authorizeRoles("admin"),
   checkAllowedPermission("PACKAGE"),
-  updatePackageStatus,
+  asyncHandler(updatePackageStatus),
 );
 
 router.delete(
@@ -66,7 +67,7 @@ router.delete(
   authenticateUser,
   authorizeRoles("admin"),
   checkAllowedPermission("PACKAGE"),
-  deletePackage,
+  asyncHandler(deletePackage),
 );
 
 module.exports = router;

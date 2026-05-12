@@ -7,13 +7,14 @@ const {
 } = require("../../controllers/userController/walletController");
 const idempotencyMiddleware = require("../../middleware/idempotencyMiddleware");
 const apiLogger = require("../../middleware/apiLogger");
+const asyncHandler = require("../../utils/asyncHandler");
 const router = express.Router();
 
 router.get(
   "/get-wallet-balance",
   authenticateUser,
   checkUserPaymentAndKYC,
-  getWalletBalance,
+  asyncHandler(getWalletBalance),
 );
 
 //for balance transfer
@@ -24,7 +25,7 @@ router.patch(
   checkUserPaymentAndKYC,
   idempotencyMiddleware,
   apiLogger,
-  aepsToMainTransfer,
+  asyncHandler(aepsToMainTransfer),
 );
 
 module.exports = router;

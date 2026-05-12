@@ -2247,7 +2247,7 @@ exports.getWalletReport = async (req, res, next) => {
                 },
               },
             },
-            { $project: { tdsAmount: 1 } },
+            { $project: { tdsAmount: 1, commissionAmount: 1 } },
           ],
           as: "tds",
         },
@@ -2256,6 +2256,7 @@ exports.getWalletReport = async (req, res, next) => {
       {
         $addFields: {
           tdsAmount: { $ifNull: ["$tds.tdsAmount", 0] },
+          commission: { $ifNull: ["$tds.commissionAmount", 0] },
         },
       },
       { $unset: "tds" },

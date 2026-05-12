@@ -5,13 +5,15 @@ const {
   getAllTopupBanks,
 } = require("../../controllers/userController/topupBankController");
 
+const asyncHandler = require("../../utils/asyncHandler");
+
 const router = express.Router();
 
 router.get(
   "/get-all-topup-banks",
   authenticateUser,
   // checkUserPaymentAndKYC,
-  getAllTopupBanks,
+  asyncHandler(getAllTopupBanks),
 );
 
 module.exports = router;

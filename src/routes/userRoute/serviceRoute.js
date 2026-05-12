@@ -5,20 +5,21 @@ const {
 } = require("../../controllers/userController/serviceController");
 const { authenticateUser } = require("../../middleware/authMiddleware");
 const checkUserPaymentAndKYC = require("../../middleware/kycPaymentCheckMiddleware");
+const asyncHandler = require("../../utils/asyncHandler");
 const router = express.Router();
 
 router.get(
   "/all-service-list",
   authenticateUser,
   checkUserPaymentAndKYC,
-  getServiceList,
+  asyncHandler(getServiceList),
 );
 
 router.get(
   "/list",
   authenticateUser,
   checkUserPaymentAndKYC,
-  serviceListWithPipeline,
+  asyncHandler(serviceListWithPipeline),
 );
 
 module.exports = router;

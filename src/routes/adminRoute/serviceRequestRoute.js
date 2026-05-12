@@ -11,6 +11,7 @@ const {
   approveServiceRequest,
   rejectServiceRequest,
 } = require("../../controllers/adminController/serviceRequestController");
+const asyncHandler = require("../../utils/asyncHandler");
 const router = express.Router();
 
 router.get(
@@ -18,7 +19,7 @@ router.get(
   authenticateUser,
   authorizeRoles("admin"),
   checkAllowedPermission("SERVICE"),
-  listAllServiceRequest,
+  asyncHandler(listAllServiceRequest),
 );
 
 router.patch(
@@ -26,7 +27,7 @@ router.patch(
   authenticateUser,
   authorizeRoles("admin"),
   checkAllowedPermission("ACCOUNT_WHITELIST"),
-  approveServiceRequest,
+  asyncHandler(approveServiceRequest),
 );
 
 router.patch(
@@ -34,7 +35,7 @@ router.patch(
   authenticateUser,
   authorizeRoles("admin"),
   checkAllowedPermission("ACCOUNT_WHITELIST"),
-  rejectServiceRequest,
+  asyncHandler(rejectServiceRequest),
 );
 
 module.exports = router;

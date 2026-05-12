@@ -9,6 +9,8 @@ const {
 } = require("../../controllers/adminController/offlineServiceRequestController");
 const checkAllowedPermission = require("../../middleware/adminPermissionCheck");
 
+const asyncHandler = require("../../utils/asyncHandler");
+
 const router = express.Router();
 
 router.get(
@@ -16,7 +18,7 @@ router.get(
   authenticateUser,
   authorizeRoles("admin"),
   checkAllowedPermission("OFFLINE_SERVICE"),
-  listOfflineServiceRequests,
+  asyncHandler(listOfflineServiceRequests),
 );
 
 router.get(
@@ -24,7 +26,7 @@ router.get(
   authenticateUser,
   authorizeRoles("admin"),
   checkAllowedPermission("OFFLINE_SERVICE"),
-  getOfflineServiceRequestById,
+  asyncHandler(getOfflineServiceRequestById),
 );
 
 router.delete(
@@ -32,7 +34,7 @@ router.delete(
   authenticateUser,
   authorizeRoles("admin"),
   checkAllowedPermission("OFFLINE_SERVICE"),
-  deleteOfflineServiceRequest,
+  asyncHandler(deleteOfflineServiceRequest),
 );
 
 router.put(
@@ -40,7 +42,7 @@ router.put(
   authenticateUser,
   authorizeRoles("admin"),
   checkAllowedPermission("OFFLINE_SERVICE"),
-  updateOfflineServiceRequestStatus,
+  asyncHandler(updateOfflineServiceRequestStatus),
 );
 
 module.exports = router;

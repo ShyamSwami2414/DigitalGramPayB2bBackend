@@ -5,6 +5,7 @@ const {
 const { authenticateUser } = require("../../middleware/authMiddleware");
 const { authorizeRoles } = require("../../middleware/roleMiddleware");
 const checkAllowedPermission = require("../../middleware/adminPermissionCheck");
+const asyncHandler = require("../../utils/asyncHandler");
 const router = express.Router();
 
 router.get(
@@ -12,7 +13,7 @@ router.get(
   authenticateUser,
   authorizeRoles("admin"),
   checkAllowedPermission("OFFLINE_SERVICE"),
-  getAllDocumentOptionList,
+  asyncHandler(getAllDocumentOptionList),
 );
 
 module.exports = router;

@@ -9,6 +9,7 @@ const {
 } = require("../../controllers/userController/sozoAepsPayoutBankRequestController");
 const multerErrorHandler = require("../../middleware/multerErrorHandler");
 const createUploader = require("../../middleware/uploadMiddleware");
+const asyncHandler = require("../../utils/asyncHandler");
 const router = express.Router();
 
 const upload = createUploader("aepsPayoutCheque", /jpeg|jpg|png/, 2048);
@@ -18,7 +19,7 @@ router.get(
   "/aeps-payout-banks",
   authenticateUser,
   checkUserPaymentAndKYC,
-  getAepsPayoutBanks,
+  asyncHandler(getAepsPayoutBanks),
 );
 
 // get only approved list for select bar
@@ -26,7 +27,7 @@ router.get(
   "/approved-aeps-banks",
   authenticateUser,
   checkUserPaymentAndKYC,
-  getApprovedAepsBankList,
+  asyncHandler(getApprovedAepsBankList),
 );
 
 router.post(
@@ -34,14 +35,14 @@ router.post(
   authenticateUser,
   checkUserPaymentAndKYC,
   multerErrorHandler(upload.single("cheque")),
-  addAepsPayoutBank,
+  asyncHandler(addAepsPayoutBank),
 );
 
 router.delete(
   "/delete-aeps-payout-bank/:id",
   authenticateUser,
   checkUserPaymentAndKYC,
-  deleteAepsPayoutBank,
+  asyncHandler(deleteAepsPayoutBank),
 );
 
 

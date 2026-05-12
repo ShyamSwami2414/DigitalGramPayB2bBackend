@@ -8,13 +8,14 @@ const {
   fetchProfile,
   updateProfile,
 } = require("../../controllers/adminController/adminAuthController");
+const asyncHandler = require("../../utils/asyncHandler");
 const router = express.Router();
 
-router.post("/super-login", superAdminLogin);
-router.post("/verify-otp", verifySuperAdminOtp);
+router.post("/super-login", asyncHandler(superAdminLogin));
+router.post("/verify-otp", asyncHandler(verifySuperAdminOtp));
 // router.post("/admin-register", adminRegister);
-router.patch("/change-password", authenticateUser, changePassword);
-router.patch("/update-profile", authenticateUser, updateProfile);
-router.get("/fetch-profile", authenticateUser, fetchProfile);
+router.patch("/change-password", authenticateUser, asyncHandler(changePassword));
+router.patch("/update-profile", authenticateUser, asyncHandler(updateProfile));
+router.get("/fetch-profile", authenticateUser, asyncHandler(fetchProfile));
 
 module.exports = router;

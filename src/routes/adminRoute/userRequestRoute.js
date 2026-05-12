@@ -6,6 +6,7 @@ const {
 const { authenticateUser } = require("../../middleware/authMiddleware");
 const { authorizeRoles } = require("../../middleware/roleMiddleware");
 const checkAllowedPermission = require("../../middleware/adminPermissionCheck");
+const asyncHandler = require("../../utils/asyncHandler");
 const router = express.Router();
 
 router.get(
@@ -13,7 +14,7 @@ router.get(
   authenticateUser,
   authorizeRoles("admin"),
   checkAllowedPermission("USER_REQUEST"),
-  getAllUserRequests,
+  asyncHandler(getAllUserRequests),
 );
 
 router.patch(
@@ -21,7 +22,7 @@ router.patch(
   authenticateUser,
   authorizeRoles("admin"),
   checkAllowedPermission("USER_REQUEST"),
-  updateUserRequestStatus,
+  asyncHandler(updateUserRequestStatus),
 );
 
 module.exports = router;

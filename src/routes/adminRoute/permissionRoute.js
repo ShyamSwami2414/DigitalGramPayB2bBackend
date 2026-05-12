@@ -8,12 +8,14 @@ const {
 } = require("../../controllers/adminController/permissionController");
 const checkAllowedPermission = require("../../middleware/adminPermissionCheck");
 
+const asyncHandler = require("../../utils/asyncHandler");
+
 router.get(
   "/permission-list",
   authenticateUser,
   authorizeRoles("admin"),
   checkAllowedPermission("EMPLOYEE"),
-  getPermissionList,
+  asyncHandler(getPermissionList),
 );
 
 module.exports = router;

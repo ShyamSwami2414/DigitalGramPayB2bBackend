@@ -11,19 +11,20 @@ const {
 const validatePipeline = require("../../middleware/pipelineCheckMiddleware");
 const idempotencyMiddleware = require("../../middleware/idempotencyMiddleware");
 const apiLogger = require("../../middleware/apiLogger");
+const asyncHandler = require("../../utils/asyncHandler");
 const router = express.Router();
 
 router.get(
   "/operator-list",
   authenticateUser,
   checkUserPaymentAndKYC,
-  getAllOperatorCodeList,
+  asyncHandler(getAllOperatorCodeList),
 );
 router.get(
   "/circle-list",
   authenticateUser,
   checkUserPaymentAndKYC,
-  getAllCircleCodeList,
+  asyncHandler(getAllCircleCodeList),
 );
 
 router.use(validatePipeline("recharge1"));
@@ -31,9 +32,9 @@ router.get(
   "/mobile-verify/:mobile",
   authenticateUser,
   checkUserPaymentAndKYC,
-  mobileVerify,
+  asyncHandler(mobileVerify),
 );
-router.get("/fetch-plan", authenticateUser, checkUserPaymentAndKYC, fetchPlan);
+router.get("/fetch-plan", authenticateUser, checkUserPaymentAndKYC, asyncHandler(fetchPlan));
 
 router.post(
   "/mobile-prepaid-recharge",
@@ -41,7 +42,7 @@ router.post(
   checkUserPaymentAndKYC,
   idempotencyMiddleware,
   apiLogger,
-  doMobilePrepaidRecharge,
+  asyncHandler(doMobilePrepaidRecharge),
 );
 
 module.exports = router;

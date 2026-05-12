@@ -8,13 +8,15 @@ const {
 } = require("../../controllers/adminController/nobleDmtReportControllr");
 const { authorizeRoles } = require("../../middleware/roleMiddleware");
 
+const asyncHandler = require("../../utils/asyncHandler");
+
 const router = express.Router();
 
 router.get(
   "/dmt-stats",
   authenticateUser,
   authorizeRoles("admin"),
-  getDmtStats,
+  asyncHandler(getDmtStats),
 );
 
 //get all aeps transaction of me and my downline
@@ -22,14 +24,14 @@ router.get(
   "/complete-dmt-report",
   authenticateUser,
   authorizeRoles("admin"),
-  getCompleteDmtReport,
+  asyncHandler(getCompleteDmtReport),
 );
 
 router.get(
   "/report/:id",
   authenticateUser,
   authorizeRoles("admin"),
-  getDmtReportById,
+  asyncHandler(getDmtReportById),
 );
 
 module.exports = router;

@@ -8,6 +8,7 @@ const createUploader = require("../../middleware/uploadMiddleware");
 const multerErrorHandler = require("../../middleware/multerErrorHandler");
 const checkUserPaymentAndKYC = require("../../middleware/kycPaymentCheckMiddleware");
 const router = express.Router();
+const asyncHandler = require("../../utils/asyncHandler");
 
 const upload = createUploader("accountWhitelist", /jpeg|jpg|png|pdf/, 2048);
 
@@ -15,7 +16,7 @@ router.get(
   "/",
   authenticateUser,
   checkUserPaymentAndKYC,
-  getAccountWhitelist,
+  asyncHandler(getAccountWhitelist),
 );
 
 //add-account-whitelist
@@ -29,8 +30,7 @@ router.post(
       { name: "passbookOrBankStatement", maxCount: 1 },
     ]),
   ),
-
-  addAccountWhitelist,
+  asyncHandler(addAccountWhitelist),
 );
 
 module.exports = router;

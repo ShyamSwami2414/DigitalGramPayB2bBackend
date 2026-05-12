@@ -12,6 +12,7 @@ const {
 const createUploader = require("../../middleware/uploadMiddleware");
 const multerErrorHandler = require("../../middleware/multerErrorHandler");
 const checkAllowedPermission = require("../../middleware/adminPermissionCheck");
+const asyncHandler = require("../../utils/asyncHandler");
 const router = express.Router();
 
 const upload = createUploader("qrCodeImages", /jpeg|jpg|png/, 2048);
@@ -21,7 +22,7 @@ router.get(
   authenticateUser,
   authorizeRoles("admin"),
   checkAllowedPermission("SETTINGS"),
-  getAllWalletTopupBanks,
+  asyncHandler(getAllWalletTopupBanks),
 );
 
 router.post(
@@ -30,7 +31,7 @@ router.post(
   authorizeRoles("admin"),
   multerErrorHandler(upload.single("qrCode")),
   checkAllowedPermission("SETTINGS"),
-  addWalletTopupBank,
+  asyncHandler(addWalletTopupBank),
 );
 
 router.patch(
@@ -38,7 +39,7 @@ router.patch(
   authenticateUser,
   authorizeRoles("admin"),
   checkAllowedPermission("SETTINGS"),
-  updateWalletTopupBankStatus,
+  asyncHandler(updateWalletTopupBankStatus),
 );
 
 router.delete(
@@ -46,7 +47,7 @@ router.delete(
   authenticateUser,
   authorizeRoles("admin"),
   checkAllowedPermission("SETTINGS"),
-  deleteWalletTopupBank,
+  asyncHandler(deleteWalletTopupBank),
 );
 
 module.exports = router;

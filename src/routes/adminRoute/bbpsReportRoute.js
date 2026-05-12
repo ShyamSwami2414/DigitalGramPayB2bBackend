@@ -7,6 +7,7 @@ const {
 const { authenticateUser } = require("../../middleware/authMiddleware");
 const { authorizeRoles } = require("../../middleware/roleMiddleware");
 const checkAllowedPermission = require("../../middleware/adminPermissionCheck");
+const asyncHandler = require("../../utils/asyncHandler");
 const router = express.Router();
 
 router.get(
@@ -14,7 +15,7 @@ router.get(
   authenticateUser,
   authorizeRoles("admin"),
   checkAllowedPermission("BBPS"),
-  getBbpsStats,
+  asyncHandler(getBbpsStats),
 );
 
 router.get(
@@ -22,7 +23,7 @@ router.get(
   authenticateUser,
   authorizeRoles("admin"),
   checkAllowedPermission("BBPS"),
-  getBbpsReport,
+  asyncHandler(getBbpsReport),
 );
 
 //report view by id
@@ -31,7 +32,7 @@ router.get(
   authenticateUser,
   authorizeRoles("admin"),
   checkAllowedPermission("BBPS"),
-  getBbpsReportById,
+  asyncHandler(getBbpsReportById),
 );
 
 module.exports = router;

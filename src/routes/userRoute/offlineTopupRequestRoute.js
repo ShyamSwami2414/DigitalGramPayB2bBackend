@@ -11,6 +11,8 @@ const multerErrorHandler = require("../../middleware/multerErrorHandler");
 const checkUserPaymentAndKYC = require("../../middleware/kycPaymentCheckMiddleware");
 const idempotencyMiddleware = require("../../middleware/idempotencyMiddleware");
 
+const asyncHandler = require("../../utils/asyncHandler");
+
 const router = express.Router();
 
 const upload = createUploader("paymentProof", /jpeg|jpg|png|pdf/, 2048);
@@ -19,14 +21,14 @@ router.get(
   "/offline-topup-requests-stats",
   authenticateUser,
   checkUserPaymentAndKYC,
-  getTopupRequestStats,
+  asyncHandler(getTopupRequestStats),
 );
 
 router.get(
   "/get-all-offline-topup-requests",
   authenticateUser,
   checkUserPaymentAndKYC,
-  getAllOfflineTopupRequests,
+  asyncHandler(getAllOfflineTopupRequests),
 );
 
 router.post(
@@ -35,7 +37,7 @@ router.post(
   checkUserPaymentAndKYC,
   multerErrorHandler(upload.single("paymentProof")),
   idempotencyMiddleware,
-  addOfflineTopupRequest,
+  asyncHandler(addOfflineTopupRequest),
 );
 
 module.exports = router;

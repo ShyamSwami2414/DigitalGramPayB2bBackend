@@ -9,6 +9,7 @@ const {
 const idempotencyMiddleware = require("../../middleware/idempotencyMiddleware");
 const validatePipeline = require("../../middleware/pipelineCheckMiddleware");
 const apiLogger = require("../../middleware/apiLogger");
+const asyncHandler = require("../../utils/asyncHandler");
 const router = express.Router();
 router.use(validatePipeline("xpress-payout1"));
 
@@ -18,7 +19,7 @@ router.post(
   checkUserPaymentAndKYC,
   idempotencyMiddleware,
   apiLogger,
-  initiateXpressPayout,
+  asyncHandler(initiateXpressPayout),
 );
 
 router.post(
@@ -27,7 +28,7 @@ router.post(
   checkUserPaymentAndKYC,
   idempotencyMiddleware,
   apiLogger,
-  checkPayoutStatus,
+  asyncHandler(checkPayoutStatus),
 );
 
 module.exports = router;

@@ -4,8 +4,9 @@ const checkUserPaymentAndKYC = require("../../middleware/kycPaymentCheckMiddlewa
 const {
   redeemCoupon,
 } = require("../../controllers/userController/couponController");
+const asyncHandler = require("../../utils/asyncHandler");
 const router = express.Router();
 
-router.post("/redeem-coupon", authenticateUser, redeemCoupon);
+router.post("/redeem-coupon", authenticateUser, asyncHandler(redeemCoupon));
 
 module.exports = router;
