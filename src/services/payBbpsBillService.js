@@ -269,6 +269,11 @@ exports.payBbpsBillService = async ({
         apiResponse: result,
       });
 
+      result = {
+        ...result,
+        referenceId: referenceId,
+      };
+
       return result;
     } else if (result?.status === "FAILED" || result?.status === "ERROR") {
       console.log("Entered");

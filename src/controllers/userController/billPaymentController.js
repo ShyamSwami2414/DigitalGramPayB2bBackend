@@ -359,6 +359,7 @@ exports.payBbpsBill = async (req, res, next) => {
       success: true,
       message: "Bill Paid Successfully",
       data: {
+        referenceId: response?.referenceId,
         status: response?.status,
         txnid: response?.txnid,
         RespAmount: response?.data?.RespAmount,
