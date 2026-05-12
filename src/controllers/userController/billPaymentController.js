@@ -192,6 +192,7 @@ exports.payBbpsBill = async (req, res, next) => {
       paramValue,
       inputParams,
       data,
+      additionalInfo,
     } = req.body;
 
     console.log(req.body, "req.body");
@@ -332,6 +333,7 @@ exports.payBbpsBill = async (req, res, next) => {
       placeholderValue,
       paramValue,
       inputParams,
+      additionalInfo,
     });
 
     console.log(response, "controller response");

@@ -14,6 +14,7 @@ const {
 const { sendEmail } = require("../../utils/email");
 const { paiseToRupee } = require("../../utils/money");
 const userWallet = require("../../models/userWallet");
+const config = require("../../config/client");
 
 exports.getParticularUserDetail = async (req, res, next) => {
   try {
@@ -673,10 +674,10 @@ exports.createUser = async (req, res, next) => {
       userName: userName,
       password,
       pin,
-      loginUrl: "https://camlenio.co.in/user-camlenio/login",
+      loginUrl: config.LOGIN_URL,
     });
 
-    sendEmail(email, [], [], "Welcome to Camlenio Software", html);
+    sendEmail(email, [], [], `Welcome to ${config.COMPANY}`, html);
 
     await newUser.save();
 

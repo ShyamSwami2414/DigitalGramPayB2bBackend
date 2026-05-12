@@ -13,6 +13,7 @@ const { sendEmail } = require("../../utils/email");
 const {
   generateRejectionEmail,
 } = require("../../templates/emailTemplates/userRequestRejectionEmail");
+const config = require("../../config/client");
 
 exports.getAllUserRequests = async (req, res, next) => {
   try {
@@ -245,14 +246,14 @@ exports.updateUserRequestStatus = async (req, res, next) => {
         userName: userName,
         password,
         pin,
-        loginUrl: "https://camlenio.co.in/user-camlenio/login",
+        loginUrl: config.LOGIN_URL,
       });
 
       sendEmail(
         existingUserRequest.email,
         [],
         [],
-        "Welcome to Camlenio Software",
+       `Welcome to ${config.COMPANY}`,
         html,
       );
 

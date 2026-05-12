@@ -1,10 +1,12 @@
+const config = require("../../config/client");
+
 exports.generateIdChargeEmail = ({
   name,
   status, // "approved" | "rejected"
   reason = "",
   amount = "",
-  supportEmail = "support@camlenio.com",
-  companyName = "Camlenio Software",
+  supportEmail = config.SUPPORT_EMAIL,
+  companyName = config.COMPANY,
 }) => {
   const isApproved = status === "Approved";
 
