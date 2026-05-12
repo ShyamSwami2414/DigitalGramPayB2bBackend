@@ -1,14 +1,14 @@
 module.exports = {
-  COMPANY: "Camlenio Software",
+  COMPANY: "Digital Gram Pay",
 
-  DOMAIN: "https://camlenio.co.in",
+  DOMAIN: "https://b2b.digitalgrampay.co.in/",
 
-  LOGIN_URL: "https://camlenio.co.in/user-camlenio/login",
-  LOGO_URL: "https://camlenio.co.in/api1/logo.png",
+  LOGIN_URL: "https://b2b.digitalgrampay.co.in/user/login",
+  LOGO_URL: "https://b2b.digitalgrampay.co.in/api/logo.png",
 
-  COMPANY_EMAIL: "camleniosoftware@gmail.com",
-  SUPPORT_EMAIL: "support@camlenio.com",
+  COMPANY_EMAIL: "ayusydigital233@gmail.com",
+  SUPPORT_EMAIL: "ayusydigital233@gmail.com",
 
-  SUPPORT_NUMBER: "9999999999",
-  COMPANY_ADDRESS: "Jaipur Rajasthan",
+  // SUPPORT_NUMBER: "9999999999",
+  // COMPANY_ADDRESS: "Jaipur Rajasthan",
 };
