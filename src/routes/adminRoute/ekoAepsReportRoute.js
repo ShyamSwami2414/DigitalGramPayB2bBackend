@@ -8,13 +8,15 @@ const {
 } = require("../../controllers/adminController/ekoAepsReportController");
 const { authorizeRoles } = require("../../middleware/roleMiddleware");
 
+const asyncHandler = require("../../utils/asyncHandler");
+
 const router = express.Router();
 
 router.get(
   "/aeps-stats",
   authenticateUser,
   authorizeRoles("admin"),
-  getAepsStats,
+  asyncHandler(getAepsStats),
 );
 
 //get all aeps transaction of me and my downline
@@ -22,14 +24,14 @@ router.get(
   "/complete-aeps-report",
   authenticateUser,
   authorizeRoles("admin"),
-  getCompleteAepsReport,
+  asyncHandler(getCompleteAepsReport),
 );
 
 router.get(
   "/report/:id",
   authenticateUser,
   authorizeRoles("admin"),
-  getAepsReportById,
+  asyncHandler(getAepsReportById),
 );
 
 module.exports = router;

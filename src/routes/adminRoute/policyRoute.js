@@ -11,19 +11,21 @@ const {
 } = require("../../controllers/adminController/policyController");
 const checkAllowedPermission = require("../../middleware/adminPermissionCheck");
 
+const asyncHandler = require("../../utils/asyncHandler");
+
 router.get(
   "/policy-by-type",
   authenticateUser,
   authorizeRoles("admin"),
   checkAllowedPermission("SETTINGS"),
-  getPolicyByType,
+  asyncHandler(getPolicyByType),
 );
 router.post(
   "/add-policy",
   authenticateUser,
   authorizeRoles("admin"),
   checkAllowedPermission("SETTINGS"),
-  addPolicy,
+  asyncHandler(addPolicy),
 );
 
 router.put(
@@ -31,7 +33,7 @@ router.put(
   authenticateUser,
   authorizeRoles("admin"),
   checkAllowedPermission("SETTINGS"),
-  updatePolicy,
+  asyncHandler(updatePolicy),
 );
 
 router.delete(
@@ -39,7 +41,7 @@ router.delete(
   authenticateUser,
   authorizeRoles("admin"),
   checkAllowedPermission("SETTINGS"),
-  deletePolicy,
+  asyncHandler(deletePolicy),
 );
 
 module.exports = router;

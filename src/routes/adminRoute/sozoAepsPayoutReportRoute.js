@@ -8,27 +8,29 @@ const {
 const checkUserPaymentAndKYC = require("../../middleware/kycPaymentCheckMiddleware");
 const { authorizeRoles } = require("../../middleware/roleMiddleware");
 
+const asyncHandler = require("../../utils/asyncHandler");
+
 const router = express.Router();
 
 router.get(
   "/payout-stats",
   authenticateUser,
   authorizeRoles("admin"),
-  getPayoutStats,
+  asyncHandler(getPayoutStats),
 );
 
 router.get(
   "/complete-payout-report",
   authenticateUser,
   authorizeRoles("admin"),
-  getCompletePayoutReport,
+  asyncHandler(getCompletePayoutReport),
 );
 
 router.get(
   "/report/:id",
   authenticateUser,
   authorizeRoles("admin"),
-  getPayoutReportById,
+  asyncHandler(getPayoutReportById),
 );
 
 module.exports = router;

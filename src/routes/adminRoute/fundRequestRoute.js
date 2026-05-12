@@ -8,6 +8,7 @@ const {
 const { authenticateUser } = require("../../middleware/authMiddleware");
 const { authorizeRoles } = require("../../middleware/roleMiddleware");
 const checkAllowedPermission = require("../../middleware/adminPermissionCheck");
+const asyncHandler = require("../../utils/asyncHandler");
 const router = express.Router();
 
 router.get(
@@ -15,7 +16,7 @@ router.get(
   authenticateUser,
   authorizeRoles("admin"),
   checkAllowedPermission("FUND-REQUEST"),
-  getAllFundRequests,
+  asyncHandler(getAllFundRequests),
 );
 
 router.get(
@@ -23,7 +24,7 @@ router.get(
   authenticateUser,
   authorizeRoles("admin"),
   checkAllowedPermission("FUND-REQUEST"),
-  fundRequestStats,
+  asyncHandler(fundRequestStats),
 );
 
 router.patch(
@@ -31,7 +32,7 @@ router.patch(
   authenticateUser,
   authorizeRoles("admin"),
   checkAllowedPermission("FUND-REQUEST"),
-  approveFundRequest,
+  asyncHandler(approveFundRequest),
 );
 
 router.patch(
@@ -39,6 +40,6 @@ router.patch(
   authenticateUser,
   authorizeRoles("admin"),
   checkAllowedPermission("FUND-REQUEST"),
-  rejectFundRequest,
+  asyncHandler(rejectFundRequest),
 );
 module.exports = router;

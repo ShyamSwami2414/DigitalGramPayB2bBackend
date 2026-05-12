@@ -9,12 +9,14 @@ const { authenticateUser } = require("../../middleware/authMiddleware");
 const { authorizeRoles } = require("../../middleware/roleMiddleware");
 const checkAllowedPermission = require("../../middleware/adminPermissionCheck");
 
+const asyncHandler = require("../../utils/asyncHandler");
+
 router.get(
   "/all-orders",
   authenticateUser,
   authorizeRoles("admin"),
   checkAllowedPermission("ECOMMERCE"),
-  getOrderList,
+  asyncHandler(getOrderList),
 );
 
 router.get(
@@ -22,7 +24,7 @@ router.get(
   authenticateUser,
   authorizeRoles("admin"),
   checkAllowedPermission("ECOMMERCE"),
-  getOrderById,
+  asyncHandler(getOrderById),
 );
 
 router.patch(
@@ -30,7 +32,7 @@ router.patch(
   authenticateUser,
   authorizeRoles("admin"),
   checkAllowedPermission("ECOMMERCE"),
-  updateOrderStatus,
+  asyncHandler(updateOrderStatus),
 );
 
 module.exports = router;

@@ -8,27 +8,29 @@ const {
   deleteXpressPayoutBank,
 } = require("../../controllers/userController/sozoXpressPayoutBankController");
 
+const asyncHandler = require("../../utils/asyncHandler");
+
 const router = express.Router();
 
 router.get(
   "/bank-list",
   authenticateUser,
   checkUserPaymentAndKYC,
-  getXpressPayoutBanks,
+  asyncHandler(getXpressPayoutBanks),
 );
 
 router.post(
   "/add-payout-bank",
   authenticateUser,
   checkUserPaymentAndKYC,
-  addXpressPayoutBank,
+  asyncHandler(addXpressPayoutBank),
 );
 
 router.delete(
   "/delete-payout-bank/:id",
   authenticateUser,
   checkUserPaymentAndKYC,
-  deleteXpressPayoutBank,
+  asyncHandler(deleteXpressPayoutBank),
 );
 
 module.exports = router;

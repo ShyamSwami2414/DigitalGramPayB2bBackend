@@ -5,13 +5,15 @@ const {
   globalTransactionSearch,
 } = require("../../controllers/userController/transactionSearchController");
 
+const asyncHandler = require("../../utils/asyncHandler");
+
 const router = express.Router();
 
 router.get(
   "/transaction-search",
   authenticateUser,
   checkUserPaymentAndKYC,
-  globalTransactionSearch,
+  asyncHandler(globalTransactionSearch),
 );
 
 module.exports = router;

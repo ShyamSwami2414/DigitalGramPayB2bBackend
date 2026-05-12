@@ -11,6 +11,7 @@ const {
 const createUploader = require("../../middleware/uploadMiddleware");
 const multerErrorHandler = require("../../middleware/multerErrorHandler");
 const checkAllowedPermission = require("../../middleware/adminPermissionCheck");
+const asyncHandler = require("../../utils/asyncHandler");
 const router = express.Router();
 
 const upload = createUploader("products", /jpeg|jpg|png/, 2048);
@@ -20,7 +21,7 @@ router.get(
   authenticateUser,
   authorizeRoles("admin"),
   checkAllowedPermission("ECOMMERCE"),
-  getProductById,
+  asyncHandler(getProductById),
 );
 
 router.get(
@@ -28,7 +29,7 @@ router.get(
   authenticateUser,
   authorizeRoles("admin"),
   checkAllowedPermission("ECOMMERCE"),
-  getProductList,
+  asyncHandler(getProductList),
 );
 
 router.post(
@@ -37,7 +38,7 @@ router.post(
   authorizeRoles("admin"),
   checkAllowedPermission("ECOMMERCE"),
   multerErrorHandler(upload.single("productImage")),
-  addProduct,
+  asyncHandler(addProduct),
 );
 
 router.put(
@@ -46,7 +47,7 @@ router.put(
   authorizeRoles("admin"),
   checkAllowedPermission("ECOMMERCE"),
   multerErrorHandler(upload.single("productImage")),
-  updateProduct,
+  asyncHandler(updateProduct),
 );
 
 router.delete(
@@ -54,7 +55,7 @@ router.delete(
   authenticateUser,
   authorizeRoles("admin"),
   checkAllowedPermission("ECOMMERCE"),
-  deleteProduct,
+  asyncHandler(deleteProduct),
 );
 
 module.exports = router;

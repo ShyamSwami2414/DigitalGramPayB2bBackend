@@ -11,23 +11,25 @@ const { authenticateUser } = require("../../middleware/authMiddleware");
 const { authorizeRoles } = require("../../middleware/roleMiddleware");
 const checkAllowedPermission = require("../../middleware/adminPermissionCheck");
 
+const asyncHandler = require("../../utils/asyncHandler");
+
 const router = express.Router();
 
-router.get("/get-kycs", authenticateUser, authorizeRoles("admin"), getKycData);
+router.get("/get-kycs", authenticateUser, authorizeRoles("admin"), asyncHandler(getKycData));
 router.get(
   "/get-kyc/:id",
   authenticateUser,
   authorizeRoles("admin"),
   checkAllowedPermission("KYC"),
 
-  getKycById,
+  asyncHandler(getKycById),
 );
 router.get(
   "/get-kyc-by-userId/:userId",
   authenticateUser,
   authorizeRoles("admin"),
   checkAllowedPermission(["KYC", "USERS"]),
-  getKycByUserId,
+  asyncHandler(getKycByUserId),
 );
 
 router.patch(
@@ -35,7 +37,7 @@ router.patch(
   authenticateUser,
   authorizeRoles("admin"),
   checkAllowedPermission("KYC"),
-  updateSectionStatus,
+  asyncHandler(updateSectionStatus),
 );
 
 router.patch(
@@ -43,7 +45,7 @@ router.patch(
   authenticateUser,
   authorizeRoles("admin"),
   checkAllowedPermission("KYC"),
-  updateOverAllKycStatus,
+  asyncHandler(updateOverAllKycStatus),
 );
 
 router.patch(
@@ -51,7 +53,7 @@ router.patch(
   authenticateUser,
   authorizeRoles("admin"),
   checkAllowedPermission("KYC"),
-  requestReKyc,
+  asyncHandler(requestReKyc),
 );
 
 module.exports = router;

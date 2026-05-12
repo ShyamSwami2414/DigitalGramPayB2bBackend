@@ -12,25 +12,25 @@ const checkUserPaymentAndKYC = require("../../middleware/kycPaymentCheckMiddlewa
 const router = express.Router();
 const asyncHandler = require("../../utils/asyncHandler");
 
-router.post("/user-register", userRegister);
+router.post("/user-register", asyncHandler(userRegister));
 
 router.post("/user-login", asyncHandler(userLogin));
 
 router.post("/verify-user-otp", asyncHandler(verifyUserOtp));
 
-router.patch("/forgot-password", forgotPassword);
+router.patch("/forgot-password", asyncHandler(forgotPassword));
 
 router.patch(
   "/change-user-password",
   authenticateUser,
   checkUserPaymentAndKYC,
-  changePassword,
+  asyncHandler(changePassword),
 );
 router.get(
   "/fetch-user-profile",
   authenticateUser,
   // checkUserPaymentAndKYC,
-  fetchProfile,
+  asyncHandler(fetchProfile),
 );
 
 module.exports = router;

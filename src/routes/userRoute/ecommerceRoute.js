@@ -5,20 +5,21 @@ const {
   getProductList,
   getProductById,
 } = require("../../controllers/userController/ecommerceController");
+const asyncHandler = require("../../utils/asyncHandler");
 const router = express.Router();
 
 router.get(
   "/product/:id",
   authenticateUser,
   checkUserPaymentAndKYC,
-  getProductById,
+  asyncHandler(getProductById),
 );
 
 router.get(
   "/product-list",
   authenticateUser,
   checkUserPaymentAndKYC,
-  getProductList,
+  asyncHandler(getProductList),
 );
 
 module.exports = router;

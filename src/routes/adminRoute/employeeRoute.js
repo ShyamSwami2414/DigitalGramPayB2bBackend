@@ -13,12 +13,14 @@ const {
 } = require("../../controllers/adminController/employeeController");
 const checkAllowedPermission = require("../../middleware/adminPermissionCheck");
 
+const asyncHandler = require("../../utils/asyncHandler");
+
 router.get(
   "/employee-stats",
   authenticateUser,
   authorizeRoles("admin"),
   checkAllowedPermission("EMPLOYEE"),
-  getEmployeeStats,
+  asyncHandler(getEmployeeStats),
 );
 
 router.get(
@@ -26,7 +28,7 @@ router.get(
   authenticateUser,
   authorizeRoles("admin"),
   checkAllowedPermission("EMPLOYEE"),
-  getEmployeeList,
+  asyncHandler(getEmployeeList),
 );
 
 router.get(
@@ -34,7 +36,7 @@ router.get(
   authenticateUser,
   authorizeRoles("admin"),
   checkAllowedPermission("EMPLOYEE"),
-  getEmployeeById,
+  asyncHandler(getEmployeeById),
 );
 
 router.post(
@@ -42,7 +44,7 @@ router.post(
   authenticateUser,
   authorizeRoles("admin"),
   checkAllowedPermission("EMPLOYEE"),
-  addEmployee,
+  asyncHandler(addEmployee),
 );
 
 router.put(
@@ -50,7 +52,7 @@ router.put(
   authenticateUser,
   authorizeRoles("admin"),
   checkAllowedPermission("EMPLOYEE"),
-  updateEmployee,
+  asyncHandler(updateEmployee),
 );
 
 router.delete(
@@ -58,7 +60,7 @@ router.delete(
   authenticateUser,
   authorizeRoles("admin"),
   checkAllowedPermission("EMPLOYEE"),
-  deleteEmployee,
+  asyncHandler(deleteEmployee),
 );
 
 module.exports = router;
