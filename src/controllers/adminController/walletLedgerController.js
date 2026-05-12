@@ -548,9 +548,9 @@ exports.getAllLedgetEntryList = async (req, res, next) => {
       },
       {
         $addFields: {
-          // commissionAmount: "$tds.commissionAmount",
+          commission: "$tds.commissionAmount",
           tdsAmount: "$tds.tdsAmount",
-          // netCommission: "$tds.netCommission",
+          netCommission: "$tds.netCommission",
         },
       },
       {
@@ -625,13 +625,11 @@ exports.getAllLedgetEntryList = async (req, res, next) => {
       closingBalance: paiseToRupee(item?.closingBalance),
       commission: item?.commission ? paiseToRupee(item.commission) : 0,
       tdsAmount: item?.tdsAmount ? paiseToRupee(item.tdsAmount) : 0,
-      // commissionAmount: item?.commissionAmount
-      //   ? paiseToRupee(item.commissionAmount)
-      //   : undefined,
+      commission: item?.commission ? paiseToRupee(item.commission) : undefined,
 
-      // netCommission: item?.netCommission
-      //   ? paiseToRupee(item.netCommission)
-      //   : undefined,
+      netCommission: item?.netCommission
+        ? paiseToRupee(item.netCommission)
+        : undefined,
 
       gstAmount: item?.gstAmount ? paiseToRupee(item.gstAmount) : 0,
 
