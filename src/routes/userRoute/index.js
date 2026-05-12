@@ -1,4 +1,8 @@
 const apiPrefix = "/user";
+<<<<<<< HEAD
+=======
+
+>>>>>>> core/main
 module.exports = (app) => {
   app.use(`/`, require("./userAuthRoute"));
 

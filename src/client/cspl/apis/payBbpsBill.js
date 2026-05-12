@@ -18,6 +18,7 @@ exports.payBbpsBill = async ({
   placeholderValue,
   paramValue,
   inputParams,
+  additionalInfo,
 }) => {
   // return console.log(billamount, "billamount  in paise");
   const timestamp = new Date().toISOString();
@@ -39,6 +40,7 @@ exports.payBbpsBill = async ({
         placeholderValue: placeholderValue,
         paramValue: paramValue,
         inputParams: inputParams,
+        additionalInfo: additionalInfo,
       },
       {
         headers: {
@@ -99,6 +101,7 @@ exports.payBbpsBill = async ({
         placeholderValue,
         paramValue,
         client_referenceId: client_referenceId,
+        additionalInfo: additionalInfo,
       },
 
       response: response.data,
@@ -133,6 +136,7 @@ exports.payBbpsBill = async ({
         placeholderValue,
         paramValue,
         client_referenceId: client_referenceId,
+        additionalInfo: additionalInfo,
       },
       response: error?.data ||
         error?.response?.data || { message: error?.message },

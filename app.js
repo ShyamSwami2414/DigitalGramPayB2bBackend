@@ -5,21 +5,21 @@ const cors = require("cors");
 const path = require("path");
 const dbConnection = require("./src/config/dbConfig");
 const errorHandler = require("./src/middleware/errorHandler");
-const { globalErrorHandler } = require("./src/middleware/errorMiddleware");
 
 dbConnection();
+
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // Serve static files from the public folder
-app.use(express.static(path.join(__dirname, "public")));
+app.use(express.static(path.join(__dirname, "api1/public")));
 
 // Serve user uploads
-console.log("path", path.join(__dirname, "uploads"));
+console.log("path", path.join(__dirname, "api1/uploads"))
 
 app.use(
-  "/uploads",
+  "/api1/uploads",
   express.static(path.join(__dirname, "uploads"), {
     setHeaders: (res, filePath) => {
       if (filePath.endsWith(".pdf")) {
@@ -30,32 +30,28 @@ app.use(
   }),
 );
 
-app.get("/api", (req, res) => {
-  res.send("Home");
-});
+console.log("Hii1")
 
 // Register API routes before fallback
 require("./src/routes/adminRoute/index")(app);
+
 require("./src/routes/userRoute/index")(app);
 
-process.on("uncaughtException", async (err) => {
-  await logError({
-    title: "UNCAUGHT_EXCEPTION",
-    error: err,
-  });
+console.log("Hii2")
+app.get("/api1", (req, res) => {
+  res.send("Home");
 });
+console.log("Hii3")
 
-process.on("unhandledRejection", async (err) => {
-  await logError({
-    title: "UNHANDLED_REJECTION",
-    error: err,
-  });
-});
 
-app.use(globalErrorHandler);
 app.use(errorHandler);
+
+console.log("Hii4", process.env.PORT )
+
 
 const PORT = process.env.PORT || 8000;
 app.listen(PORT, "0.0.0.0", () => {
   console.log(`Server is listening on PORT : ${PORT}`);
 });
+
+

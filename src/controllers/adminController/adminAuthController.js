@@ -8,7 +8,12 @@ const { sendEmail } = require("../../utils/email");
 
 exports.adminRegister = async (req, res, next) => {
   try {
-    const { name, userName, phone, email, password, permissionIds } = req.body;
+    let { name, userName, phone, email, password, permissionIds } = req.body;
+    name = name?.trim();
+    userName = userName?.trim()?.toUpperCase();
+    phone = phone?.trim();
+    email = email?.trim()?.toLowerCase();
+    password = password?.trim();
 
     if (!name || !userName || !phone || !email || !password) {
       return res
@@ -29,8 +34,8 @@ exports.adminRegister = async (req, res, next) => {
       userName,
       phone,
       email,
-      permissionIds: permissionIds,
       password: hashedPassword,
+      permissionIds : permissionIds
     });
 
     await newAdmin.save();

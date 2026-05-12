@@ -48,7 +48,7 @@ exports.splitCommission = async ({
     });
 
     //  Traverse ONLY uplines
-    while (currentUser.parentUserId) {
+    while (currentUser && currentUser.parentUserId) {
       const uplineUser = await User.findOne({
         _id: currentUser.parentUserId,
         isDeleted: false,
@@ -58,9 +58,19 @@ exports.splitCommission = async ({
       console.log(uplineUser, "uplineUser from split");
 
       if (!uplineUser) {
+        console.log("Missing upline user:", currentUser.parentUserId);
+
         currentUser = await User.findById(currentUser.parentUserId).select(
           "_id parentUserId",
         );
+
+        // hierarchy broken
+        if (!currentUser) {
+          console.log("Broken hierarchy detected in splitCommission");
+
+          break;
+        }
+
         continue;
       }
       //  Calculate upline commission
@@ -144,6 +154,12 @@ exports.splitCommission = async ({
       currentUser = uplineUser;
     }
   } catch (error) {
+    console.error("SplitCommission Error:");
+
+    console.error(error);
+
+    console.error(error.stack);
+
     throw error;
   }
 };

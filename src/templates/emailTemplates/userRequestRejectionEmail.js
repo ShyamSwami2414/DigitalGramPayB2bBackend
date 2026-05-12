@@ -1,10 +1,11 @@
+const config = require("../../config/client");
 exports.generateRejectionEmail = ({
   name,
   email,
   reason,
-  supportEmail = "ayusydigital233@gmail.com",
-  companyName = "Digital Gram Pay",
-  logoUrl = "https://b2b.digitalgrampay.co.in/api/logo.png",
+  supportEmail = config.SUPPORT_EMAIL,
+  companyName = config.COMPANY,
+  logoUrl = config.LOGO_URL ,
 }) => {
   return `
   <!DOCTYPE html>

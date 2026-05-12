@@ -9,6 +9,7 @@ const {
   generateWelcomeEmail,
 } = require("../../templates/emailTemplates/welcomeEmail");
 const { sendEmail } = require("../../utils/email");
+const config = require("../../config/client");
 
 const buildTree = (users) => {
   const map = {};
@@ -227,8 +228,8 @@ exports.getMyDownlineUsers = async (req, res, next) => {
                   _id: "$_id",
                   parentUserId: "$parentUserId",
                   fullName: { $concat: ["$firstName", " ", "$lastName"] },
-                   phone: "$phone",
-                   email: "$email",
+                  phone: "$phone",
+                  email: "$email",
                   userName: "$userName",
                   levelDepth: -1, // special marker
                   isSelf: true,
@@ -254,7 +255,7 @@ exports.getMyDownlineUsers = async (req, res, next) => {
                     levelDepth: "$$u.levelDepth",
                     isSelf: false,
                     phone: "$$u.phone",
-                     email: "$$u.email",
+                    email: "$$u.email",
                     role: {
                       _id: "$$u.role._id",
                       name: "$$u.role.name",
@@ -364,10 +365,10 @@ exports.createUser = async (req, res, next) => {
       userName: userName,
       password,
       pin,
-      loginUrl: "http://localhost:8000/user-login",
+      loginUrl: config.LOGIN_URL,
     });
 
-    sendEmail(email, [], [], "Welcome to  Digital Gram Pay", html);
+    sendEmail(email, [], [], `Welcome to ${config.COMPANY}`, html);
 
     await newUser.save();
 

@@ -786,6 +786,8 @@ exports.transferFund = async ({
           await successSesion.abortTransaction();
           console.error("Charges Processing failed:", error);
         }
+
+        throw error;
       } finally {
         successSesion.endSession();
       }

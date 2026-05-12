@@ -17,6 +17,7 @@ const UserRequest = require("../../models/userRequestModel");
 const { generateOTP } = require("../../utils/generateOTP");
 const Otp = require("../../models/otpModel");
 const { paiseToRupee } = require("../../utils/money");
+const config = require("../../config/client");
 
 exports.userRegister = async (req, res, next) => {
   try {
@@ -101,10 +102,10 @@ exports.userRegister = async (req, res, next) => {
       userName: userName,
       password,
       pin,
-      loginUrl: "http://localhost:8000/user-login",
+      loginUrl: config.LOGIN_URL,
     });
 
-    sendEmail(email, [], [], "Welcome to Digital Gram Pay", html);
+    sendEmail(email, [], [], `Welcome to ${config.COMPANY}`, html);
 
     await newUser.save();
     return res

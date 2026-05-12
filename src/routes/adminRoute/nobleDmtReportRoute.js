@@ -1,34 +1,35 @@
 const express = require("express");
 const { authenticateUser } = require("../../middleware/authMiddleware");
-const {
-  getPayoutStats,
-  getCompletePayoutReport,
-  getPayoutReportById,
-} = require("../../controllers/adminController/sozoAepsPayoutReportController");
 const checkUserPaymentAndKYC = require("../../middleware/kycPaymentCheckMiddleware");
+const {
+  getDmtStats,
+  getCompleteDmtReport,
+  getDmtReportById,
+} = require("../../controllers/adminController/nobleDmtReportControllr");
 const { authorizeRoles } = require("../../middleware/roleMiddleware");
 
 const router = express.Router();
 
 router.get(
-  "/payout-stats",
+  "/dmt-stats",
   authenticateUser,
   authorizeRoles("admin"),
-  getPayoutStats,
+  getDmtStats,
 );
 
+//get all aeps transaction of me and my downline
 router.get(
-  "/complete-payout-report",
+  "/complete-dmt-report",
   authenticateUser,
   authorizeRoles("admin"),
-  getCompletePayoutReport,
+  getCompleteDmtReport,
 );
 
 router.get(
   "/report/:id",
   authenticateUser,
   authorizeRoles("admin"),
-  getPayoutReportById,
+  getDmtReportById,
 );
 
 module.exports = router;

@@ -14,6 +14,7 @@ const {
 const { sendEmail } = require("../../utils/email");
 const { paiseToRupee } = require("../../utils/money");
 const userWallet = require("../../models/userWallet");
+const config = require("../../config/client");
 
 exports.getParticularUserDetail = async (req, res, next) => {
   try {
@@ -663,7 +664,7 @@ exports.createUser = async (req, res, next) => {
       roleId: role,
       packageId: package,
       pin: pin,
-      parentUserId: req.user.id,
+      parentUserId: null,
       level: isRoleValid.level,
     });
 
@@ -673,10 +674,10 @@ exports.createUser = async (req, res, next) => {
       userName: userName,
       password,
       pin,
-      loginUrl: "http://localhost:8000/user-login",
+      loginUrl: config.LOGIN_URL,
     });
 
-    sendEmail(email, [], [], "Welcome to Digital Gram Pay", html);
+    sendEmail(email, [], [], `Welcome to ${config.COMPANY}`, html);
 
     await newUser.save();
 

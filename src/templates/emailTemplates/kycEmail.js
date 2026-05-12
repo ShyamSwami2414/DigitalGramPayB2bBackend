@@ -1,10 +1,16 @@
-exports.kycStatusTemplate = ({ name, status, rejectionReason, company = "Digital Gram Pay" }) => {
-    const isApproved = status === "approved";
+const config = require("../../config/client");
+exports.kycStatusTemplate = ({
+  name,
+  status,
+  rejectionReason,
+  company = `${config.COMPANY}`,
+}) => {
+  const isApproved = status === "approved";
 
-    return {
-        subject: `KYC Verification ${isApproved ? "Approved" : "Update Required"}`,
+  return {
+    subject: `KYC Verification ${isApproved ? "Approved" : "Update Required"}`,
 
-        html: `
+    html: `
       <div style="font-family: Arial, sans-serif; line-height:1.6; color:#333">
         <p>Dear ${name},</p>
 
@@ -12,8 +18,9 @@ exports.kycStatusTemplate = ({ name, status, rejectionReason, company = "Digital
 
         <p><strong>KYC Status: ${status.toUpperCase()}</strong></p>
 
-        ${isApproved
-                ? `
+        ${
+          isApproved
+            ? `
             <p>Your KYC verification has been successfully approved.</p>
 
             <p>You can now:</p>
@@ -23,14 +30,14 @@ exports.kycStatusTemplate = ({ name, status, rejectionReason, company = "Digital
               <li>Use wallet & settlement features</li>
             </ul>
           `
-                : `
+            : `
             <p>We were unable to approve your KYC verification.</p>
 
             <p><strong>Reason:</strong> ${rejectionReason}</p>
 
             <p>Please log in and re-upload valid documents. Our team will review them promptly.</p>
           `
-            }
+        }
 
         <p>If you did not initiate this request, please contact support immediately.</p>
 
@@ -39,5 +46,5 @@ exports.kycStatusTemplate = ({ name, status, rejectionReason, company = "Digital
         ${company}</p>
       </div>
     `,
-    };
+  };
 };

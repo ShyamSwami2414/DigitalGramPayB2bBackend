@@ -13,6 +13,7 @@ const { sendEmail } = require("../../utils/email");
 const {
   generateRejectionEmail,
 } = require("../../templates/emailTemplates/userRequestRejectionEmail");
+const config = require("../../config/client");
 
 exports.getAllUserRequests = async (req, res, next) => {
   try {
@@ -245,14 +246,14 @@ exports.updateUserRequestStatus = async (req, res, next) => {
         userName: userName,
         password,
         pin,
-        loginUrl: "http://localhost:8000/user-login",
+        loginUrl: config.LOGIN_URL,
       });
 
       sendEmail(
         existingUserRequest.email,
         [],
         [],
-        "Welcome to Digital Gram Pay",
+       `Welcome to ${config.COMPANY}`,
         html,
       );
 

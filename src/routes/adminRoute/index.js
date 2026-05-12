@@ -42,6 +42,22 @@ module.exports = (app) => {
   // app.use(`${apiPrefix}/report`, require("./reportRoute"));
   app.use(`${apiPrefix}/rechargeReport`, require("./rechargeReportRoute"));
   app.use(`${apiPrefix}/bbpsReport`, require("./bbpsReportRoute"));
+<<<<<<< HEAD
+=======
+  app.use(`${apiPrefix}/aepsReport`, require("./instantAepsReportRoute"));
+  app.use(`${apiPrefix}/eAepsReport`, require("./ekoAepsReportRoute"));
+  app.use(`${apiPrefix}/dmtReport`, require("./nobleDmtReportRoute"));
+  app.use(
+    `${apiPrefix}/aepsPayoutReport`,
+    require("./sozoAepsPayoutReportRoute"),
+  );
+
+  app.use(
+    `${apiPrefix}/xpressPayoutReport`,
+    require("./sozoXpressPayoutReportRoute"),
+  );
+
+>>>>>>> core/main
   app.use(`${apiPrefix}/notification`, require("./notificationRoute"));
   app.use(`${apiPrefix}/banner`, require("./bannerRoute"));
   app.use(`${apiPrefix}/dashboard`, require("./dashboardRoute"));

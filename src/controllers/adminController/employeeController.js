@@ -9,6 +9,7 @@ const {
 } = require("../../templates/emailTemplates/welcomeEmail");
 const { generateUniquePin } = require("../../utils/uniquePinGenerator");
 const { sendEmail } = require("../../utils/email");
+const config = require("../../config/client");
 
 exports.getEmployeeStats = async (req, res, next) => {
   try {
@@ -190,7 +191,7 @@ exports.addEmployee = async (req, res, next) => {
       userName: employee.userName,
       password: password,
       pin: pin,
-      loginUrl: "http://localhost:3000",
+      loginUrl: config.LOGIN_URL,
     });
 
     await sendEmail(employee.email, [], [], "Welcome to B2B", html);
