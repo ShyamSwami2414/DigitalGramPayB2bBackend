@@ -10,6 +10,7 @@ const {
   adminServiceRequestTemplate,
 } = require("../../templates/emailTemplates/serviceRequestAdminEmailTemplate");
 const { sendEmail } = require("../../utils/email");
+const config = require("../../config/client");
 
 exports.addServiceRequest = async (req, res, next) => {
   try {
@@ -117,11 +118,11 @@ exports.addServiceRequest = async (req, res, next) => {
       userEmail: isUserExist?.email,
       userMobile: isUserExist?.phone,
       serviceName: isServiceExist?.name,
-      buttonUrl: `http://192.168.1.31:5173/serviceRequest`,
+      buttonUrl: `${config.DOMAIN}/service-requests`,
     });
 
     await sendEmail(
-      "rahul.camlenio@gmail.com",
+      `${config.COMPANY_EMAIL}`,
       "",
       "",
       "New Service Request",

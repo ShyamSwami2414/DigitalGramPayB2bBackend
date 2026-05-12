@@ -1,11 +1,11 @@
+const config = require("../../config/client");
 exports.generateRejectionEmail = ({
   name,
   email,
   reason,
-  supportEmail = "support@camlenio.com",
-  companyName = "Camlenio Software",
-  logoUrl = "https://camlenio.co.in/api1/logo.png"
-
+  supportEmail = config.SUPPORT_EMAIL,
+  companyName = config.COMPANY,
+  logoUrl = config.LOGO_URL ,
 }) => {
   return `
   <!DOCTYPE html>

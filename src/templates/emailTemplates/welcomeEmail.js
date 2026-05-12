@@ -1,3 +1,4 @@
+const config = require("../../config/client");
 exports.generateWelcomeEmail = ({
   name,
   email,
@@ -11,7 +12,7 @@ exports.generateWelcomeEmail = ({
   <html>
   <head>
     <meta charset="UTF-8" />
-    <title>Welcome to Camlenio Software</title>
+    <title>"Welcome to ${config.COMPANY}"</title>
   </head>
   <body style="margin:0; padding:0; background-color:#f4f6f8; font-family: Arial, sans-serif;">
     <table align="center" width="100%" cellpadding="0" cellspacing="0">
@@ -22,14 +23,14 @@ exports.generateWelcomeEmail = ({
             <!-- Logo -->
             <tr>
               <td align="center">
-                <img src="https://camlenio.co.in/api1/logo.png" alt="Camlenio Logo" width="150" />
+                 <img src="${config.LOGO_URL}" alt="Logo" width="150" />
               </td>
             </tr>
 
             <!-- Heading -->
             <tr>
               <td align="center" style="padding-top:20px;">
-                <h2 style="margin:0; color:#222;">Welcome to Camlenio Software</h2>
+                <h2 style="margin:0; color:#222;">"${config.COMPANY}"</h2>
               </td>
             </tr>
 
@@ -38,7 +39,7 @@ exports.generateWelcomeEmail = ({
               <td style="padding-top:30px; color:#444; font-size:15px;">
                 <p>Hello <strong>${name}</strong>,</p>
                 <p>
-                  We're excited to have you join <strong>Camlenio Software</strong>. 
+                  We're excited to have you join <strong>"${config.COMPANY}"</strong>. 
                   Your account has been created successfully.
                 </p>
               </td>
@@ -76,7 +77,7 @@ exports.generateWelcomeEmail = ({
                 <p>If you did not register for this account, please ignore this email.</p>
                 <p style="margin-top:30px;">
                   Best regards,<br/>
-                  <strong>Camlenio Software Team</strong>
+                  <strong>"${config.COMPANY} Team" </strong>
                 </p>
               </td>
             </tr>
