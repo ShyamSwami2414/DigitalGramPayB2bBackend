@@ -618,23 +618,32 @@ exports.getAllLedgetEntryList = async (req, res, next) => {
     // ===============================
     //  FORMAT
     // ===============================
-    const formattedData = walletLedger.map((item) => ({
-      ...item,
-      amount: paiseToRupee(item?.amount),
-      openingBalance: paiseToRupee(item?.openingBalance),
-      closingBalance: paiseToRupee(item?.closingBalance),
-      commission: item?.commission ? paiseToRupee(item.commission) : 0,
-      tdsAmount: item?.tdsAmount ? paiseToRupee(item.tdsAmount) : 0,
-      commission: item?.commission ? paiseToRupee(item.commission) : undefined,
+    const formattedData = walletLedger.map((item) => {
+      const { amount, ...rest } = item;
 
-      netCommission: item?.netCommission
-        ? paiseToRupee(item.netCommission)
-        : undefined,
+      return {
+        ...rest,
+        amount: paiseToRupee(amount - item?.chargesAmount - item?.gstAmount),
+        openingBalance: paiseToRupee(item?.openingBalance),
+        chargesAmount: paiseToRupee(item?.chargesAmount),
+        closingBalance: paiseToRupee(item?.closingBalance),
+        commission: item?.commission ? paiseToRupee(item.commission) : 0,
+        tdsAmount: item?.tdsAmount ? paiseToRupee(item.tdsAmount) : 0,
+        commission: item?.commission
+          ? paiseToRupee(item.commission)
+          : undefined,
 
-      gstAmount: item?.gstAmount ? paiseToRupee(item.gstAmount) : 0,
+        netCommission: item?.netCommission
+          ? paiseToRupee(item.netCommission)
+          : undefined,
 
-      totalCharges: item?.totalCharge ? paiseToRupee(item.totalCharge) : 0,
-    }));
+        gstAmount: item?.gstAmount ? paiseToRupee(item.gstAmount) : 0,
+
+        totalCharges: paiseToRupee(
+          (item?.chargesAmount || 0) + (item?.gstAmount || 0),
+        ),
+      };
+    });
 
     return res.status(200).json({
       success: true,
