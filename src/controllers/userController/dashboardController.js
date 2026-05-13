@@ -685,3 +685,400 @@ exports.getPerformanceStats = async (req, res, next) => {
     next(error);
   }
 };
+
+exports.getVolumeAnalytics = async (req, res, next) => {
+  try {
+    let { from = "", to = "", range = "" } = req.query;
+    range = typeof range === "string" ? range.trim().toLowerCase() : "";
+    from = typeof from === "string" ? from.trim() : "";
+    to = typeof to === "string" ? to.trim() : "";
+
+    // normalize invalid inputs
+    if (!from || from === "null" || from === "undefined") {
+      from = undefined;
+    }
+
+    if (!to || to === "null" || to === "undefined") {
+      to = undefined;
+    }
+
+    if (!range || range === "null" || range === "undefined") {
+      range = undefined;
+    }
+
+    const filter = {
+      userId: new mongoose.Types.ObjectId(req.user.id),
+    };
+
+    const now = new Date();
+
+    let fromDate;
+    let toDate;
+
+    const allowedRanges = ["today", "yesterday", "last7days", "thismonth"];
+
+    // RANGE VALIDATION
+    if (range && !allowedRanges.includes(range)) {
+      const err = new Error("Invalid Range");
+      err.statusCode = 400;
+      throw err;
+    }
+
+    // FUTURE DATE VALIDATION
+    if (from && new Date(from) > now) {
+      const err = new Error("Starting Date can not be in future");
+      err.statusCode = 400;
+      throw err;
+    }
+
+    if (to && new Date(to) > now) {
+      const err = new Error("Ending Date can not be in future");
+      err.statusCode = 400;
+      throw err;
+    }
+
+    // RANGE FILTER
+    if (range) {
+      switch (range) {
+        case "today":
+          fromDate = new Date();
+          fromDate.setHours(0, 0, 0, 0);
+          toDate = new Date();
+          toDate.setHours(23, 59, 59, 999);
+
+          break;
+
+        case "yesterday":
+          fromDate = new Date();
+          fromDate.setDate(fromDate.getDate() - 1);
+          fromDate.setHours(0, 0, 0, 0);
+          toDate = new Date();
+          toDate.setDate(toDate.getDate() - 1);
+          toDate.setHours(23, 59, 59, 999);
+
+          break;
+
+        case "last7days":
+          fromDate = new Date();
+          fromDate.setDate(fromDate.getDate() - 6);
+          fromDate.setHours(0, 0, 0, 0);
+          toDate = new Date();
+          toDate.setHours(23, 59, 59, 999);
+
+          break;
+
+        case "thismonth":
+          fromDate = new Date(now.getFullYear(), now.getMonth(), 1);
+          toDate = new Date();
+          toDate.setHours(23, 59, 59, 999);
+
+          break;
+      }
+    } else {
+      // MANUAL DATE VALIDATION
+
+      const isValidDate = (date) => !isNaN(new Date(date).getTime());
+
+      if (from) {
+        if (!isValidDate(from)) {
+          const err = new Error("Invalid 'from' date");
+          err.statusCode = 400;
+          throw err;
+        }
+
+        fromDate = new Date(from);
+      }
+
+      if (to) {
+        if (!isValidDate(to)) {
+          const err = new Error("Invalid 'to' date");
+          err.statusCode = 400;
+          throw err;
+        }
+
+        toDate = new Date(to);
+      }
+
+      if (fromDate && toDate && fromDate > toDate) {
+        const err = new Error("'from' cannot be greater than 'to'");
+        err.statusCode = 400;
+        throw err;
+      }
+
+      if (toDate) {
+        toDate.setHours(23, 59, 59, 999);
+      }
+    }
+
+    // APPLY DATE FILTER
+    if (fromDate || toDate) {
+      filter.createdAt = {};
+
+      if (fromDate) {
+        filter.createdAt.$gte = fromDate;
+      }
+
+      if (toDate) {
+        filter.createdAt.$lte = toDate;
+      }
+    }
+
+    // ==========================================
+    // SERVICE MODEL MAP
+    // ==========================================
+
+    const services = [
+      {
+        serviceType: "recharge1",
+        model: RechargeReport,
+      },
+
+      {
+        serviceType: "dmt1",
+        model: DmtReport,
+      },
+
+      {
+        serviceType: "bbps1",
+        model: BbpsReport,
+      },
+
+      {
+        serviceType: "aeps1",
+        model: InstantAepsReport,
+      },
+
+      {
+        serviceType: "aeps2",
+        model: EkoAepsReport,
+      },
+
+      {
+        serviceType: "aeps-payout1",
+        model: PayoutReport,
+        payoutType: "AEPS_PAYOUT",
+      },
+
+      {
+        serviceType: "xpress-payout1",
+        model: PayoutReport,
+        payoutType: "XPRESS_PAYOUT",
+      },
+    ];
+
+    // ==========================================
+    // FETCH VOLUME SERVICE WISE
+    // ==========================================
+
+    const statistics = await Promise.all(
+      services.map(async ({ serviceType, model, payoutType }) => {
+        let currentFilter = {
+          ...filter,
+        };
+
+        // payout subtype filter
+        if (payoutType) {
+          currentFilter.serviceType = payoutType;
+        }
+
+        const result = await model.aggregate([
+          {
+            $match: currentFilter,
+          },
+
+          // =========================
+          // TDS LOOKUP
+          // =========================
+          {
+            $lookup: {
+              from: "tdsledgers",
+              let: {
+                refId: "$referenceId",
+                uid: "$userId",
+              },
+              pipeline: [
+                {
+                  $match: {
+                    $expr: {
+                      $and: [
+                        {
+                          $eq: ["$referenceId", "$$refId"],
+                        },
+                        {
+                          $eq: ["$userId", "$$uid"],
+                        },
+                      ],
+                    },
+                  },
+                },
+              ],
+              as: "tds",
+            },
+          },
+
+          // =========================
+          // GST LOOKUP
+          // =========================
+          {
+            $lookup: {
+              from: "gstledgers",
+              let: {
+                refId: "$referenceId",
+                uid: "$userId",
+              },
+              pipeline: [
+                {
+                  $match: {
+                    $expr: {
+                      $and: [
+                        {
+                          $eq: ["$referenceId", "$$refId"],
+                        },
+                        {
+                          $eq: ["$userId", "$$uid"],
+                        },
+                      ],
+                    },
+                  },
+                },
+              ],
+              as: "gst",
+            },
+          },
+
+          {
+            $group: {
+              _id: null,
+
+              totalSuccessTransaction: {
+                $sum: {
+                  $cond: [
+                    {
+                      $or: [
+                        {
+                          $eq: ["$status", "SUCCESS"],
+                        },
+                        {
+                          $eq: ["$txnStatus", "SUCCESS"],
+                        },
+                      ],
+                    },
+                    1,
+                    0,
+                  ],
+                },
+              },
+
+              totalVolume: {
+                $sum: {
+                  $cond: [
+                    {
+                      $or: [
+                        {
+                          $eq: ["$status", "SUCCESS"],
+                        },
+                        {
+                          $eq: ["$txnStatus", "SUCCESS"],
+                        },
+                      ],
+                    },
+                    "$amount",
+                    0,
+                  ],
+                },
+              },
+
+              totalCommission: {
+                $sum: {
+                  $ifNull: [
+                    {
+                      $sum: "$tds.netCommission",
+                    },
+                    0,
+                  ],
+                },
+              },
+
+              // TOTAL TDS
+              totalTds: {
+                $sum: {
+                  $ifNull: [
+                    {
+                      $sum: "$tds.tdsAmount",
+                    },
+                    0,
+                  ],
+                },
+              },
+
+              // TOTAL GST CHARGES
+              totalCharges: {
+                $sum: {
+                  $ifNull: [
+                    {
+                      $sum: "$gst.totalCharge",
+                    },
+                    0,
+                  ],
+                },
+              },
+
+              // TOTAL GST AMOUNT
+              totalGst: {
+                $sum: {
+                  $ifNull: [
+                    {
+                      $sum: "$gst.gstAmount",
+                    },
+                    0,
+                  ],
+                },
+              },
+            },
+          },
+        ]);
+
+        return {
+          serviceType,
+
+          totalSuccessTransaction: result[0]?.totalSuccessTransaction || 0,
+
+          totalVolume: paiseToRupee(result[0]?.totalVolume || 0),
+
+          totalCommission: paiseToRupee(result[0]?.totalCommission || 0),
+
+          totalTds: paiseToRupee(result[0]?.totalTds || 0),
+
+          totalCharges: paiseToRupee(result[0]?.totalCharges || 0),
+
+          totalGst: paiseToRupee(result[0]?.totalGst || 0),
+        };
+      }),
+    );
+
+    // ==========================================
+    // OVERALL TOTAL
+    // ==========================================
+
+    const overall = statistics.reduce(
+      (acc, curr) => {
+        acc.totalSuccessTransaction += curr.totalSuccessTransaction;
+        acc.totalVolume += curr.totalVolume;
+        return acc;
+      },
+      {
+        totalSuccessTransaction: 0,
+        totalVolume: 0,
+      },
+    );
+
+    return res.status(200).json({
+      success: true,
+      message: "Volume fetched successfully",
+      overall,
+      data: statistics,
+    });
+  } catch (error) {
+    next(error);
+  }
+};

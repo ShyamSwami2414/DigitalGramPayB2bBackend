@@ -7,6 +7,30 @@ const {
   generateUniqueRefernceId,
 } = require("../../utils/generateUniqueReferenceId");
 
+const getDownlineUserIds = async (userId) => {
+  const result = await User.aggregate([
+    {
+      $match: { _id: new mongoose.Types.ObjectId(userId) },
+    },
+    {
+      $graphLookup: {
+        from: "users",
+        startWith: "$_id",
+        connectFromField: "_id",
+        connectToField: "parentUserId",
+        as: "downlines",
+      },
+    },
+    {
+      $project: {
+        ids: "$downlines._id",
+      },
+    },
+  ]);
+
+  return result[0]?.ids || [];
+};
+
 exports.userProfileForRefill = async (req, res, next) => {
   try {
     let { userId } = req.query;
@@ -276,9 +300,41 @@ exports.getDownlineWalletRefillHistory = async (req, res, next) => {
       userId: { $ne: new mongoose.Types.ObjectId(req.user.id) },
     };
 
+    const loggedInUserId = req.user.id;
+    console.log(loggedInUserId, "loggedInUserId");
+
+    const downlineIds = await getDownlineUserIds(loggedInUserId);
+
+    const allowedUserIds = [
+      // new mongoose.Types.ObjectId(loggedInUserId),
+      ...downlineIds,
+    ];
+
+    if (userId) {
+      if (!mongoose.Types.ObjectId.isValid(userId)) {
+        return res
+          .status(400)
+          .json({ success: false, message: "Invalid userId" });
+      }
+
+      const isAllowed = allowedUserIds.some((id) => id.equals(userId));
+
+      if (!isAllowed) {
+        return res.status(403).json({
+          success: false,
+          message: "Not allowed to access this user's report",
+        });
+      }
+
+      filter.userId = new mongoose.Types.ObjectId(userId);
+    } else {
+      filter.userId = { $in: allowedUserIds };
+    }
+
     const skip = (page - 1) * limit;
     const now = new Date();
     let fromDate, toDate;
+    
 
     const allowedStatus = ["success", "pending", "failed"];
     const allowedRanges = ["today", "yesterday", "last7days", "thismonth"];
