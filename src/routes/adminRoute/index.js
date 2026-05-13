@@ -45,6 +45,7 @@ module.exports = (app) => {
   app.use(`${apiPrefix}/aepsReport`, require("./instantAepsReportRoute"));
   app.use(`${apiPrefix}/eAepsReport`, require("./ekoAepsReportRoute"));
   app.use(`${apiPrefix}/dmtReport`, require("./nobleDmtReportRoute"));
+  app.use(`${apiPrefix}/search`, require("./transactionSearchRoute"));
   app.use(
     `${apiPrefix}/aepsPayoutReport`,
     require("./sozoAepsPayoutReportRoute"),
@@ -66,6 +67,8 @@ module.exports = (app) => {
 
   app.use(`${apiPrefix}/policy`, require("./policyRoute"));
   app.use(`${apiPrefix}/serviceRequest`, require("./serviceRequestRoute"));
+
+  app.use(`${apiPrefix}/commissionReport`, require("./commissionReportRoute"));
 
   //aeps1
   app.use(

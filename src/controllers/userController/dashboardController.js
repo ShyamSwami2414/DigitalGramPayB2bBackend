@@ -7,6 +7,13 @@ const {
 } = require("../../utils/generateUniqueReferenceId");
 const Payout = require("../../models/sozopayoutTransactionModel");
 
+const RechargeReport = require("../../models/rechargeReportModel");
+const BbpsReport = require("../../models/bbpsReportModel");
+const DmtReport = require("../../models/dmtReportModel");
+const InstantAepsReport = require("../../models/instantAepsReportModel");
+const EkoAepsReport = require("../../models/ekoAepsReportModel");
+const PayoutReport = require("../../models/sozopayoutTransactionModel");
+
 exports.getTopupStats = async (req, res, next) => {
   try {
     let { status = "", from = "", to = "", range = "" } = req.query;
@@ -256,10 +263,9 @@ exports.getPayoutMonthlyStats = async (req, res, next) => {
     };
 
     if (serviceType === "aeps") {
-       match.serviceType = "AEPS_PAYOUT";
-     
-    }else if(serviceType === "xpress"){
-       match.serviceType = "XPRESS_PAYOUT";
+      match.serviceType = "AEPS_PAYOUT";
+    } else if (serviceType === "xpress") {
+      match.serviceType = "XPRESS_PAYOUT";
     }
 
     const data = await Payout.aggregate([
@@ -311,6 +317,369 @@ exports.getPayoutMonthlyStats = async (req, res, next) => {
       success: true,
       message: "Monthly payout stats fetched",
       data: formatted,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+exports.getPerformanceStats = async (req, res, next) => {
+  try {
+    let { serviceType = "", from = "", to = "", range = "" } = req.query;
+
+    serviceType = serviceType?.trim().toLowerCase();
+
+    range = typeof range === "string" ? range.trim().toLowerCase() : "";
+
+    from = typeof from === "string" ? from.trim() : "";
+
+    to = typeof to === "string" ? to.trim() : "";
+
+    // normalize invalid inputs
+    if (!from || from === "null" || from === "undefined") {
+      from = undefined;
+    }
+
+    if (!to || to === "null" || to === "undefined") {
+      to = undefined;
+    }
+
+    if (!range || range === "null" || range === "undefined") {
+      range = undefined;
+    }
+
+    const filter = {
+      userId: new mongoose.Types.ObjectId(req.user.id),
+    };
+
+    const now = new Date();
+
+    let fromDate;
+    let toDate;
+
+    const allowedRanges = ["today", "yesterday", "last7days", "thismonth"];
+
+    // RANGE VALIDATION
+    if (range && !allowedRanges.includes(range)) {
+      const err = new Error("Invalid Range");
+
+      err.statusCode = 400;
+
+      throw err;
+    }
+
+    // FUTURE DATE VALIDATION
+    if (from && new Date(from) > now) {
+      const err = new Error("Starting Date can not be in future");
+
+      err.statusCode = 400;
+
+      throw err;
+    }
+
+    if (to && new Date(to) > now) {
+      const err = new Error("Ending Date can not be in future");
+
+      err.statusCode = 400;
+
+      throw err;
+    }
+
+    // RANGE FILTER
+    if (range) {
+      switch (range) {
+        case "today":
+          fromDate = new Date();
+          fromDate.setHours(0, 0, 0, 0);
+
+          toDate = new Date();
+          toDate.setHours(23, 59, 59, 999);
+
+          break;
+
+        case "yesterday":
+          fromDate = new Date();
+          fromDate.setDate(fromDate.getDate() - 1);
+
+          fromDate.setHours(0, 0, 0, 0);
+
+          toDate = new Date();
+          toDate.setDate(toDate.getDate() - 1);
+
+          toDate.setHours(23, 59, 59, 999);
+
+          break;
+
+        case "last7days":
+          fromDate = new Date();
+
+          fromDate.setDate(fromDate.getDate() - 6);
+
+          fromDate.setHours(0, 0, 0, 0);
+
+          toDate = new Date();
+
+          toDate.setHours(23, 59, 59, 999);
+
+          break;
+
+        case "thismonth":
+          fromDate = new Date(now.getFullYear(), now.getMonth(), 1);
+
+          toDate = new Date();
+
+          toDate.setHours(23, 59, 59, 999);
+
+          break;
+      }
+    } else {
+      // MANUAL DATE VALIDATION
+
+      const isValidDate = (date) => !isNaN(new Date(date).getTime());
+
+      if (from) {
+        if (!isValidDate(from)) {
+          const err = new Error("Invalid 'from' date");
+
+          err.statusCode = 400;
+
+          throw err;
+        }
+
+        fromDate = new Date(from);
+      }
+
+      if (to) {
+        if (!isValidDate(to)) {
+          const err = new Error("Invalid 'to' date");
+
+          err.statusCode = 400;
+
+          throw err;
+        }
+
+        toDate = new Date(to);
+      }
+
+      if (fromDate && toDate && fromDate > toDate) {
+        const err = new Error("'from' cannot be greater than 'to'");
+
+        err.statusCode = 400;
+
+        throw err;
+      }
+
+      if (toDate) {
+        toDate.setHours(23, 59, 59, 999);
+      }
+    }
+
+    // APPLY DATE FILTER
+    if (fromDate || toDate) {
+      filter.createdAt = {};
+
+      if (fromDate) {
+        filter.createdAt.$gte = fromDate;
+      }
+
+      if (toDate) {
+        filter.createdAt.$lte = toDate;
+      }
+    }
+
+    // SERVICE MODEL MAP
+    const serviceModels = {
+      recharge: RechargeReport,
+      dmt: DmtReport,
+      bbps: BbpsReport,
+      aeps1: InstantAepsReport,
+      aeps2: EkoAepsReport,
+      payout: PayoutReport,
+    };
+
+    let selectedModels = [];
+
+    // SINGLE SERVICE
+    if (serviceType) {
+      // payout services
+      if (serviceType === "aeps-payout" || serviceType === "xpress-payout") {
+        selectedModels.push({
+          serviceType,
+          model: PayoutReport,
+        });
+      } else {
+        if (!serviceModels[serviceType]) {
+          return res.status(400).json({
+            success: false,
+            message: "Invalid service type",
+          });
+        }
+
+        selectedModels.push({
+          serviceType,
+          model: serviceModels[serviceType],
+        });
+      }
+    } else {
+      // ALL SERVICES
+      selectedModels = Object.entries(serviceModels).map(
+        ([serviceType, model]) => ({
+          serviceType,
+          model,
+        }),
+      );
+    }
+
+    // FETCH STATS
+    const statistics = await Promise.all(
+      selectedModels.map(async ({ serviceType, model }) => {
+        let currentFilter = {
+          ...filter,
+        };
+
+        // payout subtype filter
+        if (serviceType === "aeps-payout") {
+          currentFilter.serviceType = "AEPS_PAYOUT";
+        }
+
+        if (serviceType === "xpress-payout") {
+          currentFilter.serviceType = "XPRESS_PAYOUT";
+        }
+
+        const result = await model.aggregate([
+          {
+            $match: currentFilter,
+          },
+
+          {
+            $group: {
+              _id: null,
+
+              successCount: {
+                $sum: {
+                  $cond: [
+                    {
+                      $or: [
+                        {
+                          $eq: ["$status", "SUCCESS"],
+                        },
+
+                        {
+                          $eq: ["$txnStatus", "SUCCESS"],
+                        },
+                      ],
+                    },
+                    1,
+                    0,
+                  ],
+                },
+              },
+
+              failedCount: {
+                $sum: {
+                  $cond: [
+                    {
+                      $or: [
+                        {
+                          $eq: ["$status", "FAILED"],
+                        },
+
+                        {
+                          $eq: ["$txnStatus", "FAILED"],
+                        },
+                      ],
+                    },
+                    1,
+                    0,
+                  ],
+                },
+              },
+
+              successAmount: {
+                $sum: {
+                  $cond: [
+                    {
+                      $or: [
+                        {
+                          $eq: ["$status", "SUCCESS"],
+                        },
+
+                        {
+                          $eq: ["$txnStatus", "SUCCESS"],
+                        },
+                      ],
+                    },
+                    "$amount",
+                    0,
+                  ],
+                },
+              },
+
+              failedAmount: {
+                $sum: {
+                  $cond: [
+                    {
+                      $or: [
+                        {
+                          $eq: ["$status", "FAILED"],
+                        },
+
+                        {
+                          $eq: ["$txnStatus", "FAILED"],
+                        },
+                      ],
+                    },
+                    "$amount",
+                    0,
+                  ],
+                },
+              },
+            },
+          },
+        ]);
+
+        return {
+          serviceType,
+
+          successTransaction: result[0]?.successCount || 0,
+
+          failedTransaction: result[0]?.failedCount || 0,
+
+          successAmount: paiseToRupee(result[0]?.successAmount || 0),
+
+          failedAmount: paiseToRupee(result[0]?.failedAmount || 0),
+        };
+      }),
+    );
+
+    // OVERALL STATS
+    const overall = statistics.reduce(
+      (acc, curr) => {
+        acc.successTransaction += curr.successTransaction;
+
+        acc.failedTransaction += curr.failedTransaction;
+
+        acc.successAmount += curr.successAmount;
+
+        acc.failedAmount += curr.failedAmount;
+
+        return acc;
+      },
+      {
+        successTransaction: 0,
+        failedTransaction: 0,
+        successAmount: 0,
+        failedAmount: 0,
+      },
+    );
+
+    return res.status(200).json({
+      success: true,
+      message: "Performance statistics fetched successfully",
+
+      overall,
+
+      data: statistics,
     });
   } catch (error) {
     next(error);
