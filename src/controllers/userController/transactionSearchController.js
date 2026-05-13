@@ -25,9 +25,54 @@ exports.globalTransactionSearch = async (req, res, next) => {
       {
         $unwind: "$user",
       },
+
+      {
+        $lookup: {
+          from: "transactions",
+          let: {
+            refId: "$referenceId",
+            uid: "$userId",
+          },
+          pipeline: [
+            {
+              $match: {
+                $expr: {
+                  $and: [
+                    {
+                      $eq: ["$referenceId", "$$refId"],
+                    },
+                    {
+                      $eq: ["$userId", "$$uid"],
+                    },
+                  ],
+                },
+              },
+            },
+
+            {
+              $project: {
+                _id: 0,
+                status: 1,
+              },
+            },
+          ],
+          as: "transaction",
+        },
+      },
+
+      {
+        $unwind: {
+          path: "$transaction",
+          preserveNullAndEmptyArrays: true,
+        },
+      },
+
       {
         $project: {
-          fullName: { $concat: ["$user.firstName", " ", "$user.lastName"] },
+          fullName: {
+            $concat: ["$user.firstName", " ", "$user.lastName"],
+          },
+
           userName: "$user.userName",
           email: "$user.email",
           phone: "$user.phone",
@@ -41,14 +86,16 @@ exports.globalTransactionSearch = async (req, res, next) => {
           referenceId: 1,
           description: 1,
           createdAt: 1,
+          status: "$transaction.status",
         },
       },
     ]);
 
     if (result.length === 0) {
-      return res.status(400).json({
-        success: false,
+      return res.status(200).json({
+        success: true,
         message: "No Data available for this transaction ID",
+        data: [],
       });
     }
 

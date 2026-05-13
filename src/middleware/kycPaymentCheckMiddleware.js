@@ -26,8 +26,8 @@ const checkUserPaymentAndKYC = async (req, res, next) => {
 
     const { role: roleId } = req.user;
 
-    console.log(loggedUser.kycStatus, "kycStatus");
-    console.log(loggedUser.isPaymentDone, "isPaymentDone");
+    console.log(loggedUser?.kycStatus, "kycStatus");
+    console.log(loggedUser?.isPaymentDone, "isPaymentDone");
 
     const role = await Role.findById(roleId).lean();
 
@@ -38,13 +38,13 @@ const checkUserPaymentAndKYC = async (req, res, next) => {
         .json({ success: false, message: "Role not found " });
     }
 
-    const isPaymentRequired = role.isPaymentRequired;
-    const kycStatus = loggedUser.kycStatus;
-    
-    const isPaymentDone = loggedUser.isPaymentDone;
+    const isPaymentRequired = role?.isPaymentRequired;
+    const kycStatus = loggedUser?.kycStatus;
+
+    const isPaymentDone = loggedUser?.isPaymentDone;
     const isPaymentApproved =
       loggedUser.idPaymentStatus === "approved" ||
-      loggedUser?.idPaymentStatus === "coupon";
+      loggedUser.idPaymentStatus === "coupon";
 
     console.log(isPaymentRequired, "isPaymentRequired");
 
@@ -56,13 +56,6 @@ const checkUserPaymentAndKYC = async (req, res, next) => {
 
     console.log(isPaymentApproved, "isPaymentApproved");
 
-    if (!isPaymentApproved) {
-      return res.status(403).json({
-        success: false,
-        message: "Onboard Charges Payment Not received for ID",
-      });
-    }
-
     if (isPaymentRequired) {
       console.log("entered");
 
@@ -71,6 +64,13 @@ const checkUserPaymentAndKYC = async (req, res, next) => {
         return res.status(403).json({
           success: false,
           message: "Payment Pending",
+        });
+      }
+
+      if (!isPaymentApproved) {
+        return res.status(403).json({
+          success: false,
+          message: "Onboard Charges Payment Not received for ID",
         });
       }
     }

@@ -43,6 +43,7 @@ const tdsLedgerModel = require("../models/tdsLedgerModel");
 const {
   validateUserPackageAndService,
 } = require("./common/validateUserPackageAndService");
+const Transaction = require("../models/transactionModel");
 
 exports.instantAepsOutletRegister = async ({
   userId,
@@ -903,6 +904,37 @@ exports.doCashWithdraw = async ({
       { session: session },
     );
 
+    await Transaction.create(
+      [
+        {
+          userId: userId,
+          referenceId: referenceId,
+          serviceType: "AEPS",
+          serviceCategory: "CASH-WITHDRAW",
+          amount: amount, //paise
+          wallet: "aeps",
+          // type: "credit",
+          status: "INITIATED",
+          meta: {
+            request: {
+              userId,
+              requestId, //client send idempotency
+              client_referenceId: referenceId, //auto genertae
+              mcode: merchantExist?.outletId,
+              mobile,
+              bankiin: iin,
+              amount, //paise
+              latitude,
+              longitude,
+              captureType,
+              biometricData,
+            },
+          },
+        },
+      ],
+      { session: session },
+    );
+
     await session.commitTransaction();
 
     let result;
@@ -959,6 +991,21 @@ exports.doCashWithdraw = async ({
           { session: withdrawSession },
         );
 
+        await Transaction.updateOne(
+          {
+            referenceId: referenceId,
+          },
+          {
+            $set: {
+              status: "SUCCESS",
+              providerTxnId: result?.txn_ref,
+              remark: result ? result?.message : "",
+              "meta.response": result ? result : "",
+            },
+          },
+          { session: withdrawSession },
+        );
+
         const { openingBalance, closingBalance } = await creditWallet({
           userId: userId,
           amount: amount, // paise
@@ -1007,7 +1054,9 @@ exports.doCashWithdraw = async ({
         withdrawSession.endSession();
       }
     } else {
+      const failedSession = await mongoose.startSession();
       try {
+        failedSession.startTransaction();
         const data = result?.response?.data;
         await InstantAepsReport.findOneAndUpdate(
           { referenceId: referenceId },
@@ -1023,7 +1072,25 @@ exports.doCashWithdraw = async ({
               rawResponse: result,
             },
           },
+          { session: failedSession },
         );
+
+        await Transaction.updateOne(
+          {
+            referenceId: referenceId,
+          },
+          {
+            $set: {
+              status: "FAILED",
+              providerTxnId: result?.txn_ref,
+              remark: result ? result?.message : "",
+              "meta.response": result ? result : "",
+            },
+          },
+          { session: failedSession },
+        );
+
+        failedSession.commitTransaction();
 
         result = {
           ...result,
@@ -1035,7 +1102,12 @@ exports.doCashWithdraw = async ({
         err.data = result?.data;
         throw err;
       } catch (error) {
+        if (failedSession.inTransaction()) {
+          await failedSession.abortTransaction();
+        }
         throw error;
+      } finally {
+        failedSession.endSession();
       }
     }
   } catch (error) {
