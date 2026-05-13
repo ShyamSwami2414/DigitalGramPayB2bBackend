@@ -52,6 +52,7 @@ module.exports = (app) => {
 
   app.use(`${apiPrefix}/dmt`, require("./nobleFinoDmtRoute"));
   app.use(`${apiPrefix}/dmt-ben`, require("./nobleDmtBeneficiaryRoute"));
+  app.use(`${apiPrefix}/commissionReport`, require("./commissionReportRoute"));
 
   app.use(
     `${apiPrefix}/aepsPayoutBank`,
