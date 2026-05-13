@@ -121,7 +121,8 @@ const processCharges = async ({
             entryType: "PAYOUT",
             wallet: walletType,
             type: "debit",
-            amount: totalDebitAmount, //with charge and gst
+            amount: amount,
+            // settledAmount: totalDebitAmount, //with charge and gst
             referenceId: referenceId,
             openingBalance: openingBalance,
             closingBalance: closingBalance,
