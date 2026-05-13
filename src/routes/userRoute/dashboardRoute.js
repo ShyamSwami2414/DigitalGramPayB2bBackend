@@ -4,6 +4,7 @@ const { authenticateUser } = require("../../middleware/authMiddleware");
 const {
   getTopupStats,
   getPayoutMonthlyStats,
+  getPerformanceStats
 } = require("../../controllers/userController/dashboardController");
 
 const checkUserPaymentAndKYC = require("../../middleware/kycPaymentCheckMiddleware");
@@ -24,6 +25,13 @@ router.get(
   authenticateUser,
   checkUserPaymentAndKYC,
   asyncHandler(getPayoutMonthlyStats),
+);
+
+router.get(
+  "/performance-stats",
+  authenticateUser,
+  checkUserPaymentAndKYC,
+  asyncHandler(getPerformanceStats),
 );
 
 module.exports = router;
