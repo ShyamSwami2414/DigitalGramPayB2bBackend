@@ -147,7 +147,7 @@ exports.refillUserWallet = async (req, res, next) => {
       throw err;
     }
 
-    const referenceId = generateUniqueRefernceId();
+    const referenceId = generateUniqueRefernceId("RUW");
     let uplineOpeningBalance = 0;
     let uplineClosingBalance = 0;
     let downlineOpeningBalance = 0;

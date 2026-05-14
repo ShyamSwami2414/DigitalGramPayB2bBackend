@@ -38,7 +38,7 @@ exports.payBbpsBillService = async ({
   try {
     session.startTransaction();
 
-    const referenceId = generateUniqueRefernceId();
+    const referenceId = generateUniqueRefernceId("BPS");
 
     let packageId, serviceId;
 

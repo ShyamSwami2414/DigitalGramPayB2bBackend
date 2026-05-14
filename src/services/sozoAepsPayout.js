@@ -38,7 +38,7 @@ exports.initiateAepsPayoutTransfer = async ({
   const session = await mongoose.startSession();
   try {
     session.startTransaction();
-    const referenceId = generateUniqueRefernceId(); //backend unique
+    const referenceId = generateUniqueRefernceId("AER"); //backend unique
     const amountInRupee = paiseToRupee(amount);
     console.log("bankProfle ID", bankProfileId);
 

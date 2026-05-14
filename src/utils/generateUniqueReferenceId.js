@@ -1,5 +1,9 @@
-const { nanoid } = require("nanoid");
+const { customAlphabet } = require("nanoid");
 
-exports.generateUniqueRefernceId = () => {
-  return `REF-${nanoid(10)}`;
+const nanoid = customAlphabet("ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789", 10);
+
+exports.generateUniqueRefernceId = (prefix = "TXN") => {
+  const cleanPrefix = prefix.replace(/[^A-Z0-9]/gi, "").toUpperCase();
+
+  return `${cleanPrefix}${Date.now()}${nanoid()}`;
 };

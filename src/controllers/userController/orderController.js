@@ -83,7 +83,7 @@ exports.createOrder = async (req, res, next) => {
     const gstAmount = Math.round((subTotal * gst) / 100);
     const grandTotal = subTotal + gstAmount + shippingChargeInPaise;
 
-    const referenceId = generateUniqueRefernceId();
+    const referenceId = generateUniqueRefernceId("ORD");
 
     // Create order
     const order = await Order.create(

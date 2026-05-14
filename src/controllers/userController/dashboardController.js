@@ -708,6 +708,7 @@ exports.getVolumeAnalytics = async (req, res, next) => {
 
     const filter = {
       userId: new mongoose.Types.ObjectId(req.user.id),
+      status: "SUCCESS",
     };
 
     const now = new Date();

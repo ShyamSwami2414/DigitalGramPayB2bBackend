@@ -81,7 +81,7 @@ exports.mobileVerify = async (req, res, next) => {
       });
     }
 
-    const referenceId = generateUniqueRefernceId();
+    const referenceId = generateUniqueRefernceId("ARV");
 
     const mobileVerifyResponse = await rechargeMobileVerify(
       mobile,
