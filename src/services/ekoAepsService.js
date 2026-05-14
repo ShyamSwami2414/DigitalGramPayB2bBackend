@@ -52,7 +52,7 @@ exports.onboardEkoAepsUser = async ({
   try {
     session.startTransaction();
 
-    const referenceId = generateUniqueRefernceId();
+    const referenceId = generateUniqueRefernceId("EAE");
     const registrationCharges = 1000;
 
     const { openingBalance, closingBalance } = await debitWallet({
@@ -158,7 +158,7 @@ exports.activateService = async ({
   try {
     session.startTransaction();
 
-    const referenceId = generateUniqueRefernceId();
+    const referenceId = generateUniqueRefernceId("EAS");
 
     const onboardMerchant = await EkoOnboardAepsUser.findOne({
       userId: userId,
@@ -249,7 +249,7 @@ exports.kycOtp = async ({
   try {
     session.startTransaction();
 
-    const referenceId = generateUniqueRefernceId();
+    const referenceId = generateUniqueRefernceId("EAE");
 
     const onboardMerchant = await EkoOnboardAepsUser.findOne({
       userId: userId,
@@ -321,7 +321,7 @@ exports.verifyOtp = async ({ userId, requestId, otp, latitude, longitude }) => {
   try {
     session.startTransaction();
 
-    const referenceId = generateUniqueRefernceId();
+    const referenceId = generateUniqueRefernceId("EAE");
 
     const onboardMerchant = await EkoOnboardAepsUser.findOne({
       userId: userId,
@@ -406,7 +406,7 @@ exports.ekycBiometric = async ({
   try {
     session.startTransaction();
 
-    const referenceId = generateUniqueRefernceId();
+    const referenceId = generateUniqueRefernceId("EAE");
 
     const onboardMerchant = await EkoOnboardAepsUser.findOne({
       userId: userId,
@@ -495,7 +495,7 @@ exports.dailyBiometricLogin = async ({
   try {
     session.startTransaction();
 
-    const referenceId = generateUniqueRefernceId();
+    const referenceId = generateUniqueRefernceId("EAE");
 
     const dailyAepsLoginCharge = 100;
 
@@ -675,7 +675,7 @@ exports.initiateAepsTransaction = async ({
   try {
     session.startTransaction();
 
-    const referenceId = generateUniqueRefernceId();
+    const referenceId = generateUniqueRefernceId("EAE");
 
     const { packageId, serviceId } = await validateUserPackageAndService({
       userId: userId,

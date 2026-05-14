@@ -1054,7 +1054,7 @@ const getDmtReportById = async (req, res, next) => {
           charge: paiseToRupee(report?.charge),
           tds: paiseToRupee(report?.tds),
           gst: paiseToRupee(report?.gst),
-          totalCharges: paiseToRupee(report?.totalCharges),
+          totalAmount: paiseToRupee(report?.totalCharges),
         }
       : null;
 

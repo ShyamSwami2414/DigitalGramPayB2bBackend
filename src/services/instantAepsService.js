@@ -63,7 +63,7 @@ exports.instantAepsOutletRegister = async ({
   try {
     session.startTransaction();
 
-    const referenceId = generateUniqueRefernceId();
+    const referenceId = generateUniqueRefernceId("IAE");
     const registrationCharges = 1000;
     const encryptedAadhaar = encryptAadhaar(aadhaar);
 
@@ -146,7 +146,7 @@ exports.checkBiometricKycStatus = async ({ userId, requestId }) => {
   try {
     session.startTransaction();
 
-    const referenceId = generateUniqueRefernceId();
+    const referenceId = generateUniqueRefernceId("IAE");
     const spKey = "WAP";
 
     const merchantExist = await Merchant.findOne({ userId: userId })
@@ -284,7 +284,7 @@ exports.biometricKyc = async ({
   try {
     session.startTransaction();
 
-    const referenceId = generateUniqueRefernceId(); //backend unique
+    const referenceId = generateUniqueRefernceId("IAE"); //backend unique
 
     const merchantExist = await Merchant.findOne({ userId: userId })
       .select("_id outletId temp_ref ")
@@ -361,7 +361,7 @@ exports.dailyLogin = async ({
   try {
     session.startTransaction();
 
-    const referenceId = generateUniqueRefernceId(); //backend unique
+    const referenceId = generateUniqueRefernceId("IAE"); //backend unique
     const dailyAepsLoginCharge = 100;
 
     const { openingBalance, closingBalance } = await debitWallet({
@@ -512,7 +512,7 @@ exports.doBalanceEnquiry = async ({
   try {
     session.startTransaction();
 
-    const referenceId = generateUniqueRefernceId(); //backend unique
+    const referenceId = generateUniqueRefernceId("IAE"); //backend unique
 
     const merchantExist = await Merchant.findOne({ userId: userId })
       .select("_id outletId")
@@ -658,7 +658,7 @@ exports.doMiniStatement = async ({
   try {
     session.startTransaction();
 
-    const referenceId = generateUniqueRefernceId(); //backend unique
+    const referenceId = generateUniqueRefernceId("IAE"); //backend unique
 
     const merchantExist = await Merchant.findOne({ userId: userId })
       .select("_id outletId")
@@ -867,7 +867,7 @@ exports.doCashWithdraw = async ({
   try {
     session.startTransaction();
 
-    const referenceId = generateUniqueRefernceId(); //backend unique
+    const referenceId = generateUniqueRefernceId("IAE"); //backend unique
 
     const { packageId, serviceId } = await validateUserPackageAndService({
       userId: userId,

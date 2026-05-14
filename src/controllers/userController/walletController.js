@@ -30,7 +30,7 @@ exports.aepsToMainTransfer = async (req, res, next) => {
       writeConcern: { w: "majority" },
     });
 
-    const referenceId = generateUniqueRefernceId();
+    const referenceId = generateUniqueRefernceId("ATM");
 
     const userExist = await User.findOne({
       _id: new mongoose.Types.ObjectId(userId),

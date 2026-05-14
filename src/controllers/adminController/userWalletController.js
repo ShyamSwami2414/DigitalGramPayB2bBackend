@@ -298,7 +298,7 @@ exports.creditDebitAmount = async (req, res, next) => {
     amount = Number(amount);
 
     const amountInPaise = rupeeToPaise(amount);
-    const referenceId = generateUniqueRefernceId();
+    const referenceId = generateUniqueRefernceId("CDW");
 
     type = type?.trim().toLowerCase();
     walletType = walletType?.trim().toLowerCase();
