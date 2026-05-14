@@ -246,7 +246,7 @@ exports.payBbpsBillService = async ({
         pendingSession.endSession();
       }
     } else if (
-      (result?.status === "SUCCESS" || result.status === "SUCCESSFUL") &&
+      ["SUCCESS", "SUCCESSFUL"].includes(result?.status) &&
       result?.data?.responseCode === "000"
     ) {
       const { commission, tdsAmount, netCommission } = await processCommission({

@@ -35,7 +35,7 @@ exports.adminRegister = async (req, res, next) => {
       phone,
       email,
       password: hashedPassword,
-      permissionIds : permissionIds
+      permissionIds: permissionIds,
     });
 
     await newAdmin.save();

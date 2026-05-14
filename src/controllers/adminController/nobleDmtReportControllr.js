@@ -1123,6 +1123,48 @@ const getDmtReportById = async (req, res, next) => {
         },
       },
       {
+        $lookup: {
+          from: "transactions",
+          let: {
+            refId: "$referenceId",
+            uid: "$userId",
+          },
+          pipeline: [
+            {
+              $match: {
+                $expr: {
+                  $and: [
+                    {
+                      $eq: ["$referenceId", "$$refId"],
+                    },
+                    {
+                      $eq: ["$userId", "$$uid"],
+                    },
+                  ],
+                },
+              },
+            },
+
+            {
+              $project: {
+                _id: 0,
+                status: 1,
+                meta: 1,
+                serviceType: 1,
+              },
+            },
+          ],
+          as: "transaction",
+        },
+      },
+
+      {
+        $unwind: {
+          path: "$transaction",
+          preserveNullAndEmptyArrays: true,
+        },
+      },
+      {
         $project: {
           gstData: 0,
           user: 0,
@@ -1135,11 +1177,28 @@ const getDmtReportById = async (req, res, next) => {
     ]);
 
     if (!report) {
-      return res.status(404).json({
-        success: false,
+      return res.status(200).json({
+        success: true,
         message: "DMT Report not found",
+        data: {},
       });
     }
+
+     const request = report?.transaction?.meta?.request || {};
+    const response = report?.transaction?.meta?.response || {};
+
+    const {
+      requestId,
+      userId,
+      otp,
+      amount,
+      tOtpRequestId,
+      latitude,
+      longitude,
+      publicIp,
+      ...formattedRequest
+    } = request;
+    const { data, ...formattedResponse } = response;
 
     const formattedData = report
       ? {
@@ -1150,6 +1209,9 @@ const getDmtReportById = async (req, res, next) => {
           gst: paiseToRupee(report?.gst),
           totalDebit: paiseToRupee(report?.totalDebit),
           totalCharge: paiseToRupee(report?.totalCharge),
+          request: formattedRequest,
+          response: formattedResponse,
+          transaction: undefined,
         }
       : null;
 

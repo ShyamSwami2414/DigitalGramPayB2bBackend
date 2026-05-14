@@ -294,6 +294,48 @@ exports.getBbpsReportById = async (req, res, next) => {
         },
       },
       {
+        $lookup: {
+          from: "transactions",
+          let: {
+            refId: "$referenceId",
+            uid: "$userId",
+          },
+          pipeline: [
+            {
+              $match: {
+                $expr: {
+                  $and: [
+                    {
+                      $eq: ["$referenceId", "$$refId"],
+                    },
+                    {
+                      $eq: ["$userId", "$$uid"],
+                    },
+                  ],
+                },
+              },
+            },
+
+            {
+              $project: {
+                _id: 0,
+                status: 1,
+                meta: 1,
+                serviceType: 1,
+              },
+            },
+          ],
+          as: "transaction",
+        },
+      },
+
+      {
+        $unwind: {
+          path: "$transaction",
+          preserveNullAndEmptyArrays: true,
+        },
+      },
+      {
         $project: {
           user: 0,
         },
@@ -301,11 +343,18 @@ exports.getBbpsReportById = async (req, res, next) => {
     ]);
 
     if (!report) {
-      return res.status(404).json({
-        success: false,
+      return res.status(200).json({
+        success: true,
         message: "Bbps report not found",
+        data: {},
       });
     }
+
+    const request = report?.transaction?.meta?.request || {};
+    const response = report?.transaction?.meta?.response || {};
+
+    const { amount, ...formattedRequest } = request;
+    const { data, ...formattedResponse } = response;
 
     const formattedData = report
       ? {
@@ -314,6 +363,9 @@ exports.getBbpsReportById = async (req, res, next) => {
           commission: paiseToRupee(report?.commission),
           tds: paiseToRupee(report?.tds),
           netCommission: paiseToRupee(report?.netCommission),
+          request: formattedRequest,
+          response: formattedResponse,
+          transaction: undefined,
         }
       : null;
 

@@ -1045,6 +1045,48 @@ const getPayoutReportById = async (req, res, next) => {
         },
       },
       {
+        $lookup: {
+          from: "transactions",
+          let: {
+            refId: "$referenceId",
+            uid: "$userId",
+          },
+          pipeline: [
+            {
+              $match: {
+                $expr: {
+                  $and: [
+                    {
+                      $eq: ["$referenceId", "$$refId"],
+                    },
+                    {
+                      $eq: ["$userId", "$$uid"],
+                    },
+                  ],
+                },
+              },
+            },
+
+            {
+              $project: {
+                _id: 0,
+                status: 1,
+                meta: 1,
+                serviceType: 1,
+              },
+            },
+          ],
+          as: "transaction",
+        },
+      },
+
+      {
+        $unwind: {
+          path: "$transaction",
+          preserveNullAndEmptyArrays: true,
+        },
+      },
+      {
         $project: {
           tdsData: 0,
           user: 0,
@@ -1057,11 +1099,27 @@ const getPayoutReportById = async (req, res, next) => {
     ]);
 
     if (!report) {
-      return res.status(404).json({
-        success: false,
+      return res.status(200).json({
+        success: true,
         message: "Aeps Payout Report not found",
+        data: {},
       });
     }
+
+    const request = report?.transaction?.meta?.request || {};
+    const response = report?.transaction?.meta?.response || {};
+
+    const {
+      userId,
+      amount,
+      bankProfileId,
+      address,
+      latitude,
+      longitude,
+      ...formattedRequest
+    } = request;
+
+    const { data, ...formattedResponse } = response;
 
     const formattedData = report
       ? {
@@ -1071,6 +1129,9 @@ const getPayoutReportById = async (req, res, next) => {
           tds: paiseToRupee(report?.tds),
           gst: paiseToRupee(report?.gst),
           totalDebit: paiseToRupee(report?.totalDebit),
+          request: formattedRequest,
+          response: formattedResponse,
+          transaction: undefined,
         }
       : null;
 
