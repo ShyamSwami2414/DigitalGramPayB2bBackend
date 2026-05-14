@@ -53,6 +53,8 @@ exports.globalTransactionSearch = async (req, res, next) => {
               $project: {
                 _id: 0,
                 status: 1,
+                meta: 1,
+                serviceType: 1,
               },
             },
           ],
@@ -74,6 +76,8 @@ exports.globalTransactionSearch = async (req, res, next) => {
           },
 
           userName: "$user.userName",
+          serviceCategory: 1,
+          entryType: 1,
           email: "$user.email",
           phone: "$user.phone",
           isActive: "$user.isActive",
@@ -87,6 +91,7 @@ exports.globalTransactionSearch = async (req, res, next) => {
           description: 1,
           createdAt: 1,
           status: "$transaction.status",
+          additionalDetails: "$transaction.meta.request",
         },
       },
     ]);
@@ -99,12 +104,69 @@ exports.globalTransactionSearch = async (req, res, next) => {
       });
     }
 
-    const formattedData = result.map((item) => ({
-      ...item,
-      amount: paiseToRupee(item?.amount),
-      openingBalance: paiseToRupee(item?.openingBalance),
-      closingBalance: paiseToRupee(item?.closingBalance),
-    }));
+    const formattedData = result.map((item) => {
+      const additionalDetails = item.additionalDetails || {};
+
+      let metaRequestDetails = {};
+
+      switch (item?.serviceType) {
+        case "DMT":
+          metaRequestDetails = {
+            customerName: additionalDetails.customerName,
+            beneficiaryName: additionalDetails.beneficiaryName,
+            beneficiaryAccount: additionalDetails.beneficiaryAccount,
+            beneficiaryIfsc: additionalDetails.beneficiaryIfsc,
+          };
+          break;
+
+        case "RECHARGE":
+          metaRequestDetails = {
+            operatorName: additionalDetails.operatorName,
+            mobileNumber: additionalDetails.mobileNumber,
+          };
+          break;
+
+        case "BBPS":
+          metaRequestDetails = {
+            customerName: additionalDetails.customerName,
+            customerMobile: additionalDetails.customerMobile,
+            billPeriod: additionalDetails.billPeriod,
+            billNumber: additionalDetails.billNumber,
+            [additionalDetails.placeholderValue]: additionalDetails.paramValue,
+          };
+          break;
+
+        case "XPRESS_PAYOUT":
+          metaRequestDetails = {
+            bankAccount: additionalDetails.bankAccount,
+            ifsc: additionalDetails.ifsc,
+            name: additionalDetails.name,
+            amount: additionalDetails.amount,
+          };
+          break;
+
+        default:
+          metaRequestDetails = {};
+      }
+
+      // remove undefined fields
+      Object.keys(metaRequestDetails).forEach((key) => {
+        if (metaRequestDetails[key] === undefined) {
+          delete metaRequestDetails[key];
+        }
+      });
+
+      return {
+        ...item,
+        amount: paiseToRupee(item?.amount),
+        openingBalance: paiseToRupee(item?.openingBalance),
+        closingBalance: paiseToRupee(item?.closingBalance),
+        metaRequestDetails,
+
+        // remove raw data
+        additionalDetails: undefined,
+      };
+    });
 
     return res.status(200).json({
       success: true,

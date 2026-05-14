@@ -96,7 +96,7 @@ const processCommission = async ({
 
       if (reportModel) {
         await reportModel.updateOne(
-          { referenceId },
+          { referenceId: referenceId },
           {
             status: "SUCCESS",
             commission,
