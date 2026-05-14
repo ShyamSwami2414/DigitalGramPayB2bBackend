@@ -1,5 +1,31 @@
 const WalletLedger = require("../../models/walletLedgerModel");
+const mongoose = require("mongoose");
+const User = require("../../models/userModel");
 const { paiseToRupee } = require("../../utils/money");
+
+const getDownlineUserIds = async (userId) => {
+  const result = await User.aggregate([
+    {
+      $match: { _id: new mongoose.Types.ObjectId(userId) },
+    },
+    {
+      $graphLookup: {
+        from: "users",
+        startWith: "$_id",
+        connectFromField: "_id",
+        connectToField: "parentUserId",
+        as: "downlines",
+      },
+    },
+    {
+      $project: {
+        ids: "$downlines._id",
+      },
+    },
+  ]);
+
+  return result[0]?.ids || [];
+};
 
 exports.globalTransactionSearch = async (req, res, next) => {
   try {
@@ -12,8 +38,23 @@ exports.globalTransactionSearch = async (req, res, next) => {
         .json({ success: false, message: "Transaction Reference ID required" });
     }
 
+    const filter = { referenceId: referenceId };
+    const loggedInUserId = req.user.id;
+    console.log(loggedInUserId, "loggedInUserId");
+
+    const downlineIds = await getDownlineUserIds(loggedInUserId);
+
+    const allowedUserIds = [
+      new mongoose.Types.ObjectId(loggedInUserId),
+      ...downlineIds,
+    ];
+
+    filter.userId = {
+      $in: allowedUserIds,
+    };
+
     const result = await WalletLedger.aggregate([
-      { $match: { referenceId: referenceId } },
+      { $match: filter },
       {
         $lookup: {
           from: "users",
