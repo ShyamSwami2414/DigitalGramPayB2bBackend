@@ -21,7 +21,7 @@ exports.listAllServiceRequest = async (req, res, next) => {
 
     page = Number(page);
     limit = Number(limit);
-    search = search?.trim().toLowerCase();
+    search = search?.trim();
     user = user?.trim();
     status = status?.trim().toLowerCase();
     service = service?.trim();
@@ -53,7 +53,7 @@ exports.listAllServiceRequest = async (req, res, next) => {
     const now = new Date();
     let fromDate, toDate;
 
-    const allowedStatus = ["approved", "rejected", "pending"];
+    const allowedStatus = ["approved", "assigned", "rejected", "pending"];
     const allowedRanges = ["today", "yesterday", "last7days", "thismonth"];
 
     if (status && !allowedStatus.includes(status)) {
@@ -231,6 +231,29 @@ exports.listAllServiceRequest = async (req, res, next) => {
           serviceName: "$service.name",
         },
       },
+
+      ...(search
+        ? [
+            {
+              $match: {
+                $or: [
+                  { firstName: { $regex: search, $options: "i" } },
+                  { lastName: { $regex: search, $options: "i" } },
+                  { fullName: { $regex: search, $options: "i" } },
+                  { email: { $regex: search, $options: "i" } },
+                  { phone: { $regex: search, $options: "i" } },
+                  { userName: { $regex: search, $options: "i" } },
+                  {
+                    serviceName: {
+                      $regex: search,
+                      $options: "i",
+                    },
+                  },
+                ],
+              },
+            },
+          ]
+        : []),
 
       {
         $project: {

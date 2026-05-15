@@ -198,6 +198,8 @@ exports.payBbpsBill = async (req, res, next) => {
     console.log(req.body, "req.body");
     console.log(data, "data");
 
+    // return res.json({ success: true, message: billAmount });
+
     refid = refid?.trim();
     billerId = billerId?.trim();
     customerName = customerName?.trim();

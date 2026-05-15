@@ -5,7 +5,7 @@ exports.getEnquiries = async (req, res, next) => {
         let { page = 1, limit = 10, search = "" } = req.query;
         page = Number(page);
         limit = Number(limit);
-        search = search?.trim().toLowerCase();
+        search = search?.trim();
 
         const skip = (page - 1) * limit
         const filter = {

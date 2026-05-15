@@ -352,7 +352,7 @@ exports.getRechargeReportById = async (req, res, next) => {
       });
     }
 
-     const request = report?.transaction?.meta?.request || {};
+    const request = report?.transaction?.meta?.request || {};
     const response = report?.transaction?.meta?.response || {};
 
     const { operatorId, ...formattedRequest } = request;
@@ -387,7 +387,7 @@ exports.getRechargeReport = async (req, res, next) => {
       page = 1,
       limit = 10,
       search = "",
-      user = "",
+      userId = "",
       status = "",
       from = "",
       to = "",
@@ -399,7 +399,6 @@ exports.getRechargeReport = async (req, res, next) => {
     page = Number(page);
     limit = Number(limit);
     search = search?.trim();
-    user = user?.trim();
     status = status?.trim().toLowerCase();
 
     range = typeof range === "string" ? range?.trim().toLowerCase() : "";
@@ -547,14 +546,14 @@ exports.getRechargeReport = async (req, res, next) => {
       if (toDate) filter.createdAt.$lte = toDate;
     }
 
-    if (user) {
-      if (!mongoose.Types.ObjectId.isValid(user)) {
+    if (userId) {
+      if (!mongoose.Types.ObjectId.isValid(userId)) {
         return res
           .status(400)
           .json({ success: false, message: "Invalid user ID" });
       }
 
-      const userExist = await User.findOne({ _id: user }).lean();
+      const userExist = await User.findOne({ _id: userId }).lean();
 
       if (!userExist) {
         return res
@@ -562,21 +561,12 @@ exports.getRechargeReport = async (req, res, next) => {
           .json({ success: false, message: "User not found" });
       }
 
-      filter.userId = new mongoose.Types.ObjectId(user);
+      filter.userId = new mongoose.Types.ObjectId(userId);
     }
 
     console.log(filter, "filter");
 
-    if (search) {
-      const isNumber = !isNaN(search);
-
-      if (search) {
-        filter.$or = [
-          { mobileNumber: { $regex: search, $options: "i" } },
-          ...(isNumber ? [{ amount: Number(search) }] : []),
-        ];
-      }
-    }
+    const isNumber = /^\d+(\.\d+)?$/.test(search);
 
     const rechargeReport = await RechargeReport.aggregate([
       {
@@ -605,6 +595,10 @@ exports.getRechargeReport = async (req, res, next) => {
               $match: {
                 $or: [
                   { mobileNumber: { $regex: search, $options: "i" } },
+                  { referenceId: { $regex: search, $options: "i" } },
+                  { type: { $regex: search, $options: "i" } },
+                  { operatorName: { $regex: search, $options: "i" } },
+                  { status: { $regex: search, $options: "i" } },
                   { fullName: { $regex: search, $options: "i" } },
                   { userName: { $regex: search, $options: "i" } },
                   ...(isNumber ? [{ amount: Number(search) }] : []),

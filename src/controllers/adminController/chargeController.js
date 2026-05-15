@@ -181,7 +181,7 @@ exports.getAllIdChargeRequest = async (req, res, next) => {
 
     page = Number(page);
     limit = Number(limit);
-    search = search?.trim().toLowerCase();
+    search = search?.trim();
     user = user?.trim();
     status = status?.trim().toLowerCase();
 

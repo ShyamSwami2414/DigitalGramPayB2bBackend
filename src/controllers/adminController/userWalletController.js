@@ -261,10 +261,7 @@ exports.holdReleaseAmount = async (req, res, next) => {
 
     // save reason only when HOLD
     if (type === "hold" && reason) {
-      const reasonField =
-        walletType === "aeps" ? "aepsHoldReason" : "mainHoldReason";
-
-      updateData.$set = { [reasonField]: reason };
+      updateData.$set = { reason: reason };
     }
 
     const updatedUserWallet = await UserWallet.findOneAndUpdate(
@@ -289,12 +286,11 @@ exports.holdReleaseAmount = async (req, res, next) => {
           wallet: walletType,
           amount: amount,
           type: type,
-          holdReason: isHolded ? reason : null,
-          holdBy: isHolded ? req.user.id : undefined,
-          releasedBy: !isHolded ? req.user.id : undefined,
+          reason: isHolded ? reason : null,
+          actionBy: req.user.id,
         },
       ],
-      { session },
+      { session: session },
     );
 
     const walletObj = updatedUserWallet.toObject();
@@ -464,6 +460,20 @@ exports.creditDebitAmount = async (req, res, next) => {
         },
       ],
       { session },
+    );
+
+    await UserWalletReport.create(
+      [
+        {
+          userId: userId,
+          wallet: walletType,
+          amount: amount,
+          type: type,
+          reason: reason ? reason : null,
+          actionBy: req.user.id,
+        },
+      ],
+      { session: session },
     );
 
     updatedUserWallet = updatedUserWallet ? updatedUserWallet.toObject() : null;

@@ -9,13 +9,16 @@ exports.generateUniqueRefernceId = (prefix = "TXN") => {
     .slice(0, 3)
     .padEnd(3, "X");
 
-  const time = Date.now().toString(36).toUpperCase();
+  // 6 chars time
+  const time = Date.now().toString(36).toUpperCase().slice(-6);
 
-  const random = crypto.randomBytes(5).toString("hex").toUpperCase();
+  // 3 digit counter
+  counter = (counter + 1) % 1000;
+  const counterPart = counter.toString().padStart(3, "0");
 
-  counter = (counter + 1) % 10000;
+  // 8 chars random
+  const random = crypto.randomBytes(4).toString("hex").toUpperCase();
 
-  const counterPart = counter.toString().padStart(4, "0");
-
+  // TOTAL = 3 + 6 + 3 + 8 = 20
   return `${cleanPrefix}${time}${counterPart}${random}`;
 };

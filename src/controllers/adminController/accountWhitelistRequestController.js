@@ -16,7 +16,7 @@ exports.getAccountWhitelistRequest = async (req, res, next) => {
     } = req.query;
     page = Number(page);
     limit = Number(limit);
-    search = search?.trim().toLowerCase();
+    search = search?.trim();
     userId = userId?.trim();
     status = status?.trim().toLowerCase();
 
@@ -200,17 +200,17 @@ exports.getAccountWhitelistRequest = async (req, res, next) => {
             {
               $match: {
                 $or: [
-                  { firstName: { $regex: search, $options: "i" } },
-                  { lastName: { $regex: search, $options: "i" } },
-                  { email: { $regex: search, $options: "i" } },
-                  { phone: { $regex: search, $options: "i" } },
-                  { userName: { $regex: search, $options: "i" } },
+                  { "user.firstName": { $regex: search, $options: "i" } },
+                  { "user.lastName": { $regex: search, $options: "i" } },
+                  { "user.email": { $regex: search, $options: "i" } },
+                  { "user.phone": { $regex: search, $options: "i" } },
+                  { "user.userName": { $regex: search, $options: "i" } },
 
                   // lookup fields
                   { ifscCode: { $regex: search, $options: "i" } },
                   { accountNumber: { $regex: search, $options: "i" } },
                   { parentUser: { $regex: search, $options: "i" } },
-                 
+
                   { parentUserName: { $regex: search, $options: "i" } },
                 ],
               },

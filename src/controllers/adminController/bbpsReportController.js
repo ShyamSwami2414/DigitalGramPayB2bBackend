@@ -385,7 +385,7 @@ exports.getBbpsReport = async (req, res, next) => {
       page = 1,
       limit = 10,
       search = "",
-      user = "",
+      userId = "",
       status = "",
       from = "",
       to = "",
@@ -397,7 +397,7 @@ exports.getBbpsReport = async (req, res, next) => {
     page = Number(page);
     limit = Number(limit);
     search = search?.trim();
-    user = user?.trim();
+
     status = status?.trim().toLowerCase();
 
     range = typeof range === "string" ? range?.trim().toLowerCase() : "";
@@ -545,14 +545,14 @@ exports.getBbpsReport = async (req, res, next) => {
       if (toDate) filter.createdAt.$lte = toDate;
     }
 
-    if (user) {
-      if (!mongoose.Types.ObjectId.isValid(user)) {
+    if (userId) {
+      if (!mongoose.Types.ObjectId.isValid(userId)) {
         return res
           .status(400)
           .json({ success: false, message: "Invalid user ID" });
       }
 
-      const userExist = await User.findOne({ _id: user }).lean();
+      const userExist = await User.findOne({ _id: userId }).lean();
 
       if (!userExist) {
         return res
@@ -560,21 +560,17 @@ exports.getBbpsReport = async (req, res, next) => {
           .json({ success: false, message: "User not found" });
       }
 
-      filter.userId = new mongoose.Types.ObjectId(user);
+      filter.userId = new mongoose.Types.ObjectId(userId);
     }
 
     console.log(filter, "filter");
 
-    if (search) {
-      const isNumber = !isNaN(search);
+    const isNumber = /^\d+(\.\d+)?$/.test(search);
+    const escapeRegex = (text) => {
+      return text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    };
 
-      if (search) {
-        filter.$or = [
-          { mobileNumber: { $regex: search, $options: "i" } },
-          ...(isNumber ? [{ amount: Number(search) }] : []),
-        ];
-      }
-    }
+    const safeSearch = escapeRegex(search);
 
     const bbpsReport = await BbpsReport.aggregate([
       {
@@ -602,10 +598,13 @@ exports.getBbpsReport = async (req, res, next) => {
             {
               $match: {
                 $or: [
-                  { mobileNumber: { $regex: search, $options: "i" } },
-                  { fullName: { $regex: search, $options: "i" } },
-                  { userName: { $regex: search, $options: "i" } },
-                  ...(isNumber ? [{ amount: Number(search) }] : []),
+                  { category: { $regex: safeSearch, $options: "i" } },
+                  { referenceId: { $regex: safeSearch, $options: "i" } },
+                  { description: { $regex: safeSearch, $options: "i" } },
+                  { mobileNumber: { $regex: safeSearch, $options: "i" } },
+                  { fullName: { $regex: safeSearch, $options: "i" } },
+                  { userName: { $regex: safeSearch, $options: "i" } },
+                  ...(isNumber ? [{ amount: Number(safeSearch) }] : []),
                 ],
               },
             },

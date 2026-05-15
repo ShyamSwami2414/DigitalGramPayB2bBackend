@@ -540,7 +540,7 @@ const getCompletePayoutReport = async (req, res, next) => {
       search = "",
       operator = "",
       type = "",
-      user = "",
+      userId = "",
       status = "",
       from = "",
       to = "",
@@ -560,7 +560,7 @@ const getCompletePayoutReport = async (req, res, next) => {
 
     operator = typeof operator === "string" ? operator.trim() : "";
     type = typeof type === "string" ? type.trim().toLowerCase() : "";
-    user = typeof user === "string" ? user.trim() : "";
+
     status = typeof status === "string" ? status.trim().toLowerCase() : "";
     range = typeof range === "string" ? range.trim().toLowerCase() : "";
     from = typeof from === "string" ? from.trim() : "";
@@ -774,15 +774,15 @@ const getCompletePayoutReport = async (req, res, next) => {
     // USER VALIDATION
     // =====================================================
 
-    if (user) {
-      if (!mongoose.Types.ObjectId.isValid(user)) {
+    if (userId) {
+      if (!mongoose.Types.ObjectId.isValid(userId)) {
         return res.status(400).json({
           success: false,
           message: "Invalid user ID",
         });
       }
 
-      const userExist = await User.findById(user).lean();
+      const userExist = await User.findById(userId).lean();
 
       if (!userExist) {
         return res.status(404).json({
@@ -817,33 +817,33 @@ const getCompletePayoutReport = async (req, res, next) => {
       reportMatch.type = type;
     }
 
-    if (search) {
-      reportMatch.$or = [
-        {
-          mobileNumber: {
-            $regex: search,
-            $options: "i",
-          },
-        },
+    // if (search) {
+    //   reportMatch.$or = [
+    //     {
+    //       mobileNumber: {
+    //         $regex: search,
+    //         $options: "i",
+    //       },
+    //     },
 
-        {
-          referenceId: {
-            $regex: search,
-            $options: "i",
-          },
-        },
-      ];
-    }
+    //     {
+    //       referenceId: {
+    //         $regex: search,
+    //         $options: "i",
+    //       },
+    //     },
+    //   ];
+    // }
 
     // =====================================================
     // USER + DOWNLINE FILTER
     // =====================================================
 
-    if (user) {
+    if (userId) {
       const userTree = await User.aggregate([
         {
           $match: {
-            _id: new mongoose.Types.ObjectId(user),
+            _id: new mongoose.Types.ObjectId(userId),
           },
         },
 
@@ -878,10 +878,57 @@ const getCompletePayoutReport = async (req, res, next) => {
     // MAIN AGGREGATION
     // =====================================================
 
+    const isNumber = /^\d+(\.\d+)?$/.test(search);
+
     const payoutReport = await PayoutTransaction.aggregate([
       {
         $match: reportMatch,
       },
+
+      {
+        $lookup: {
+          from: "users",
+          localField: "userId",
+          foreignField: "_id",
+          as: "user",
+        },
+      },
+
+      {
+        $unwind: "$user",
+      },
+
+      ...(search
+        ? [
+            {
+              $match: {
+                $or: [
+                  { mobileNumber: { $regex: search, $options: "i" } },
+                  { referenceId: { $regex: search, $options: "i" } },
+                  { type: { $regex: search, $options: "i" } },
+                  { operatorName: { $regex: search, $options: "i" } },
+                  { status: { $regex: search, $options: "i" } },
+
+                  { "user.userName": { $regex: search, $options: "i" } },
+
+                  {
+                    $expr: {
+                      $regexMatch: {
+                        input: {
+                          $concat: ["$user.firstName", " ", "$user.lastName"],
+                        },
+                        regex: search,
+                        options: "i",
+                      },
+                    },
+                  },
+
+                  ...(isNumber ? [{ amount: Number(search) }] : []),
+                ],
+              },
+            },
+          ]
+        : []),
 
       {
         $sort: {
@@ -892,26 +939,8 @@ const getCompletePayoutReport = async (req, res, next) => {
       {
         $facet: {
           data: [
-            {
-              $skip: skip,
-            },
-
-            {
-              $limit: limit,
-            },
-
-            {
-              $lookup: {
-                from: "users",
-                localField: "userId",
-                foreignField: "_id",
-                as: "user",
-              },
-            },
-
-            {
-              $unwind: "$user",
-            },
+            { $skip: skip },
+            { $limit: limit },
 
             {
               $project: {
@@ -929,11 +958,13 @@ const getCompletePayoutReport = async (req, res, next) => {
                 gst: 1,
                 tds: 1,
                 totalDebit: 1,
-                message: "$message",
-                status: "$status",
+                message: 1,
+                status: 1,
                 createdAt: 1,
                 isRefunded: 1,
+
                 userName: "$user.userName",
+
                 fullName: {
                   $concat: ["$user.firstName", " ", "$user.lastName"],
                 },
@@ -942,12 +973,6 @@ const getCompletePayoutReport = async (req, res, next) => {
           ],
 
           totalCount: [
-            {
-              $match: {
-                serviceType: "XPRESS_PAYOUT",
-              },
-            },
-
             {
               $count: "count",
             },
