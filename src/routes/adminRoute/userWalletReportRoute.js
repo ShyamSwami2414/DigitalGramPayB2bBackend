@@ -1,7 +1,7 @@
 const express = require("express");
 const {
-  getCompleteHoldReleaseHistory,
-} = require("../../controllers/adminController/holdReleaseHistoryController");
+  getCompleteUserWalletReportHistory,
+} = require("../../controllers/adminController/userWalletReportController");
 const { authenticateUser } = require("../../middleware/authMiddleware");
 const { authorizeRoles } = require("../../middleware/roleMiddleware");
 const checkAllowedPermission = require("../../middleware/adminPermissionCheck");
@@ -13,7 +13,7 @@ router.get(
   authenticateUser,
   authorizeRoles("admin"),
   checkAllowedPermission("WALLET"),
-  asyncHandler(getCompleteHoldReleaseHistory),
+  asyncHandler(getCompleteUserWalletReportHistory),
 );
 
 module.exports = router;
