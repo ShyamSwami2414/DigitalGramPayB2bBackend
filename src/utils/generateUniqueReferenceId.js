@@ -1,15 +1,21 @@
-const { customAlphabet } = require("nanoid");
+const crypto = require("crypto");
 
-const nanoid = customAlphabet("ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789", 8);
+let counter = 0;
 
 exports.generateUniqueRefernceId = (prefix = "TXN") => {
   const cleanPrefix = prefix
     .replace(/[^A-Z0-9]/gi, "")
     .toUpperCase()
-    .slice(0, 3) // max 3 chars
-    .padEnd(3, "X"); // ensure 3 chars
+    .slice(0, 3)
+    .padEnd(3, "X");
 
-  const timestamp = Date.now().toString().slice(-9);
+  const time = Date.now().toString(36).toUpperCase();
 
-  return `${cleanPrefix}${timestamp}${nanoid()}`;
+  const random = crypto.randomBytes(5).toString("hex").toUpperCase();
+
+  counter = (counter + 1) % 10000;
+
+  const counterPart = counter.toString().padStart(4, "0");
+
+  return `${cleanPrefix}${time}${counterPart}${random}`;
 };

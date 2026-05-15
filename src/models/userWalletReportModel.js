@@ -1,6 +1,6 @@
 const mongoose = require("mongoose");
 
-const holdReleaseHistorySchema = new mongoose.Schema(
+const userWalletReportSchema = new mongoose.Schema(
   {
     userId: {
       type: mongoose.Schema.Types.ObjectId,
@@ -22,20 +22,15 @@ const holdReleaseHistorySchema = new mongoose.Schema(
     type: {
       type: String,
       required: true,
-      enum: ["hold", "release"],
+      enum: ["credit", "debit", "hold", "release"],
     },
 
-    holdReason: {
+    reason: {
       type: String,
       default: "",
     },
 
-    holdBy: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Admin",
-    },
-
-    releasedBy: {
+    actionBy: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Admin",
     },
@@ -43,4 +38,4 @@ const holdReleaseHistorySchema = new mongoose.Schema(
   { timestamps: true, versionKey: false },
 );
 
-module.exports = mongoose.model("HoldReleaseHistory", holdReleaseHistorySchema);
+module.exports = mongoose.model("UserWalletReport", userWalletReportSchema);

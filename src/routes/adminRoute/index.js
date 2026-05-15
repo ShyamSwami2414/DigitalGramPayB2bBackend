@@ -61,8 +61,8 @@ module.exports = (app) => {
   app.use(`${apiPrefix}/dashboard`, require("./dashboardRoute"));
 
   app.use(
-    `${apiPrefix}/holdReleaseHistory`,
-    require("./holdReleaseHistoryRoute"),
+    `${apiPrefix}/walletHistory`,
+    require("./userWalletReportRoute"),
   );
 
   app.use(`${apiPrefix}/policy`, require("./policyRoute"));

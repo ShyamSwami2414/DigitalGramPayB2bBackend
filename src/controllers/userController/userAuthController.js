@@ -35,11 +35,14 @@ exports.userRegister = async (req, res, next) => {
         .json({ success: false, message: "Invalid role ID" });
     }
 
-    const user = await User.findOne({ email });
+    const user = await User.findOne({
+      $or: [{ email: email }, { phone: phone }],
+    }).select("email phone");
+
     if (user) {
       return res.status(400).json({
         success: false,
-        message: "User already exists with this email",
+        message: "User already exists",
       });
     }
 

@@ -1,8 +1,8 @@
 const mongoose = require("mongoose");
 const User = require("../../models/userModel");
-const HoldReleaseHistory = require("../../models/holdReleaseHistoryModel");
+const UserWalletReport = require("../../models/userWalletReportModel");
 
-exports.getCompleteHoldReleaseHistory = async (req, res, next) => {
+exports.getCompleteUserWalletReportHistory = async (req, res, next) => {
   try {
     let {
       page = 1,
@@ -34,7 +34,7 @@ exports.getCompleteHoldReleaseHistory = async (req, res, next) => {
     }
 
     if (type) {
-      if (!["hold", "release"].includes(type)) {
+      if (!["hold", "release", "credit", "debit"].includes(type)) {
         return res.status(400).json({ message: "Invalid type" });
       }
       match.type = type;
@@ -67,7 +67,7 @@ exports.getCompleteHoldReleaseHistory = async (req, res, next) => {
       }
     }
 
-    const result = await HoldReleaseHistory.aggregate([
+    const result = await UserWalletReport.aggregate([
       { $match: match },
 
       {
@@ -115,8 +115,8 @@ exports.getCompleteHoldReleaseHistory = async (req, res, next) => {
               },
             },
           },
-          holdByName: "$holdByUser.userName",
-          releasedByName: "$releasedByUser.userName",
+          holdByName: "$holdByUser.userName" || "",
+          releasedByName: "$releasedByUser.userName" || "",
         },
       },
 
@@ -151,7 +151,7 @@ exports.getCompleteHoldReleaseHistory = async (req, res, next) => {
 
     return res.status(200).json({
       success: true,
-      message: "Hold-Release History fetched successfully",
+      message: "Wallet Report History fetched successfully",
       data: history,
       pagination: {
         total,
