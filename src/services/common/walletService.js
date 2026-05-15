@@ -170,9 +170,11 @@ const debitWallet = async ({
 
   console.log("wallet from db", wallet);
 
-  if (wallet === null) {
-    throw new Error("User  Wallet not found or account is inactive");
-  }
+  // if (wallet === null) {
+  //   throw new Error(
+  //     "Insufficient Wallet Balance, Contact to Admin or User  Wallet not found or account is inactive",
+  //   );
+  // }
 
   if (!wallet) {
     throw new Error("Insufficient Wallet Balance, Contact to Admin");

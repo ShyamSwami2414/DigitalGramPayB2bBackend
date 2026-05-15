@@ -97,6 +97,9 @@ exports.getActivePackageList = async (req, res, next) => {
 
 exports.getAllPackages = async (req, res, next) => {
   try {
+    let { search } = req.query;
+    search = search?.trim();
+
     const packages = await Package.aggregate([
       {
         $match: { isDeleted: false },
@@ -115,6 +118,20 @@ exports.getAllPackages = async (req, res, next) => {
           preserveNullAndEmptyArrays: true,
         },
       },
+
+      ...(search
+        ? [
+            {
+              $match: {
+                $or: [
+                  { "role.name": { $regex: search, $options: "i" } },
+                  { name: { $regex: search, $options: "i" } },
+                ],
+              },
+            },
+          ]
+        : []),
+
       {
         $project: {
           name: 1,

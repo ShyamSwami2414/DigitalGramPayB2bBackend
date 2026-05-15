@@ -1,5 +1,8 @@
 const WalletLedger = require("../../models/walletLedgerModel");
 const { paiseToRupee } = require("../../utils/money");
+const mongoose = require("mongoose");
+const User = require("../../models/userModel");
+const Service = require("../../models/serviceModel");
 
 exports.completeCommissionReport = async (req, res, next) => {
   try {
@@ -7,8 +10,9 @@ exports.completeCommissionReport = async (req, res, next) => {
       page = 1,
       limit = 10,
       search = "",
-      user = "",
+      userId = "",
       status = "",
+      service = "",
       from = "",
       to = "",
       range = "",
@@ -19,7 +23,6 @@ exports.completeCommissionReport = async (req, res, next) => {
     page = Number(page);
     limit = Number(limit);
     search = search?.trim();
-    user = user?.trim();
     status = status?.trim().toLowerCase();
 
     range = typeof range === "string" ? range?.trim().toLowerCase() : "";
@@ -167,14 +170,14 @@ exports.completeCommissionReport = async (req, res, next) => {
       if (toDate) filter.createdAt.$lte = toDate;
     }
 
-    if (user) {
-      if (!mongoose.Types.ObjectId.isValid(user)) {
+    if (userId) {
+      if (!mongoose.Types.ObjectId.isValid(userId)) {
         return res
           .status(400)
           .json({ success: false, message: "Invalid user ID" });
       }
 
-      const userExist = await User.findOne({ _id: user }).lean();
+      const userExist = await User.findOne({ _id: userId }).lean();
 
       if (!userExist) {
         return res
@@ -182,23 +185,29 @@ exports.completeCommissionReport = async (req, res, next) => {
           .json({ success: false, message: "User not found" });
       }
 
-      filter.userId = new mongoose.Types.ObjectId(user);
+      filter.userId = new mongoose.Types.ObjectId(userId);
     }
 
-    console.log(filter, "filter");
-
-    if (search) {
-      const isNumber = !isNaN(search);
-
-      if (search) {
-        filter.$or = [
-          { mobileNumber: { $regex: search, $options: "i" } },
-          ...(isNumber ? [{ amount: Number(search) }] : []),
-        ];
+    if (service) {
+      if (!mongoose.Types.ObjectId.isValid(userId)) {
+        return res
+          .status(400)
+          .json({ success: false, message: "Invalid service ID" });
       }
-    }
-    console.log(filter, "filter");
 
+      const serviceExist = await Service.findOne({ _id: service }).lean();
+
+      if (!serviceExist) {
+        return res
+          .status(404)
+          .json({ success: false, message: "Service not found" });
+      }
+
+      // filter.service = new mongoose.Types.ObjectId(userId);
+    }
+
+    console.log(filter, "filter");
+    const isNumber = /^\d+(\.\d+)?$/.test(search);
     const result = await WalletLedger.aggregate([
       {
         $match: filter,
@@ -214,6 +223,50 @@ exports.completeCommissionReport = async (req, res, next) => {
       {
         $unwind: "$user",
       },
+      ...(search
+        ? [
+            {
+              $match: {
+                $or: [
+                  {
+                    referenceId: {
+                      $regex: search,
+                      $options: "i",
+                    },
+                  },
+
+                  {
+                    serviceType: {
+                      $regex: search,
+                      $options: "i",
+                    },
+                  },
+
+                  {
+                    "user.userName": {
+                      $regex: search,
+                      $options: "i",
+                    },
+                  },
+
+                  {
+                    $expr: {
+                      $regexMatch: {
+                        input: {
+                          $concat: ["$user.firstName", " ", "$user.lastName"],
+                        },
+                        regex: search,
+                        options: "i",
+                      },
+                    },
+                  },
+
+                  ...(isNumber ? [{ amount: Number(search) }] : []),
+                ],
+              },
+            },
+          ]
+        : []),
       {
         $project: {
           fullName: { $concat: ["$user.firstName", " ", "$user.lastName"] },

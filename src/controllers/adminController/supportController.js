@@ -147,7 +147,7 @@ exports.getSupportRequests = async (req, res, next) => {
     page = Number(page);
     limit = Number(limit);
     status = status?.trim().toLowerCase();
-    search = search?.trim().toLowerCase();
+    search = search?.trim();
 
     const skip = (page - 1) * limit;
 

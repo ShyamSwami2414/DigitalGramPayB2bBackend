@@ -252,7 +252,7 @@ exports.getAllFundRequests = async (req, res, next) => {
 
     page = Number(page);
     limit = Number(limit);
-    search = search?.trim().toLowerCase();
+    search = search?.trim();
     userId = userId?.trim();
     status = status?.trim().toLowerCase();
 
