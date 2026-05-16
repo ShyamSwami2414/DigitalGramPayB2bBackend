@@ -970,7 +970,7 @@ const getCompleteDmtReport = async (req, res, next) => {
             {
               $project: {
                 amount: 1,
-                message: "$reason" || "$message",
+                message: 1,
                 beneficiaryName: 1,
                 beneficiaryIfsc: 1,
                 beneficiaryAccount: 1,
@@ -1004,14 +1004,18 @@ const getCompleteDmtReport = async (req, res, next) => {
     const data = dmtReport[0]?.data || [];
     const total = dmtReport[0]?.totalCount[0]?.count || 0;
 
-    const formattedData = data.map((item) => ({
-      ...item,
-      amount: paiseToRupee(item.amount),
-      charge: paiseToRupee(item.charge),
-      tds: paiseToRupee(item.tds),
-      gst: paiseToRupee(item.gst),
-      totalAmount: paiseToRupee(item.totalCharges),
-    }));
+    const formattedData = data.map((item) => {
+      const { totalCharges, ...remain } = item;
+
+      return {
+        ...remain,
+        amount: paiseToRupee(item.amount),
+        charge: paiseToRupee(item.charge),
+        tds: paiseToRupee(item.tds),
+        gst: paiseToRupee(item.gst),
+        totalAmount: paiseToRupee(item.totalCharges),
+      };
+    });
 
     return res.status(200).json({
       success: true,
@@ -1132,14 +1136,18 @@ const getDmtReportById = async (req, res, next) => {
     }
 
     const formattedData = report
-      ? {
-          ...report,
-          amount: paiseToRupee(report?.amount),
-          charge: paiseToRupee(report?.charge),
-          tds: paiseToRupee(report?.tds),
-          gst: paiseToRupee(report?.gst),
-          totalAmount: paiseToRupee(report?.totalCharges),
-        }
+      ? (() => {
+          const { totalCharges, ...remain } = report;
+
+          return {
+            ...remain,
+            amount: paiseToRupee(report?.amount),
+            charge: paiseToRupee(report?.charge),
+            tds: paiseToRupee(report?.tds),
+            gst: paiseToRupee(report?.gst),
+            totalAmount: paiseToRupee(totalCharges),
+          };
+        })()
       : null;
 
     return res.status(200).json({
