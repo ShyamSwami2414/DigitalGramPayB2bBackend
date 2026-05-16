@@ -87,7 +87,7 @@ const validateUserPackageAndService = async ({
 
   if (!validPlan) {
     // return { packageId: user.packageId, serviceId: service._id };
-    throw new Error(`No valid slab found for this amount`);
+    throw new Error(`Commission not set for this service, Contact Admin`);
   }
 
   return { packageId: user.packageId, serviceId: service._id };

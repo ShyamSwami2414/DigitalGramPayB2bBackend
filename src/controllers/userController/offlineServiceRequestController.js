@@ -109,10 +109,11 @@ exports.createOfflineServiceRequest = async (req, res, next) => {
 
 exports.listOfflineServiceRequests = async (req, res, next) => {
   try {
-    let { page = 1, limit = 10 } = req.query;
+    let { page = 1, limit = 10, search = "" } = req.query;
     let userId = req.user.id;
     page = Number(page);
     limit = Number(limit);
+    search = search?.trim();
 
     const skip = (page - 1) * limit;
 
@@ -163,6 +164,19 @@ exports.listOfflineServiceRequests = async (req, res, next) => {
           serviceName: "$offlineService.serviceName",
         },
       },
+
+      ...(search
+        ? [
+            {
+              $match: {
+                $or: [
+                  { serviceName: { $regex: search, $options: "i" } },
+                  { status: { $regex: search, $options: "i" } },
+                ],
+              },
+            },
+          ]
+        : []),
       {
         $project: {
           userId: 0,

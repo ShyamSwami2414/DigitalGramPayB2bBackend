@@ -913,6 +913,12 @@ const getCompleteAepsReport = async (req, res, next) => {
                       $options: "i",
                     },
                   },
+                  {
+                    serviceType: {
+                      $regex: safeSearch,
+                      $options: "i",
+                    },
+                  },
 
                   {
                     mobileNumber: {

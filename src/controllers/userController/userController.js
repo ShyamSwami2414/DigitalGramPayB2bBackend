@@ -140,7 +140,7 @@ exports.getAllUsers = async (req, res, next) => {
 
     return res.status(200).json({
       success: true,
-      message: "Users fetched successfully",
+      message: "All Users fetched successfully",
       data: users,
       pagination: {
         total,
