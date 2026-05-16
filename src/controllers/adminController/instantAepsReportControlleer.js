@@ -557,8 +557,8 @@ const getAepsStats = async (req, res, next) => {
 //     status = status?.trim().toLowerCase();
 
 //     range = typeof range === "string" ? range?.trim().toLowerCase() : "";
-//     from = typeof from === "string" ? from.trim().toLowerCase() : "";
-//     to = typeof to === "string" ? to.trim().toLowerCase() : "";
+//     from = typeof from === "string" ? from.trim(): "";
+//     to = typeof to === "string" ? to.trim() : "";
 
 //     // normalize invalid inputs
 //     if (!from || from === "null" || from === "undefined") {

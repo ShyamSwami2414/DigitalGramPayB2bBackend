@@ -243,8 +243,8 @@ const getPayoutStats = async (req, res, next) => {
     status = status?.trim().toLowerCase();
 
     range = typeof range === "string" ? range?.trim().toLowerCase() : "";
-    from = typeof from === "string" ? from.trim().toLowerCase() : "";
-    to = typeof to === "string" ? to.trim().toLowerCase() : "";
+    from = typeof from === "string" ? from.trim() : "";
+    to = typeof to === "string" ? to.trim() : "";
 
     // normalize invalid inputs
     if (!from || from === "null" || from === "undefined") {
@@ -698,8 +698,8 @@ const getCompletePayoutReport = async (req, res, next) => {
     user = user?.trim();
     status = status?.trim().toLowerCase();
     range = typeof range === "string" ? range?.trim().toLowerCase() : "";
-    from = typeof from === "string" ? from.trim().toLowerCase() : "";
-    to = typeof to === "string" ? to.trim().toLowerCase() : "";
+    from = typeof from === "string" ? from.trim() : "";
+    to = typeof to === "string" ? to.trim() : "";
 
     // normalize invalid inputs
     if (!from || from === "null" || from === "undefined") {
@@ -886,6 +886,11 @@ const getCompletePayoutReport = async (req, res, next) => {
       }
     }
 
+    const escapeRegex = (text) => {
+      return text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    };
+
+    const safeSearch = escapeRegex(search);
     const payoutReport = await User.aggregate([
       {
         $match: {
@@ -945,19 +950,6 @@ const getCompletePayoutReport = async (req, res, next) => {
 
             ...(type ? [{ $match: { type } }] : []),
 
-            ...(search
-              ? [
-                  {
-                    $match: {
-                      $or: [
-                        { mobileNumber: { $regex: search, $options: "i" } },
-                        { referenceId: { $regex: search, $options: "i" } },
-                      ],
-                    },
-                  },
-                ]
-              : []),
-
             ...(filter.createdAt && Object.keys(filter.createdAt).length
               ? [{ $match: { createdAt: filter.createdAt } }]
               : []),
@@ -979,6 +971,107 @@ const getCompletePayoutReport = async (req, res, next) => {
         $replaceRoot: { newRoot: "$payout" },
       },
 
+      {
+        $lookup: {
+          from: "users",
+          localField: "userId",
+          foreignField: "_id",
+          as: "user",
+        },
+      },
+
+      {
+        $unwind: {
+          path: "$user",
+          preserveNullAndEmptyArrays: true,
+        },
+      },
+
+      {
+        $addFields: {
+          fullName: {
+            $concat: [
+              { $ifNull: ["$user.firstName", ""] },
+              " ",
+              { $ifNull: ["$user.lastName", ""] },
+            ],
+          },
+        },
+      },
+
+      ...(search
+        ? [
+            {
+              $match: {
+                $or: [
+                  {
+                    "user.phone": {
+                      $regex: safeSearch,
+                      $options: "i",
+                    },
+                  },
+
+                  {
+                    "user.email": {
+                      $regex: safeSearch,
+                      $options: "i",
+                    },
+                  },
+
+                  {
+                    "user.userName": {
+                      $regex: safeSearch,
+                      $options: "i",
+                    },
+                  },
+
+                  {
+                    fullName: {
+                      $regex: safeSearch,
+                      $options: "i",
+                    },
+                  },
+
+                  {
+                    referenceId: {
+                      $regex: safeSearch,
+                      $options: "i",
+                    },
+                  },
+
+                  {
+                    mobileNumber: {
+                      $regex: safeSearch,
+                      $options: "i",
+                    },
+                  },
+
+                  {
+                    operatorName: {
+                      $regex: safeSearch,
+                      $options: "i",
+                    },
+                  },
+
+                  {
+                    type: {
+                      $regex: safeSearch,
+                      $options: "i",
+                    },
+                  },
+
+                  {
+                    status: {
+                      $regex: safeSearch,
+                      $options: "i",
+                    },
+                  },
+                ],
+              },
+            },
+          ]
+        : []),
+
       //  Apply user filter (IMPORTANT FIX)
       ...(user
         ? [
@@ -999,16 +1092,6 @@ const getCompletePayoutReport = async (req, res, next) => {
           data: [
             { $skip: skip },
             { $limit: limit },
-
-            {
-              $lookup: {
-                from: "users",
-                localField: "userId",
-                foreignField: "_id",
-                as: "user",
-              },
-            },
-            { $unwind: "$user" },
 
             {
               $project: {

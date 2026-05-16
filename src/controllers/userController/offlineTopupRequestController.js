@@ -14,8 +14,8 @@ exports.getTopupRequestStats = async (req, res, next) => {
     status = status?.trim().toLowerCase();
 
     range = typeof range === "string" ? range?.trim().toLowerCase() : "";
-    from = typeof from === "string" ? from.trim().toLowerCase() : "";
-    to = typeof to === "string" ? to.trim().toLowerCase() : "";
+    from = typeof from === "string" ? from.trim() : "";
+    to = typeof to === "string" ? to.trim() : "";
 
     // normalize invalid inputs
     if (!from || from === "null" || from === "undefined") {
@@ -270,8 +270,8 @@ exports.getAllOfflineTopupRequests = async (req, res, next) => {
     status = status?.trim().toLowerCase();
     search = search?.trim();
     range = typeof range === "string" ? range?.trim().toLowerCase() : "";
-    from = typeof from === "string" ? from.trim().toLowerCase() : "";
-    to = typeof to === "string" ? to.trim().toLowerCase() : "";
+    from = typeof from === "string" ? from.trim() : "";
+    to = typeof to === "string" ? to.trim(): "";
 
     // normalize invalid inputs
     if (!from || from === "null" || from === "undefined") {

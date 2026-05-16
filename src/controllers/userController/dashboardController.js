@@ -20,8 +20,8 @@ exports.getTopupStats = async (req, res, next) => {
     status = status?.trim().toLowerCase();
 
     range = typeof range === "string" ? range?.trim().toLowerCase() : "";
-    from = typeof from === "string" ? from.trim().toLowerCase() : "";
-    to = typeof to === "string" ? to.trim().toLowerCase() : "";
+    from = typeof from === "string" ? from.trim() : "";
+    to = typeof to === "string" ? to.trim() : "";
 
     // normalize invalid inputs
     if (!from || from === "null" || from === "undefined") {
@@ -237,57 +237,140 @@ exports.getTopupStats = async (req, res, next) => {
   }
 };
 
-exports.getPayoutMonthlyStats = async (req, res, next) => {
+exports.getServiceMonthlyStats = async (req, res, next) => {
   try {
     let { year, serviceType } = req.query;
+
     serviceType = serviceType?.trim().toLowerCase();
-    console.log();
 
     const userId = new mongoose.Types.ObjectId(req.user.id);
+
     const selectedYear = year ? parseInt(year) : new Date().getFullYear();
 
-    const allowedServiceTypes = ["aeps", "xpress"];
-
-    if (serviceType && !allowedServiceTypes.includes(serviceType)) {
-      const err = new Error("Invalid serviceType");
-      err.statusCode = 400;
-      throw err;
+    // VALIDATE YEAR
+    if (year && (isNaN(selectedYear) || selectedYear < 2000)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid year",
+      });
     }
 
     const startDate = new Date(`${selectedYear}-01-01T00:00:00.000Z`);
+
     const endDate = new Date(`${selectedYear}-12-31T23:59:59.999Z`);
 
-    const match = {
+    // BASE FILTER
+    const baseFilter = {
       userId,
-      createdAt: { $gte: startDate, $lte: endDate },
+      createdAt: {
+        $gte: startDate,
+        $lte: endDate,
+      },
     };
 
-    if (serviceType === "aeps") {
-      match.serviceType = "AEPS_PAYOUT";
-    } else if (serviceType === "xpress") {
-      match.serviceType = "XPRESS_PAYOUT";
+    // SERVICE MODEL MAP
+    const serviceModels = {
+      recharge1: RechargeReport,
+      dmt1: DmtReport,
+      bbps1: BbpsReport,
+      aeps1: InstantAepsReport,
+      aeps2: EkoAepsReport,
+      payout1: PayoutReport,
+      // "online-service": "",
+      // "offline-service": "",
+    };
+
+    let selectedModels = [];
+
+    // SINGLE SERVICE
+    if (serviceType) {
+      // payout subtype handling
+      if (serviceType === "aeps-payout1" || serviceType === "xpress-payout1") {
+        selectedModels.push({
+          serviceType,
+          model: PayoutReport,
+        });
+      } else {
+        if (!serviceModels[serviceType]) {
+          return res.status(400).json({
+            success: false,
+            message: "Invalid service type",
+          });
+        }
+
+        selectedModels.push({
+          serviceType,
+          model: serviceModels[serviceType],
+        });
+      }
+    } else {
+      // ALL SERVICES
+      selectedModels = Object.entries(serviceModels).map(
+        ([serviceType, model]) => ({
+          serviceType,
+          model,
+        }),
+      );
     }
 
-    const data = await Payout.aggregate([
-      { $match: match },
+    // FETCH DATA
+    const statistics = await Promise.all(
+      selectedModels.map(async ({ serviceType, model }) => {
+        const currentFilter = {
+          ...baseFilter,
+        };
 
-      {
-        $group: {
-          _id: { month: { $month: "$createdAt" } },
-          totalAmount: { $sum: "$amount" },
-        },
-      },
+        // payout subtype filters
+        if (serviceType === "aeps-payout1") {
+          currentFilter.serviceType = "AEPS_PAYOUT";
+        }
 
-      {
-        $project: {
-          _id: 0,
-          month: "$_id.month",
-          totalAmount: 1,
-        },
-      },
+        if (serviceType === "xpress-payout1") {
+          currentFilter.serviceType = "XPRESS_PAYOUT";
+        }
 
-      { $sort: { month: 1 } },
-    ]);
+        const data = await model.aggregate([
+          {
+            $match: currentFilter,
+          },
+
+          {
+            $group: {
+              _id: {
+                month: {
+                  $month: "$createdAt",
+                },
+              },
+
+              totalAmount: {
+                $sum: {
+                  $ifNull: ["$amount", 0],
+                },
+              },
+            },
+          },
+
+          {
+            $project: {
+              _id: 0,
+              month: "$_id.month",
+              totalAmount: 1,
+            },
+          },
+
+          {
+            $sort: {
+              month: 1,
+            },
+          },
+        ]);
+
+        return {
+          serviceType,
+          data,
+        };
+      }),
+    );
 
     const monthNames = [
       "January",
@@ -304,18 +387,27 @@ exports.getPayoutMonthlyStats = async (req, res, next) => {
       "December",
     ];
 
-    const formatted = monthNames.map((name, index) => {
-      const found = data.find((d) => d.month === index + 1);
+    // FORMAT RESPONSE
+    const formatted = statistics.map((service) => {
+      const monthlyData = monthNames.map((name, index) => {
+        const found = service.data.find((d) => d.month === index + 1);
+
+        return {
+          month: name,
+
+          amount: found ? paiseToRupee(found.totalAmount) : 0,
+        };
+      });
 
       return {
-        month: name,
-        amount: paiseToRupee(found?.totalAmount) || 0,
+        serviceType: service.serviceType,
+        monthlyStats: monthlyData,
       };
     });
 
     return res.status(200).json({
       success: true,
-      message: "Monthly payout stats fetched",
+      message: "Monthly payout stats fetched successfully",
       data: formatted,
     });
   } catch (error) {
@@ -489,12 +581,14 @@ exports.getPerformanceStats = async (req, res, next) => {
 
     // SERVICE MODEL MAP
     const serviceModels = {
-      recharge: RechargeReport,
-      dmt: DmtReport,
-      bbps: BbpsReport,
+      recharge1: RechargeReport,
+      dmt1: DmtReport,
+      bbps1: BbpsReport,
       aeps1: InstantAepsReport,
       aeps2: EkoAepsReport,
-      payout: PayoutReport,
+      payout1: PayoutReport,
+      // "online-service": "",
+      // "offline-service": "",
     };
 
     let selectedModels = [];
@@ -502,7 +596,7 @@ exports.getPerformanceStats = async (req, res, next) => {
     // SINGLE SERVICE
     if (serviceType) {
       // payout services
-      if (serviceType === "aeps-payout" || serviceType === "xpress-payout") {
+      if (serviceType === "aeps-payout1" || serviceType === "xpress-payout1") {
         selectedModels.push({
           serviceType,
           model: PayoutReport,

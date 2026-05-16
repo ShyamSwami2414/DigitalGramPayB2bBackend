@@ -278,8 +278,8 @@ exports.getDownlineWalletRefillHistory = async (req, res, next) => {
     status = status?.trim().toLowerCase();
     userId = userId?.trim();
     range = typeof range === "string" ? range?.trim().toLowerCase() : "";
-    from = typeof from === "string" ? from.trim().toLowerCase() : "";
-    to = typeof to === "string" ? to.trim().toLowerCase() : "";
+    from = typeof from === "string" ? from.trim() : "";
+    to = typeof to === "string" ? to.trim() : "";
 
     // normalize invalid inputs
     if (!from || from === "null" || from === "undefined") {
@@ -295,7 +295,7 @@ exports.getDownlineWalletRefillHistory = async (req, res, next) => {
     }
 
     const filter = {
-      serviceType: "WALLET_REFILL",
+      entryType: "WALLET_REFILL",
       type: "credit",
       userId: { $ne: new mongoose.Types.ObjectId(req.user.id) },
     };
@@ -334,7 +334,6 @@ exports.getDownlineWalletRefillHistory = async (req, res, next) => {
     const skip = (page - 1) * limit;
     const now = new Date();
     let fromDate, toDate;
-    
 
     const allowedStatus = ["success", "pending", "failed"];
     const allowedRanges = ["today", "yesterday", "last7days", "thismonth"];
