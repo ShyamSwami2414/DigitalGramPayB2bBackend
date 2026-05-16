@@ -18,6 +18,9 @@ const { generateOTP } = require("../../utils/generateOTP");
 const Otp = require("../../models/otpModel");
 const { paiseToRupee } = require("../../utils/money");
 const config = require("../../config/client");
+const {
+  generateOtpEmail,
+} = require("../../templates/emailTemplates/otpEmailTemplate");
 
 exports.userRegister = async (req, res, next) => {
   try {
@@ -191,13 +194,12 @@ exports.userLogin = async (req, res, next) => {
 
     await otp.save();
 
-    await sendEmail(
-      user.email,
-      [],
-      [],
-      "Your OTP for User Login",
-      `Your OTP is: ${newOtp}. It is valid for 2 minutes.`,
-    );
+    const html = generateOtpEmail({
+      name: user?.firstName + " " + user?.lastName,
+      otp: newOtp,
+    });
+
+    sendEmail(email, [], [], `Your OTP for User Login`, html);
 
     res.status(200).json({
       success: true,
@@ -658,6 +660,38 @@ exports.fetchProfile = async (req, res, next) => {
       },
       {
         $lookup: {
+          from: "kycs",
+          localField: "_id",
+          foreignField: "userId",
+          pipeline: [
+            {
+              $project: {
+                aadharNumber: 1,
+                panNumber: 1,
+                personalAddress: 1,
+                dob: 1,
+              },
+            },
+          ],
+          as: "additionalDetail",
+        },
+      },
+      {
+        $unwind: {
+          path: "$additionalDetail",
+          preserveNullAndEmptyArrays: true,
+        },
+      },
+      {
+        $addFields: {
+          dob: "$additionalDetail.dob",
+          panNumber: "$additionalDetail.panNumber",
+          aadharNumber: "$additionalDetail.aadharNumber",
+          personalAddress: "$additionalDetail.personalAddress",
+        },
+      },
+      {
+        $lookup: {
           from: "instantaepsoutlets",
           localField: "_id",
           foreignField: "userId",
@@ -762,6 +796,7 @@ exports.fetchProfile = async (req, res, next) => {
       {
         $project: {
           onboardUser: 0,
+          additionalDetail: 0,
           merchant: 0,
           serviceDetails: 0,
           serviceRequest: 0,

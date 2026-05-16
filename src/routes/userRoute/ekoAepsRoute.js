@@ -16,6 +16,7 @@ const multerErrorHandler = require("../../middleware/multerErrorHandler");
 const createUploader = require("../../middleware/uploadMiddleware");
 const validatePipeline = require("../../middleware/pipelineCheckMiddleware");
 const asyncHandler = require("../../utils/asyncHandler");
+const checkAepsSession = require("../../middleware/ekoAepsOutletAuth");
 
 const router = express.Router();
 router.use(validatePipeline("aeps2"));
@@ -90,6 +91,21 @@ router.post(
   idempotencyMiddleware,
   apiLogger,
   asyncHandler(doAepsTransaction),
+);
+
+router.get(
+  "/aeps-status",
+  authenticateUser,
+  checkUserPaymentAndKYC,
+  checkAepsSession,
+  asyncHandler((req, res) => {
+    res.json({
+      success: true,
+      status: "SUCCESS",
+      message: "AEPS session active",
+      code: "LOGIN_NOT_REQUIRED",
+    });
+  }),
 );
 
 module.exports = router;
