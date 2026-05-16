@@ -1959,10 +1959,18 @@ exports.getWalletTransferHistory = async (req, res, next) => {
 
 exports.getWalletReport = async (req, res, next) => {
   try {
-    let { page = 1, limit = 10, search = "", userId = "" } = req.query;
+    let {
+      page = 1,
+      limit = 10,
+      search = "",
+      user = "",
+      status = "",
+    } = req.query;
 
     page = Number(page);
     limit = Number(limit);
+    search = search?.trim();
+    status = status?.trim().toLowerCase();
 
     // VALIDATION
     if (isNaN(page) || page < 1)
@@ -1980,6 +1988,18 @@ exports.getWalletReport = async (req, res, next) => {
     const loggedInUserId = req.user.id;
     console.log(loggedInUserId, "loggedInUserId");
 
+    // const allowedStatus = ["success", "failed", "pending", "refund"];
+
+    // if (status && !allowedStatus.includes(status)) {
+    //   const err = new Error("Invalid Status");
+    //   err.statusCode = 400;
+    //   throw err;
+    // }
+
+    // if (status) {
+    //   filter.status = status;
+    // }
+
     const downlineIds = await getDownlineUserIds(loggedInUserId);
 
     const allowedUserIds = [
@@ -1987,14 +2007,14 @@ exports.getWalletReport = async (req, res, next) => {
       ...downlineIds,
     ];
 
-    if (userId) {
-      if (!mongoose.Types.ObjectId.isValid(userId)) {
+    if (user) {
+      if (!mongoose.Types.ObjectId.isValid(user)) {
         return res
           .status(400)
           .json({ success: false, message: "Invalid userId" });
       }
 
-      const isAllowed = allowedUserIds.some((id) => id.equals(userId));
+      const isAllowed = allowedUserIds.some((id) => id.equals(user));
 
       if (!isAllowed) {
         return res.status(403).json({
@@ -2003,14 +2023,16 @@ exports.getWalletReport = async (req, res, next) => {
         });
       }
 
-      filter.userId = new mongoose.Types.ObjectId(userId);
+      filter.userId = new mongoose.Types.ObjectId(user);
     } else {
       filter.userId = { $in: allowedUserIds };
     }
 
-    if (search) {
-      filter.referenceId = { $regex: search, $options: "i" };
-    }
+    const escapeRegex = (text) => {
+      return text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    };
+
+    const safeSearch = escapeRegex(search);
 
     // ===============================
     //  PIPELINE
@@ -2278,6 +2300,57 @@ exports.getWalletReport = async (req, res, next) => {
         },
       },
       { $unset: "gst" },
+      ...(search
+        ? [
+            {
+              $match: {
+                $or: [
+                  {
+                    "user.phone": {
+                      $regex: safeSearch,
+                      $options: "i",
+                    },
+                  },
+
+                  {
+                    "user.email": {
+                      $regex: safeSearch,
+                      $options: "i",
+                    },
+                  },
+
+                  {
+                    "user.userName": {
+                      $regex: safeSearch,
+                      $options: "i",
+                    },
+                  },
+
+                  {
+                    fullName: {
+                      $regex: safeSearch,
+                      $options: "i",
+                    },
+                  },
+
+                  {
+                    referenceId: {
+                      $regex: safeSearch,
+                      $options: "i",
+                    },
+                  },
+
+                  {
+                    description: {
+                      $regex: safeSearch,
+                      $options: "i",
+                    },
+                  },
+                ],
+              },
+            },
+          ]
+        : []),
     ];
 
     // ===============================
@@ -2306,7 +2379,7 @@ exports.getWalletReport = async (req, res, next) => {
       return {
         ...rest,
 
-        amount: paiseToRupee(amount - item?.chargesAmount - item?.gstAmount),
+        amount: paiseToRupee(amount),
 
         openingBalance: paiseToRupee(item?.openingBalance),
 
