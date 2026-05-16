@@ -24,8 +24,8 @@ exports.getCommissionReportStats = async (req, res, next) => {
     status = status?.trim().toLowerCase();
 
     range = typeof range === "string" ? range?.trim().toLowerCase() : "";
-    from = typeof from === "string" ? from.trim().toLowerCase() : "";
-    to = typeof to === "string" ? to.trim().toLowerCase() : "";
+    from = typeof from === "string" ? from.trim() : "";
+    to = typeof to === "string" ? to.trim() : "";
 
     // normalize invalid inputs
     if (!from || from === "null" || from === "undefined") {
@@ -174,16 +174,16 @@ exports.getCommissionReportStats = async (req, res, next) => {
 
     console.log(filter, "filter");
 
-    if (search) {
-      const isNumber = !isNaN(search);
+    // if (search) {
+    //   const isNumber = !isNaN(search);
 
-      if (search) {
-        filter.$or = [
-          { mobileNumber: { $regex: search, $options: "i" } },
-          ...(isNumber ? [{ amount: Number(search) }] : []),
-        ];
-      }
-    }
+    //   if (search) {
+    //     filter.$or = [
+    //       { mobileNumber: { $regex: search, $options: "i" } },
+    //       ...(isNumber ? [{ amount: Number(search) }] : []),
+    //     ];
+    //   }
+    // }
 
     console.log(filter, "filter");
 
@@ -233,7 +233,7 @@ exports.getCommissionReportStats = async (req, res, next) => {
       {
         $unwind: {
           path: "$tds",
-          preserveNullAndEmptyArrays: true,
+          preserveNullAndEmptyArrays: false,
         },
       },
 
@@ -303,6 +303,7 @@ exports.completeCommissionReport = async (req, res, next) => {
       search = "",
       //   user = "",
       status = "",
+      serviceType = "",
       from = "",
       to = "",
       range = "",
@@ -315,10 +316,11 @@ exports.completeCommissionReport = async (req, res, next) => {
     search = search?.trim();
     // user = user?.trim();
     status = status?.trim().toLowerCase();
+    serviceType = serviceType?.trim().toLowerCase();
 
     range = typeof range === "string" ? range?.trim().toLowerCase() : "";
-    from = typeof from === "string" ? from.trim().toLowerCase() : "";
-    to = typeof to === "string" ? to.trim().toLowerCase() : "";
+    from = typeof from === "string" ? from.trim() : "";
+    to = typeof to === "string" ? to.trim() : "";
 
     // normalize invalid inputs
     if (!from || from === "null" || from === "undefined") {
@@ -344,6 +346,15 @@ exports.completeCommissionReport = async (req, res, next) => {
 
     const allowedStatus = ["success", "failed", "pending"];
     const allowedRanges = ["today", "yesterday", "last7days", "thismonth"];
+    const allowedServices = [
+      "recharge1",
+      "bbps1",
+      "dmt1",
+      "aeps1",
+      "aeps2",
+      "xpress-payout1",
+      "aeps-payout1",
+    ];
 
     if (isNaN(page) || page < 1) {
       return res.status(400).json({
@@ -361,6 +372,12 @@ exports.completeCommissionReport = async (req, res, next) => {
 
     if (status && !allowedStatus.includes(status)) {
       const err = new Error("Invalid Status");
+      err.statusCode = 400;
+      throw err;
+    }
+
+    if (serviceType && !allowedServices.includes(serviceType)) {
+      const err = new Error("Invalid Service");
       err.statusCode = 400;
       throw err;
     }
@@ -485,17 +502,11 @@ exports.completeCommissionReport = async (req, res, next) => {
 
     console.log(filter, "filter");
 
-    if (search) {
-      const isNumber = !isNaN(search);
+    const escapeRegex = (text) => {
+      return text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    };
 
-      if (search) {
-        filter.$or = [
-          { mobileNumber: { $regex: search, $options: "i" } },
-          ...(isNumber ? [{ amount: Number(search) }] : []),
-        ];
-      }
-    }
-    console.log(filter, "filter");
+    const safeSearch = escapeRegex(search);
 
     const result = await WalletLedger.aggregate([
       {
@@ -512,6 +523,57 @@ exports.completeCommissionReport = async (req, res, next) => {
       {
         $unwind: "$user",
       },
+      ...(search
+        ? [
+            {
+              $match: {
+                $or: [
+                  {
+                    "user.phone": {
+                      $regex: safeSearch,
+                      $options: "i",
+                    },
+                  },
+
+                  {
+                    "user.email": {
+                      $regex: safeSearch,
+                      $options: "i",
+                    },
+                  },
+
+                  {
+                    "user.userName": {
+                      $regex: safeSearch,
+                      $options: "i",
+                    },
+                  },
+
+                  {
+                    fullName: {
+                      $regex: safeSearch,
+                      $options: "i",
+                    },
+                  },
+
+                  {
+                    referenceId: {
+                      $regex: safeSearch,
+                      $options: "i",
+                    },
+                  },
+
+                  {
+                    description: {
+                      $regex: safeSearch,
+                      $options: "i",
+                    },
+                  },
+                ],
+              },
+            },
+          ]
+        : []),
       {
         $project: {
           fullName: { $concat: ["$user.firstName", " ", "$user.lastName"] },

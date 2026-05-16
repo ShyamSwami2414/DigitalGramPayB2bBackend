@@ -3,7 +3,7 @@ const { authenticateUser } = require("../../middleware/authMiddleware");
 
 const {
   getTopupStats,
-  getPayoutMonthlyStats,
+  getServiceMonthlyStats,
   getPerformanceStats,
   getVolumeAnalytics,
 } = require("../../controllers/userController/dashboardController");
@@ -25,7 +25,7 @@ router.get(
   "/payout-stats",
   authenticateUser,
   checkUserPaymentAndKYC,
-  asyncHandler(getPayoutMonthlyStats),
+  asyncHandler(getServiceMonthlyStats),
 );
 
 router.get(

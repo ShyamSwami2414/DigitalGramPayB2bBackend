@@ -26,7 +26,7 @@ exports.listAllServiceRequest = async (req, res, next) => {
     status = status?.trim().toLowerCase();
     service = service?.trim();
 
-    from = typeof from === "string" ? from.trim().toLowerCase() : "";
+    from = typeof from === "string" ? from.trim() : "";
     to = typeof to === "string" ? to.trim().toLowerCase() : "";
     range = typeof range === "string" ? range?.trim().toLowerCase() : "";
 

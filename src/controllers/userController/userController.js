@@ -133,9 +133,8 @@ exports.getAllUsers = async (req, res, next) => {
       },
     ]);
 
-    console.log(users, "users");
-
     const users = result[0]?.data || [];
+    console.log(users, "users");
 
     const total = result[0]?.totalCount?.[0]?.count || 0;
 
