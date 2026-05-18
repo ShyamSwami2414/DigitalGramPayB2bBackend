@@ -2277,8 +2277,21 @@ exports.getWalletReport = async (req, res, next) => {
       { $unwind: { path: "$tds", preserveNullAndEmptyArrays: true } },
       {
         $addFields: {
-          tdsAmount: { $ifNull: ["$tds.tdsAmount", 0] },
-          commission: { $ifNull: ["$tds.commissionAmount", 0] },
+          tdsAmount: {
+            $cond: [
+              { $eq: ["$entryType", "BONUS"] },
+              0,
+              { $ifNull: ["$tds.tdsAmount", 0] },
+            ],
+          },
+
+          commission: {
+            $cond: [
+              { $eq: ["$entryType", "BONUS"] },
+              0,
+              { $ifNull: ["$tds.commissionAmount", 0] },
+            ],
+          },
         },
       },
       { $unset: "tds" },
@@ -2295,8 +2308,21 @@ exports.getWalletReport = async (req, res, next) => {
       { $unwind: { path: "$gst", preserveNullAndEmptyArrays: true } },
       {
         $addFields: {
-          gstAmount: { $ifNull: ["$gst.gstAmount", 0] },
-          chargesAmount: { $ifNull: ["$gst.chargesAmount", 0] },
+          gstAmount: {
+            $cond: [
+              { $eq: ["$entryType", "BONUS"] },
+              0,
+              { $ifNull: ["$gst.gstAmount", 0] },
+            ],
+          },
+
+          chargesAmount: {
+            $cond: [
+              { $eq: ["$entryType", "BONUS"] },
+              0,
+              { $ifNull: ["$gst.chargesAmount", 0] },
+            ],
+          },
         },
       },
       { $unset: "gst" },
