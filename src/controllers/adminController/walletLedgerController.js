@@ -829,9 +829,29 @@ exports.getAllLedgetEntryList = async (req, res, next) => {
       },
       {
         $addFields: {
-          commission: "$tds.commissionAmount",
-          tdsAmount: "$tds.tdsAmount",
-          netCommission: "$tds.netCommission",
+          commission: {
+            $cond: [
+              { $eq: ["$entryType", "BONUS"] },
+              0,
+              { $ifNull: ["$tds.commissionAmount", 0] },
+            ],
+          },
+
+          tdsAmount: {
+            $cond: [
+              { $eq: ["$entryType", "BONUS"] },
+              0,
+              { $ifNull: ["$tds.tdsAmount", 0] },
+            ],
+          },
+
+          netCommission: {
+            $cond: [
+              { $eq: ["$entryType", "BONUS"] },
+              0,
+              { $ifNull: ["$tds.netCommission", 0] },
+            ],
+          },
         },
       },
       {
@@ -867,9 +887,29 @@ exports.getAllLedgetEntryList = async (req, res, next) => {
       },
       {
         $addFields: {
-          chargesAmount: "$gst.chargesAmount",
-          gstAmount: "$gst.gstAmount",
-          totalCharges: "$gst.totalCharge",
+          chargesAmount: {
+            $cond: [
+              { $eq: ["$entryType", "BONUS"] },
+              0,
+              { $ifNull: ["$gst.chargesAmount", 0] },
+            ],
+          },
+
+          gstAmount: {
+            $cond: [
+              { $eq: ["$entryType", "BONUS"] },
+              0,
+              { $ifNull: ["$gst.gstAmount", 0] },
+            ],
+          },
+
+          totalCharges: {
+            $cond: [
+              { $eq: ["$entryType", "BONUS"] },
+              0,
+              { $ifNull: ["$gst.totalCharge", 0] },
+            ],
+          },
         },
       },
       {
@@ -904,7 +944,12 @@ exports.getAllLedgetEntryList = async (req, res, next) => {
 
       return {
         ...rest,
-        amount: paiseToRupee(amount - item?.chargesAmount - item?.gstAmount),
+        amount:
+          item?.entryType === "BONUS"
+            ? paiseToRupee(amount)
+            : paiseToRupee(
+                amount - (item?.chargesAmount || 0) - (item?.gstAmount || 0),
+              ),
         openingBalance: paiseToRupee(item?.openingBalance),
         chargesAmount: paiseToRupee(item?.chargesAmount),
         closingBalance: paiseToRupee(item?.closingBalance),
