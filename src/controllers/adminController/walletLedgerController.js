@@ -1011,11 +1011,14 @@ exports.getAllLedgetEntryList = async (req, res, next) => {
         amount:
           item?.entryType === "BONUS"
             ? paiseToRupee(amount || 0)
-            : paiseToRupee(
-                (amount || 0) -
-                  (item?.chargesAmount || 0) -
-                  (item?.gstAmount || 0),
-              ),
+            : paiseToRupee(amount || 0),
+        // item?.entryType === "BONUS"
+        //   ? paiseToRupee(amount || 0)
+        //   : paiseToRupee(
+        //       (amount || 0) -
+        //         (item?.chargesAmount || 0) -
+        //         (item?.gstAmount || 0),
+        //     ),
 
         openingBalance: paiseToRupee(item?.openingBalance || 0),
 
