@@ -2144,7 +2144,7 @@ exports.getWalletReport = async (req, res, next) => {
                                       [
                                         "CHARGES",
                                         "COMMISSION",
-                                        "BONUS",
+                                        // "BONUS",
                                         "REFUND",
                                       ],
                                     ],
@@ -2192,21 +2192,21 @@ exports.getWalletReport = async (req, res, next) => {
                           },
                         },
                       },
-                      bonus: {
-                        $sum: {
-                          $map: {
-                            input: "$entries",
-                            as: "e",
-                            in: {
-                              $cond: [
-                                { $eq: ["$$e.entryType", "BONUS"] },
-                                "$$e.amount",
-                                0,
-                              ],
-                            },
-                          },
-                        },
-                      },
+                      // bonus: {
+                      //   $sum: {
+                      //     $map: {
+                      //       input: "$entries",
+                      //       as: "e",
+                      //       in: {
+                      //         $cond: [
+                      //           { $eq: ["$$e.entryType", "BONUS"] },
+                      //           "$$e.amount",
+                      //           0,
+                      //         ],
+                      //       },
+                      //     },
+                      //   },
+                      // },
                       refund: {
                         $sum: {
                           $map: {
