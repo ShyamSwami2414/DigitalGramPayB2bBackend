@@ -20,8 +20,8 @@ exports.fundRequestStats = async (req, res, next) => {
     status = status?.trim().toLowerCase();
 
     range = typeof range === "string" ? range?.trim().toLowerCase() : "";
-    from = typeof from === "string" ? from.trim().toLowerCase() : "";
-    to = typeof to === "string" ? to.trim().toLowerCase() : "";
+    from = typeof from === "string" ? from.trim() : "";
+    to = typeof to === "string" ? to.trim() : "";
 
     // normalize invalid inputs
     if (!from || from === "null" || from === "undefined") {
@@ -252,12 +252,12 @@ exports.getAllFundRequests = async (req, res, next) => {
 
     page = Number(page);
     limit = Number(limit);
-    search = search?.trim().toLowerCase();
+    search = search?.trim();
     userId = userId?.trim();
     status = status?.trim().toLowerCase();
 
-    from = typeof from === "string" ? from.trim().toLowerCase() : "";
-    to = typeof to === "string" ? to.trim().toLowerCase() : "";
+    from = typeof from === "string" ? from.trim() : "";
+    to = typeof to === "string" ? to.trim() : "";
     range = typeof range === "string" ? range?.trim().toLowerCase() : "";
 
     // normalize invalid inputs
@@ -388,18 +388,18 @@ exports.getAllFundRequests = async (req, res, next) => {
       if (toDate) filter.createdAt.$lte = toDate;
     }
 
-    if (search) {
-      const isNumber = !isNaN(search);
+    // if (search) {
+    //   const isNumber = !isNaN(search);
 
-      filter.$or = [
-        { referenceId: { $regex: search, $options: "i" } },
-        { mode: { $regex: search, $options: "i" } },
-        { utrNumber: { $regex: search, $options: "i" } },
-        { rejectionReason: { $regex: search, $options: "i" } },
+    //   filter.$or = [
+    //     { referenceId: { $regex: search, $options: "i" } },
+    //     { mode: { $regex: search, $options: "i" } },
+    //     { utrNumber: { $regex: search, $options: "i" } },
+    //     { rejectionReason: { $regex: search, $options: "i" } },
 
-        ...(isNumber ? [{ amount: Number(search) }] : []),
-      ];
-    }
+    //     ...(isNumber ? [{ amount: Number(search) }] : []),
+    //   ];
+    // }
 
     if (userId) {
       if (!mongoose.Types.ObjectId.isValid(userId)) {
@@ -421,7 +421,7 @@ exports.getAllFundRequests = async (req, res, next) => {
 
     console.log(filter, "filter");
 
-    const fundRequests = await FundRequest.aggregate([
+    const result = await FundRequest.aggregate([
       {
         $match: filter,
       },
@@ -447,6 +447,55 @@ exports.getAllFundRequests = async (req, res, next) => {
           userName: "$user.userName",
         },
       },
+      ...(search
+        ? [
+            {
+              $match: {
+                $or: [
+                  { firstName: { $regex: search, $options: "i" } },
+                  { lastName: { $regex: search, $options: "i" } },
+                  { fullName: { $regex: search, $options: "i" } },
+                  { email: { $regex: search, $options: "i" } },
+                  { phone: { $regex: search, $options: "i" } },
+                  { userName: { $regex: search, $options: "i" } },
+                  {
+                    referenceId: {
+                      $regex: search,
+                      $options: "i",
+                    },
+                  },
+                  {
+                    mode: {
+                      $regex: search,
+                      $options: "i",
+                    },
+                  },
+                  {
+                    utrNumber: {
+                      $regex: search,
+                      $options: "i",
+                    },
+                  },
+                  {
+                    rejectionReason: {
+                      $regex: search,
+                      $options: "i",
+                    },
+                  },
+
+                  // amount exact match
+                  ...(!isNaN(search)
+                    ? [
+                        {
+                          amount: Number(search),
+                        },
+                      ]
+                    : []),
+                ],
+              },
+            },
+          ]
+        : []),
       {
         $project: {
           user: 0,
@@ -455,17 +504,29 @@ exports.getAllFundRequests = async (req, res, next) => {
       {
         $sort: { createdAt: -1 },
       },
+
       {
-        $skip: skip,
-      },
-      {
-        $limit: limit,
+        $facet: {
+          data: [
+            {
+              $skip: skip,
+            },
+            {
+              $limit: limit,
+            },
+          ],
+          totalCount: [
+            {
+              $count: "total",
+            },
+          ],
+        },
       },
     ]);
 
+    const fundRequests = result[0]?.data;
+    const total = result[0]?.totalCount[0]?.total || 0;
     console.log(fundRequests, "fundRequests");
-
-    const total = await FundRequest.countDocuments(filter);
 
     const formattedData = fundRequests.map((item) => ({
       ...item,

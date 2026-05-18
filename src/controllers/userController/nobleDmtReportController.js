@@ -101,8 +101,8 @@ const getDmtStats = async (req, res, next) => {
     status = status?.trim().toLowerCase();
 
     range = typeof range === "string" ? range?.trim().toLowerCase() : "";
-    from = typeof from === "string" ? from.trim().toLowerCase() : "";
-    to = typeof to === "string" ? to.trim().toLowerCase() : "";
+    from = typeof from === "string" ? from.trim() : "";
+    to = typeof to === "string" ? to.trim() : "";
 
     // normalize invalid inputs
     if (!from || from === "null" || from === "undefined") {
@@ -550,8 +550,8 @@ const getCompleteDmtReport = async (req, res, next) => {
     user = user?.trim();
     status = status?.trim().toLowerCase();
     range = typeof range === "string" ? range?.trim().toLowerCase() : "";
-    from = typeof from === "string" ? from.trim().toLowerCase() : "";
-    to = typeof to === "string" ? to.trim().toLowerCase() : "";
+    from = typeof from === "string" ? from.trim() : "";
+    to = typeof to === "string" ? to.trim() : "";
 
     // normalize invalid inputs
     if (!from || from === "null" || from === "undefined") {
@@ -764,6 +764,12 @@ const getCompleteDmtReport = async (req, res, next) => {
     //   }
     // }
 
+    const escapeRegex = (text) => {
+      return text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    };
+
+    const safeSearch = escapeRegex(search);
+
     const dmtReport = await User.aggregate([
       {
         $match: { _id: new mongoose.Types.ObjectId(userId) },
@@ -818,19 +824,6 @@ const getCompleteDmtReport = async (req, res, next) => {
 
             ...(type ? [{ $match: { type } }] : []),
 
-            ...(search
-              ? [
-                  {
-                    $match: {
-                      $or: [
-                        { mobileNumber: { $regex: search, $options: "i" } },
-                        { referenceId: { $regex: search, $options: "i" } },
-                      ],
-                    },
-                  },
-                ]
-              : []),
-
             ...(filter.createdAt && Object.keys(filter.createdAt).length
               ? [{ $match: { createdAt: filter.createdAt } }]
               : []),
@@ -851,6 +844,107 @@ const getCompleteDmtReport = async (req, res, next) => {
       {
         $replaceRoot: { newRoot: "$dmt" },
       },
+
+      {
+        $lookup: {
+          from: "users",
+          localField: "userId",
+          foreignField: "_id",
+          as: "user",
+        },
+      },
+
+      {
+        $unwind: {
+          path: "$user",
+          preserveNullAndEmptyArrays: true,
+        },
+      },
+
+      {
+        $addFields: {
+          fullName: {
+            $concat: [
+              { $ifNull: ["$user.firstName", ""] },
+              " ",
+              { $ifNull: ["$user.lastName", ""] },
+            ],
+          },
+        },
+      },
+
+      ...(search
+        ? [
+            {
+              $match: {
+                $or: [
+                  {
+                    "user.phone": {
+                      $regex: safeSearch,
+                      $options: "i",
+                    },
+                  },
+
+                  {
+                    "user.email": {
+                      $regex: safeSearch,
+                      $options: "i",
+                    },
+                  },
+
+                  {
+                    "user.userName": {
+                      $regex: safeSearch,
+                      $options: "i",
+                    },
+                  },
+
+                  {
+                    fullName: {
+                      $regex: safeSearch,
+                      $options: "i",
+                    },
+                  },
+
+                  {
+                    referenceId: {
+                      $regex: safeSearch,
+                      $options: "i",
+                    },
+                  },
+
+                  {
+                    mobileNumber: {
+                      $regex: safeSearch,
+                      $options: "i",
+                    },
+                  },
+
+                  {
+                    operatorName: {
+                      $regex: safeSearch,
+                      $options: "i",
+                    },
+                  },
+
+                  {
+                    type: {
+                      $regex: safeSearch,
+                      $options: "i",
+                    },
+                  },
+
+                  {
+                    status: {
+                      $regex: safeSearch,
+                      $options: "i",
+                    },
+                  },
+                ],
+              },
+            },
+          ]
+        : []),
 
       //  Apply user filter (IMPORTANT FIX)
       ...(user
@@ -874,19 +968,9 @@ const getCompleteDmtReport = async (req, res, next) => {
             { $limit: limit },
 
             {
-              $lookup: {
-                from: "users",
-                localField: "userId",
-                foreignField: "_id",
-                as: "user",
-              },
-            },
-            { $unwind: "$user" },
-
-            {
               $project: {
                 amount: 1,
-                message: "$reason" || "$message",
+                message: 1,
                 beneficiaryName: 1,
                 beneficiaryIfsc: 1,
                 beneficiaryAccount: 1,
@@ -920,14 +1004,18 @@ const getCompleteDmtReport = async (req, res, next) => {
     const data = dmtReport[0]?.data || [];
     const total = dmtReport[0]?.totalCount[0]?.count || 0;
 
-    const formattedData = data.map((item) => ({
-      ...item,
-      amount: paiseToRupee(item.amount),
-      charge: paiseToRupee(item.charge),
-      tds: paiseToRupee(item.tds),
-      gst: paiseToRupee(item.gst),
-      totalAmount: paiseToRupee(item.totalCharges),
-    }));
+    const formattedData = data.map((item) => {
+      const { totalCharges, ...remain } = item;
+
+      return {
+        ...remain,
+        amount: paiseToRupee(item.amount),
+        charge: paiseToRupee(item.charge),
+        tds: paiseToRupee(item.tds),
+        gst: paiseToRupee(item.gst),
+        totalAmount: paiseToRupee(item.totalCharges),
+      };
+    });
 
     return res.status(200).json({
       success: true,
@@ -1048,14 +1136,18 @@ const getDmtReportById = async (req, res, next) => {
     }
 
     const formattedData = report
-      ? {
-          ...report,
-          amount: paiseToRupee(report?.amount),
-          charge: paiseToRupee(report?.charge),
-          tds: paiseToRupee(report?.tds),
-          gst: paiseToRupee(report?.gst),
-          totalCharges: paiseToRupee(report?.totalCharges),
-        }
+      ? (() => {
+          const { totalCharges, ...remain } = report;
+
+          return {
+            ...remain,
+            amount: paiseToRupee(report?.amount),
+            charge: paiseToRupee(report?.charge),
+            tds: paiseToRupee(report?.tds),
+            gst: paiseToRupee(report?.gst),
+            totalAmount: paiseToRupee(totalCharges),
+          };
+        })()
       : null;
 
     return res.status(200).json({

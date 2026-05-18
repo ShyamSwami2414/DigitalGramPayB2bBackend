@@ -3,11 +3,14 @@ const { authenticateUser } = require("../../middleware/authMiddleware");
 
 const {
   getTopupStats,
-  getPayoutMonthlyStats,
+  getServiceMonthlyStats,
+  getPerformanceStats,
+  getVolumeAnalytics,
 } = require("../../controllers/userController/dashboardController");
 
 const checkUserPaymentAndKYC = require("../../middleware/kycPaymentCheckMiddleware");
 const idempotencyMiddleware = require("../../middleware/idempotencyMiddleware");
+const asyncHandler = require("../../utils/asyncHandler");
 
 const router = express.Router();
 
@@ -15,14 +18,28 @@ router.get(
   "/topup-stats",
   authenticateUser,
   checkUserPaymentAndKYC,
-  getTopupStats,
+  asyncHandler(getTopupStats),
 );
 
 router.get(
   "/payout-stats",
   authenticateUser,
   checkUserPaymentAndKYC,
-  getPayoutMonthlyStats,
+  asyncHandler(getServiceMonthlyStats),
+);
+
+router.get(
+  "/performance-stats",
+  authenticateUser,
+  checkUserPaymentAndKYC,
+  asyncHandler(getPerformanceStats),
+);
+
+router.get(
+  "/volume-analytics",
+  authenticateUser,
+  checkUserPaymentAndKYC,
+  asyncHandler(getVolumeAnalytics),
 );
 
 module.exports = router;

@@ -11,6 +11,7 @@ const {
 const { authenticateUser } = require("../../middleware/authMiddleware");
 const { authorizeRoles } = require("../../middleware/roleMiddleware");
 const checkAllowedPermission = require("../../middleware/adminPermissionCheck");
+const asyncHandler = require("../../utils/asyncHandler");
 const router = express.Router();
 
 router.get(
@@ -18,7 +19,7 @@ router.get(
   authenticateUser,
   authorizeRoles("admin"),
   checkAllowedPermission("IDCHARGE"),
-  getAllIdChargeRequest,
+  asyncHandler(getAllIdChargeRequest),
 );
 
 router.patch(
@@ -26,7 +27,7 @@ router.patch(
   authenticateUser,
   authorizeRoles("admin"),
   checkAllowedPermission("IDCHARGE"),
-  approveIdChargeRequest,
+  asyncHandler(approveIdChargeRequest),
 );
 
 router.patch(
@@ -34,7 +35,7 @@ router.patch(
   authenticateUser,
   authorizeRoles("admin"),
   checkAllowedPermission("IDCHARGE"),
-  rejectIdChargeRequest,
+  asyncHandler(rejectIdChargeRequest),
 );
 
 router.post(
@@ -42,7 +43,7 @@ router.post(
   authenticateUser,
   authorizeRoles("admin"),
   checkAllowedPermission("IDCHARGE"),
-  setOnBoardCharges,
+  asyncHandler(setOnBoardCharges),
 );
 
 router.get(
@@ -50,7 +51,7 @@ router.get(
   authenticateUser,
   authorizeRoles("admin"),
   checkAllowedPermission("IDCHARGE"),
-  getOnBoardCharges,
+  asyncHandler(getOnBoardCharges),
 );
 
 router.put(
@@ -58,7 +59,7 @@ router.put(
   authenticateUser,
   authorizeRoles("admin"),
   checkAllowedPermission("IDCHARGE"),
-  updateCharge,
+  asyncHandler(updateCharge),
 );
 
 router.patch(
@@ -66,7 +67,7 @@ router.patch(
   authenticateUser,
   authorizeRoles("admin"),
   checkAllowedPermission("IDCHARGE"),
-  togglePaymentRequired,
+  asyncHandler(togglePaymentRequired),
 );
 
 module.exports = router;

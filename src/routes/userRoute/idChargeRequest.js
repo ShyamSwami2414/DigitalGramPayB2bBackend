@@ -7,6 +7,8 @@ const createUploader = require("../../middleware/uploadMiddleware");
 const multerErrorHandler = require("../../middleware/multerErrorHandler");
 const idempotencyMiddleware = require("../../middleware/idempotencyMiddleware");
 
+const asyncHandler = require("../../utils/asyncHandler");
+
 const router = express.Router();
 
 const upload = createUploader("paymentProof", /jpeg|jpg|png|pdf/, 2048);
@@ -16,7 +18,7 @@ router.post(
   authenticateUser,
   multerErrorHandler(upload.single("paymentProof")),
   idempotencyMiddleware,
-  addIdChargeRequest,
+  asyncHandler(addIdChargeRequest),
 );
 
 module.exports = router;

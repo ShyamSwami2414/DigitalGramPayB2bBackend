@@ -4,10 +4,12 @@ const { rupeeToPaise, paiseToRupee } = require("../../utils/money");
 
 exports.getCouponList = async (req, res, next) => {
   try {
-    let { page = 1, limit = 10 } = req.query;
+    let { page = 1, limit = 10, search = "" } = req.query;
 
     page = Number(page);
     limit = Number(limit);
+
+    search = search?.trim();
 
     if (isNaN(page) || page < 1) page = 1;
     if (isNaN(limit) || limit < 1) limit = 10;
@@ -49,6 +51,20 @@ exports.getCouponList = async (req, res, next) => {
           },
         },
       },
+      ...(search
+        ? [
+            {
+              $match: {
+                $or: [
+                  { name: { $regex: search, $options: "i" } },
+                  { userName: { $regex: search, $options: "i" } },
+                  { code: { $regex: search, $options: "i" } },
+                  { userName: { $regex: search, $options: "i" } },
+                ],
+              },
+            },
+          ]
+        : []),
       {
         $project: { user: 0 },
       },

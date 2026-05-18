@@ -38,8 +38,8 @@ const getDownlineUserIds = async (userId) => {
 //     status = status?.trim().toLowerCase();
 
 //     range = typeof range === "string" ? range?.trim().toLowerCase() : "";
-//     from = typeof from === "string" ? from.trim().toLowerCase() : "";
-//     to = typeof to === "string" ? to.trim().toLowerCase() : "";
+//     from = typeof from === "string" ? from.trim() : "";
+//     to = typeof to === "string" ? to.trim() : "";
 
 //     // normalize invalid inputs
 //     if (!from || from === "null" || from === "undefined") {
@@ -806,8 +806,8 @@ exports.getWalletTransferHistory = async (req, res, next) => {
     status = status?.trim().toLowerCase();
 
     range = typeof range === "string" ? range?.trim().toLowerCase() : "";
-    from = typeof from === "string" ? from.trim().toLowerCase() : "";
-    to = typeof to === "string" ? to.trim().toLowerCase() : "";
+    from = typeof from === "string" ? from.trim() : "";
+    to = typeof to === "string" ? to.trim() : "";
 
     // normalize invalid inputs
     if (!from || from === "null" || from === "undefined") {
@@ -1069,8 +1069,8 @@ exports.getWalletTransferHistory = async (req, res, next) => {
 //     status = status?.trim().toLowerCase();
 
 //     range = typeof range === "string" ? range?.trim().toLowerCase() : "";
-//     from = typeof from === "string" ? from.trim().toLowerCase() : "";
-//     to = typeof to === "string" ? to.trim().toLowerCase() : "";
+//     from = typeof from === "string" ? from.trim() : "";
+//     to = typeof to === "string" ? to.trim() : "";
 
 //     // normalize invalid inputs
 //     if (!from || from === "null" || from === "undefined") {
@@ -1959,10 +1959,18 @@ exports.getWalletTransferHistory = async (req, res, next) => {
 
 exports.getWalletReport = async (req, res, next) => {
   try {
-    let { page = 1, limit = 10, search = "", userId = "" } = req.query;
+    let {
+      page = 1,
+      limit = 10,
+      search = "",
+      user = "",
+      status = "",
+    } = req.query;
 
     page = Number(page);
     limit = Number(limit);
+    search = search?.trim();
+    status = status?.trim().toLowerCase();
 
     // VALIDATION
     if (isNaN(page) || page < 1)
@@ -1980,6 +1988,18 @@ exports.getWalletReport = async (req, res, next) => {
     const loggedInUserId = req.user.id;
     console.log(loggedInUserId, "loggedInUserId");
 
+    // const allowedStatus = ["success", "failed", "pending", "refund"];
+
+    // if (status && !allowedStatus.includes(status)) {
+    //   const err = new Error("Invalid Status");
+    //   err.statusCode = 400;
+    //   throw err;
+    // }
+
+    // if (status) {
+    //   filter.status = status;
+    // }
+
     const downlineIds = await getDownlineUserIds(loggedInUserId);
 
     const allowedUserIds = [
@@ -1987,14 +2007,14 @@ exports.getWalletReport = async (req, res, next) => {
       ...downlineIds,
     ];
 
-    if (userId) {
-      if (!mongoose.Types.ObjectId.isValid(userId)) {
+    if (user) {
+      if (!mongoose.Types.ObjectId.isValid(user)) {
         return res
           .status(400)
           .json({ success: false, message: "Invalid userId" });
       }
 
-      const isAllowed = allowedUserIds.some((id) => id.equals(userId));
+      const isAllowed = allowedUserIds.some((id) => id.equals(user));
 
       if (!isAllowed) {
         return res.status(403).json({
@@ -2003,14 +2023,16 @@ exports.getWalletReport = async (req, res, next) => {
         });
       }
 
-      filter.userId = new mongoose.Types.ObjectId(userId);
+      filter.userId = new mongoose.Types.ObjectId(user);
     } else {
       filter.userId = { $in: allowedUserIds };
     }
 
-    if (search) {
-      filter.referenceId = { $regex: search, $options: "i" };
-    }
+    const escapeRegex = (text) => {
+      return text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    };
+
+    const safeSearch = escapeRegex(search);
 
     // ===============================
     //  PIPELINE
@@ -2247,7 +2269,7 @@ exports.getWalletReport = async (req, res, next) => {
                 },
               },
             },
-            { $project: { tdsAmount: 1 } },
+            { $project: { tdsAmount: 1, commissionAmount: 1 } },
           ],
           as: "tds",
         },
@@ -2256,6 +2278,7 @@ exports.getWalletReport = async (req, res, next) => {
       {
         $addFields: {
           tdsAmount: { $ifNull: ["$tds.tdsAmount", 0] },
+          commission: { $ifNull: ["$tds.commissionAmount", 0] },
         },
       },
       { $unset: "tds" },
@@ -2277,6 +2300,57 @@ exports.getWalletReport = async (req, res, next) => {
         },
       },
       { $unset: "gst" },
+      ...(search
+        ? [
+            {
+              $match: {
+                $or: [
+                  {
+                    "user.phone": {
+                      $regex: safeSearch,
+                      $options: "i",
+                    },
+                  },
+
+                  {
+                    "user.email": {
+                      $regex: safeSearch,
+                      $options: "i",
+                    },
+                  },
+
+                  {
+                    "user.userName": {
+                      $regex: safeSearch,
+                      $options: "i",
+                    },
+                  },
+
+                  {
+                    fullName: {
+                      $regex: safeSearch,
+                      $options: "i",
+                    },
+                  },
+
+                  {
+                    referenceId: {
+                      $regex: safeSearch,
+                      $options: "i",
+                    },
+                  },
+
+                  {
+                    description: {
+                      $regex: safeSearch,
+                      $options: "i",
+                    },
+                  },
+                ],
+              },
+            },
+          ]
+        : []),
     ];
 
     // ===============================
@@ -2299,21 +2373,33 @@ exports.getWalletReport = async (req, res, next) => {
     // ===============================
     // FORMAT
     // ===============================
-    const formattedData = walletLedger.map((item) => ({
-      ...item,
-      amount: paiseToRupee(item?.amount),
-      openingBalance: paiseToRupee(item?.openingBalance),
-      closingBalance: paiseToRupee(item?.closingBalance),
-      commission: paiseToRupee(item?.commission || 0),
-      bonus: paiseToRupee(item?.bonus || 0),
-      chargesAmount: paiseToRupee(item?.chargesAmount || 0),
-      gstAmount: paiseToRupee(item?.gstAmount || 0),
+    const formattedData = walletLedger.map((item) => {
+      const { amount, ...rest } = item;
 
-      totalCharges: paiseToRupee(
-        (item?.chargesAmount || 0) + (item?.gstAmount || 0),
-      ),
-      tdsAmount: paiseToRupee(item?.tdsAmount || 0),
-    }));
+      return {
+        ...rest,
+
+        amount: paiseToRupee(amount),
+
+        openingBalance: paiseToRupee(item?.openingBalance),
+
+        closingBalance: paiseToRupee(item?.closingBalance),
+
+        commission: paiseToRupee(item?.commission || 0),
+
+        bonus: paiseToRupee(item?.bonus || 0),
+
+        chargesAmount: paiseToRupee(item?.chargesAmount || 0),
+
+        gstAmount: paiseToRupee(item?.gstAmount || 0),
+
+        totalCharges: paiseToRupee(
+          (item?.chargesAmount || 0) + (item?.gstAmount || 0),
+        ),
+
+        tdsAmount: paiseToRupee(item?.tdsAmount || 0),
+      };
+    });
 
     return res.status(200).json({
       success: true,

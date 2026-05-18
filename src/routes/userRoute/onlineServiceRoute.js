@@ -6,6 +6,7 @@ const { authenticateUser } = require("../../middleware/authMiddleware");
 const { authorizeRoles } = require("../../middleware/roleMiddleware");
 const validatePipeline = require("../../middleware/pipelineCheckMiddleware");
 const checkUserPaymentAndKYC = require("../../middleware/kycPaymentCheckMiddleware");
+const asyncHandler = require("../../utils/asyncHandler");
 const router = express.Router();
 router.use(validatePipeline("online-service"));
 
@@ -13,7 +14,7 @@ router.get(
   "/all-online-service",
   authenticateUser,
   checkUserPaymentAndKYC,
-  listAllOnlineServices,
+  asyncHandler(listAllOnlineServices),
 );
 
 module.exports = router;

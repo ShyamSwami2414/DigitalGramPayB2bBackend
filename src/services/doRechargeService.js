@@ -36,7 +36,7 @@ exports.doRechargeService = async ({
   try {
     session.startTransaction();
 
-    const referenceId = generateUniqueRefernceId();
+    const referenceId = generateUniqueRefernceId("ARR");
 
     const { packageId, serviceId } = await validateUserPackageAndService({
       userId: userId,

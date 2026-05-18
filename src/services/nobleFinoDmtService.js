@@ -62,7 +62,7 @@ exports.searchCustomer = async ({
   try {
     session.startTransaction();
 
-    const referenceId = generateUniqueRefernceId();
+    const referenceId = generateUniqueRefernceId("NDM");
 
     const user = await User.findOne({ _id: userId }).select("phone").lean();
 
@@ -128,7 +128,7 @@ exports.getLimit = async ({ userId, requestId, mobileNumber }) => {
   try {
     session.startTransaction();
 
-    const referenceId = generateUniqueRefernceId();
+    const referenceId = generateUniqueRefernceId("NDM");
 
     await session.commitTransaction();
 
@@ -195,7 +195,7 @@ exports.customerEkyc = async ({
   try {
     session.startTransaction();
 
-    const referenceId = generateUniqueRefernceId();
+    const referenceId = generateUniqueRefernceId("NDM");
 
     const user = await User.findOne({ _id: userId }).select("phone").lean();
 
@@ -267,7 +267,7 @@ exports.generateRegOtp = async ({
   try {
     session.startTransaction();
 
-    const referenceId = generateUniqueRefernceId();
+    const referenceId = generateUniqueRefernceId("NDM");
 
     const [user, dmtCustomer] = await Promise.all([
       User.findById(userId).select("phone").lean(),
@@ -346,7 +346,7 @@ exports.registerCustomer = async ({
   try {
     session.startTransaction();
 
-    const referenceId = generateUniqueRefernceId();
+    const referenceId = generateUniqueRefernceId("NDM");
     const registrationCharges = 1000; //paise
 
     const [user, dmtCustomer] = await Promise.all([
@@ -468,7 +468,7 @@ exports.generateTOtp = async ({
   try {
     session.startTransaction();
 
-    const referenceId = generateUniqueRefernceId();
+    const referenceId = generateUniqueRefernceId("NDM");
 
     const [user, dmtCustomer] = await Promise.all([
       User.findById(userId).select("phone").lean(),
@@ -566,7 +566,7 @@ exports.transferFund = async ({
   const session = await mongoose.startSession();
   try {
     session.startTransaction();
-    const referenceId = generateUniqueRefernceId();
+    const referenceId = generateUniqueRefernceId("NDM");
 
     const [user, dmtCustomer] = await Promise.all([
       User.findById(userId).select("phone").lean(),
@@ -858,7 +858,7 @@ exports.listBeneficiary = async ({ userId, requestId, remitterMobile }) => {
   const session = await mongoose.startSession();
   try {
     session.startTransaction();
-    const referenceId = generateUniqueRefernceId();
+    const referenceId = generateUniqueRefernceId("NDM");
     const user = await User.findOne({ _id: userId }).select("phone").lean();
 
     console.log(user, "user");
@@ -924,7 +924,7 @@ exports.addBeneficiary = async ({
   const session = await mongoose.startSession();
   try {
     session.startTransaction();
-    const referenceId = generateUniqueRefernceId();
+    const referenceId = generateUniqueRefernceId("NDM");
     const user = await User.findOne({ _id: userId }).select("phone").lean();
 
     console.log(user, "user");
@@ -992,7 +992,7 @@ exports.deleteBeneficiary = async ({
   const session = await mongoose.startSession();
   try {
     session.startTransaction();
-    const referenceId = generateUniqueRefernceId();
+    const referenceId = generateUniqueRefernceId("NDM");
     const user = await User.findOne({ _id: userId }).select("phone").lean();
 
     console.log(user, "user");

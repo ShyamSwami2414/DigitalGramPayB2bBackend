@@ -16,7 +16,7 @@ exports.addIdChargeRequest = async (req, res, next) => {
     let { amount, mode, receiverBank, utrNumber, paymentDate } = req.body;
     amount = Number(amount);
 
-    const referenceId = generateUniqueRefernceId();
+    const referenceId = generateUniqueRefernceId("IDR");
 
     mode = mode?.trim()?.toLowerCase();
     utrNumber = utrNumber?.trim();

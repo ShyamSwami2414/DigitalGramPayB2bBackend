@@ -11,11 +11,12 @@ const { authenticateUser } = require("../../middleware/authMiddleware");
 const createUploader = require("../../middleware/uploadMiddleware");
 const checkUserPaymentAndKYC = require("../../middleware/kycPaymentCheckMiddleware");
 const apiLogger = require("../../middleware/apiLogger");
+const asyncHandler = require("../../utils/asyncHandler");
 const router = express.Router();
 
 const kycUpload = createUploader("kyc", /jpeg|jpg|png|pdf/, 200); //kb
 
-router.get("/submitted-kyc", authenticateUser, getSubmittedKyc);
+router.get("/submitted-kyc", authenticateUser, asyncHandler(getSubmittedKyc));
 
 router.post(
   "/offline-kyc-submission",
@@ -27,21 +28,21 @@ router.post(
     { name: "blankCheque", maxCount: 1 },
   ]),
   apiLogger,
-  offlineKycSubmission,
+  asyncHandler(offlineKycSubmission),
 );
 
 router.post(
   "/send-aadhar-otp",
   authenticateUser,
   apiLogger,
-  sendAadharOtpForOnlineKyc,
+  asyncHandler(sendAadharOtpForOnlineKyc),
 );
 
 router.post(
   "/verify-aadhar-otp",
   authenticateUser,
   apiLogger,
-  verifyAadharOtpForOnlineKyc,
+  asyncHandler(verifyAadharOtpForOnlineKyc),
 );
 
 router.post(
@@ -54,7 +55,7 @@ router.post(
     { name: "shopImage", maxCount: 1 },
     { name: "blankCheque", maxCount: 1 },
   ]),
-  onlineKycSubmission,
+  asyncHandler(onlineKycSubmission),
 );
 
 router.post(
@@ -67,7 +68,7 @@ router.post(
     { name: "blankCheque", maxCount: 1 },
   ]),
   apiLogger,
-  reuploadKycSections,
+  asyncHandler(reuploadKycSections),
 );
 
 module.exports = router;

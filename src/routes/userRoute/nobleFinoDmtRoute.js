@@ -24,7 +24,7 @@ router.post(
   checkUserPaymentAndKYC,
   idempotencyMiddleware,
   apiLogger,
-  getCustomer,
+  asyncHandler(getCustomer),
 );
 
 router.post(
@@ -33,7 +33,7 @@ router.post(
   checkUserPaymentAndKYC,
   idempotencyMiddleware,
   apiLogger,
-  checkLimit,
+  asyncHandler(checkLimit),
 );
 
 router.post(
@@ -42,7 +42,7 @@ router.post(
   checkUserPaymentAndKYC,
   idempotencyMiddleware,
   apiLogger,
-  doCustomerKyc,
+  asyncHandler(doCustomerKyc),
 );
 
 router.post(
@@ -51,7 +51,7 @@ router.post(
   checkUserPaymentAndKYC,
   idempotencyMiddleware,
   apiLogger,
-  generateRegistrationOtp,
+  asyncHandler(generateRegistrationOtp),
 );
 
 router.post(
@@ -60,7 +60,7 @@ router.post(
   checkUserPaymentAndKYC,
   idempotencyMiddleware,
   apiLogger,
-  registerNewCustomer,
+  asyncHandler(registerNewCustomer),
 );
 
 router.post(
@@ -69,7 +69,7 @@ router.post(
   checkUserPaymentAndKYC,
   idempotencyMiddleware,
   apiLogger,
-  generateTransactionOtp,
+  asyncHandler(generateTransactionOtp),
 );
 
 router.post(

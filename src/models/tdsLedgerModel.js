@@ -13,7 +13,6 @@ const tdsLedgerSchema = new mongoose.Schema(
       type: String,
       required: true,
       index: true,
-      unique: true,
     },
 
     commissionAmount: {

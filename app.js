@@ -16,7 +16,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, "api1/public")));
 
 // Serve user uploads
-console.log("path", path.join(__dirname, "api1/uploads"))
+console.log("path", path.join(__dirname, "api1/uploads"));
 
 app.use(
   "/api1/uploads",
@@ -30,28 +30,24 @@ app.use(
   }),
 );
 
-console.log("Hii1")
+console.log("Hii1");
 
 // Register API routes before fallback
 require("./src/routes/adminRoute/index")(app);
 
 require("./src/routes/userRoute/index")(app);
 
-console.log("Hii2")
+console.log("Hii2");
 app.get("/api1", (req, res) => {
   res.send("Home");
 });
-console.log("Hii3")
-
+console.log("Hii3");
 
 app.use(errorHandler);
 
-console.log("Hii4", process.env.PORT )
-
+console.log("Hii4", process.env.PORT);
 
 const PORT = process.env.PORT || 8000;
 app.listen(PORT, "0.0.0.0", () => {
   console.log(`Server is listening on PORT : ${PORT}`);
 });
-
-

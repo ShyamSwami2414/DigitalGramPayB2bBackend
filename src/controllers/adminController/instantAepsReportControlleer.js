@@ -557,8 +557,8 @@ const getAepsStats = async (req, res, next) => {
 //     status = status?.trim().toLowerCase();
 
 //     range = typeof range === "string" ? range?.trim().toLowerCase() : "";
-//     from = typeof from === "string" ? from.trim().toLowerCase() : "";
-//     to = typeof to === "string" ? to.trim().toLowerCase() : "";
+//     from = typeof from === "string" ? from.trim(): "";
+//     to = typeof to === "string" ? to.trim() : "";
 
 //     // normalize invalid inputs
 //     if (!from || from === "null" || from === "undefined") {
@@ -846,7 +846,7 @@ const getCompleteAepsReport = async (req, res, next) => {
       search = "",
       operator = "",
       type = "",
-      user = "",
+      userId = "",
       status = "",
       from = "",
       to = "",
@@ -866,7 +866,7 @@ const getCompleteAepsReport = async (req, res, next) => {
 
     operator = typeof operator === "string" ? operator.trim() : "";
     type = typeof type === "string" ? type.trim().toLowerCase() : "";
-    user = typeof user === "string" ? user.trim() : "";
+
     status = typeof status === "string" ? status.trim().toLowerCase() : "";
     range = typeof range === "string" ? range.trim().toLowerCase() : "";
     from = typeof from === "string" ? from.trim() : "";
@@ -1080,15 +1080,15 @@ const getCompleteAepsReport = async (req, res, next) => {
     // USER VALIDATION
     // =====================================================
 
-    if (user) {
-      if (!mongoose.Types.ObjectId.isValid(user)) {
+    if (userId) {
+      if (!mongoose.Types.ObjectId.isValid(userId)) {
         return res.status(400).json({
           success: false,
           message: "Invalid user ID",
         });
       }
 
-      const userExist = await User.findById(user).lean();
+      const userExist = await User.findById(userId).lean();
 
       if (!userExist) {
         return res.status(404).json({
@@ -1123,33 +1123,33 @@ const getCompleteAepsReport = async (req, res, next) => {
       reportMatch.type = type;
     }
 
-    if (search) {
-      reportMatch.$or = [
-        {
-          mobileNumber: {
-            $regex: search,
-            $options: "i",
-          },
-        },
+    // if (search) {
+    //   reportMatch.$or = [
+    //     {
+    //       mobileNumber: {
+    //         $regex: search,
+    //         $options: "i",
+    //       },
+    //     },
 
-        {
-          referenceId: {
-            $regex: search,
-            $options: "i",
-          },
-        },
-      ];
-    }
+    //     {
+    //       referenceId: {
+    //         $regex: search,
+    //         $options: "i",
+    //       },
+    //     },
+    //   ];
+    // }
 
     // =====================================================
     // USER + DOWNLINE FILTER
     // =====================================================
 
-    if (user) {
+    if (userId) {
       const userTree = await User.aggregate([
         {
           $match: {
-            _id: new mongoose.Types.ObjectId(user),
+            _id: new mongoose.Types.ObjectId(userId),
           },
         },
 
@@ -1184,10 +1184,29 @@ const getCompleteAepsReport = async (req, res, next) => {
     // MAIN AGGREGATION
     // =====================================================
 
+    const isNumber = /^\d+(\.\d+)?$/.test(search);
     const aepsReport = await InstantAepsReport.aggregate([
       {
         $match: reportMatch,
       },
+
+      // USER LOOKUP FIRST
+      {
+        $lookup: {
+          from: "users",
+          localField: "userId",
+          foreignField: "_id",
+          as: "user",
+        },
+      },
+
+      {
+        $unwind: {
+          path: "$user",
+          preserveNullAndEmptyArrays: true,
+        },
+      },
+
       {
         $lookup: {
           from: "tdsledgers",
@@ -1203,6 +1222,80 @@ const getCompleteAepsReport = async (req, res, next) => {
           preserveNullAndEmptyArrays: true,
         },
       },
+
+      // SEARCH
+      ...(search
+        ? [
+            {
+              $match: {
+                $or: [
+                  {
+                    mobileNumber: {
+                      $regex: search,
+                      $options: "i",
+                    },
+                  },
+
+                  {
+                    referenceId: {
+                      $regex: search,
+                      $options: "i",
+                    },
+                  },
+
+                  {
+                    type: {
+                      $regex: search,
+                      $options: "i",
+                    },
+                  },
+
+                  {
+                    operatorName: {
+                      $regex: search,
+                      $options: "i",
+                    },
+                  },
+
+                  {
+                    serviceType: {
+                      $regex: search,
+                      $options: "i",
+                    },
+                  },
+
+                  {
+                    txnStatus: {
+                      $regex: search,
+                      $options: "i",
+                    },
+                  },
+
+                  {
+                    "user.userName": {
+                      $regex: search,
+                      $options: "i",
+                    },
+                  },
+
+                  {
+                    $expr: {
+                      $regexMatch: {
+                        input: {
+                          $concat: ["$user.firstName", " ", "$user.lastName"],
+                        },
+                        regex: search,
+                        options: "i",
+                      },
+                    },
+                  },
+
+                  ...(isNumber ? [{ amount: Number(search) }] : []),
+                ],
+              },
+            },
+          ]
+        : []),
 
       {
         $sort: {
@@ -1222,19 +1315,6 @@ const getCompleteAepsReport = async (req, res, next) => {
             },
 
             {
-              $lookup: {
-                from: "users",
-                localField: "userId",
-                foreignField: "_id",
-                as: "user",
-              },
-            },
-
-            {
-              $unwind: "$user",
-            },
-
-            {
               $project: {
                 amount: 1,
                 accountBalance: 1,
@@ -1251,7 +1331,9 @@ const getCompleteAepsReport = async (req, res, next) => {
                 isRefunded: 1,
                 description: 1,
                 createdAt: 1,
+
                 userName: "$user.userName",
+
                 fullName: {
                   $concat: ["$user.firstName", " ", "$user.lastName"],
                 },
@@ -1361,6 +1443,48 @@ const getAepsReportById = async (req, res, next) => {
         },
       },
       {
+        $lookup: {
+          from: "transactions",
+          let: {
+            refId: "$referenceId",
+            uid: "$userId",
+          },
+          pipeline: [
+            {
+              $match: {
+                $expr: {
+                  $and: [
+                    {
+                      $eq: ["$referenceId", "$$refId"],
+                    },
+                    {
+                      $eq: ["$userId", "$$uid"],
+                    },
+                  ],
+                },
+              },
+            },
+
+            {
+              $project: {
+                _id: 0,
+                status: 1,
+                meta: 1,
+                serviceType: 1,
+              },
+            },
+          ],
+          as: "transaction",
+        },
+      },
+
+      {
+        $unwind: {
+          path: "$transaction",
+          preserveNullAndEmptyArrays: true,
+        },
+      },
+      {
         $addFields: {
           fullName: { $concat: ["$user.firstName", " ", "$user.lastName"] },
           commission: "$tdsData.commissionAmount",
@@ -1372,6 +1496,7 @@ const getAepsReportById = async (req, res, next) => {
           serviceName: "AEPS",
         },
       },
+
       {
         $project: {
           tdsData: 0,
@@ -1384,11 +1509,27 @@ const getAepsReportById = async (req, res, next) => {
     ]);
 
     if (!report) {
-      return res.status(404).json({
-        success: false,
+      return res.status(200).json({
+        success: true,
         message: "Aeps Report not found",
+        data: {},
       });
     }
+
+    const request = report?.transaction?.meta?.request || {};
+    const response = report?.transaction?.meta?.response || {};
+
+    const {
+      userId,
+      amount,
+      bankProfileId,
+      address,
+      latitude,
+      longitude,
+      ...formattedRequest
+    } = request;
+
+    const { data, ...formattedResponse } = response;
 
     const formattedData = report
       ? {
@@ -1397,6 +1538,9 @@ const getAepsReportById = async (req, res, next) => {
           commission: paiseToRupee(report?.commission),
           tds: paiseToRupee(report?.tds),
           netCommission: paiseToRupee(report?.netCommission),
+          request: formattedRequest,
+          response: formattedResponse,
+          transaction: undefined,
         }
       : null;
 

@@ -3,14 +3,21 @@ const mongoose = require("mongoose");
 
 exports.listOfflineServiceRequests = async (req, res, next) => {
   try {
-    let { page = 1, limit = 10 } = req.query;
+    let { page = 1, limit = 10, serach = "", status = "" } = req.query;
     page = Number(page);
     limit = Number(limit);
+    search = search?.trim();
+    status = status?.trim().toLowerCase();
 
     const skip = (page - 1) * limit;
+    const filter = { isDeleted: false };
+
+    if (status) {
+      filter.status = status;
+    }
 
     const offlineServiceRequests = await OfflineServiceRequest.aggregate([
-      { $match: { isDeleted: false } },
+      { $match: filter },
       {
         $lookup: {
           from: "users",
@@ -52,6 +59,19 @@ exports.listOfflineServiceRequests = async (req, res, next) => {
           serviceName: "$offlineService.serviceName",
         },
       },
+      ...(search
+        ? [
+            {
+              $match: {
+                $or: [
+                  { serviceName: { $regex: search, $options: "i" } },
+                  { fullName: { $regex: search, $options: "i" } },
+                  { userName: { $regex: search, $options: "i" } },
+                ],
+              },
+            },
+          ]
+        : []),
       {
         $project: {
           userId: 0,

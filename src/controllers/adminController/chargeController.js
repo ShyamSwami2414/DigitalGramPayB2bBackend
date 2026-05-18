@@ -181,12 +181,12 @@ exports.getAllIdChargeRequest = async (req, res, next) => {
 
     page = Number(page);
     limit = Number(limit);
-    search = search?.trim().toLowerCase();
+    search = search?.trim();
     user = user?.trim();
     status = status?.trim().toLowerCase();
 
-    from = typeof from === "string" ? from.trim().toLowerCase() : "";
-    to = typeof to === "string" ? to.trim().toLowerCase() : "";
+    from = typeof from === "string" ? from.trim() : "";
+    to = typeof to === "string" ? to.trim() : "";
     range = typeof range === "string" ? range?.trim().toLowerCase() : "";
 
     // normalize invalid inputs

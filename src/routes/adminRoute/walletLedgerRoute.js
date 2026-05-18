@@ -6,6 +6,7 @@ const {
 const { authorizeRoles } = require("../../middleware/roleMiddleware");
 const { authenticateUser } = require("../../middleware/authMiddleware");
 const checkAllowedPermission = require("../../middleware/adminPermissionCheck");
+const asyncHandler = require("../../utils/asyncHandler");
 const router = express.Router();
 
 router.get(
@@ -13,7 +14,7 @@ router.get(
   authenticateUser,
   authorizeRoles("admin"),
   checkAllowedPermission("REPORTS"),
-  aepsToEwalletHistory,
+  asyncHandler(aepsToEwalletHistory),
 );
 
 router.get(
@@ -21,7 +22,7 @@ router.get(
   authenticateUser,
   authorizeRoles("admin"),
   checkAllowedPermission("REPORTS"),
-  getAllLedgetEntryList,
+  asyncHandler(getAllLedgetEntryList),
 );
 
 module.exports = router;

@@ -540,7 +540,7 @@ const getCompleteDmtReport = async (req, res, next) => {
       search = "",
       operator = "",
       type = "",
-      user = "",
+      userId = "",
       status = "",
       from = "",
       to = "",
@@ -560,7 +560,7 @@ const getCompleteDmtReport = async (req, res, next) => {
 
     operator = typeof operator === "string" ? operator.trim() : "";
     type = typeof type === "string" ? type.trim().toLowerCase() : "";
-    user = typeof user === "string" ? user.trim() : "";
+
     status = typeof status === "string" ? status.trim().toLowerCase() : "";
     range = typeof range === "string" ? range.trim().toLowerCase() : "";
     from = typeof from === "string" ? from.trim() : "";
@@ -774,15 +774,15 @@ const getCompleteDmtReport = async (req, res, next) => {
     // USER VALIDATION
     // =====================================================
 
-    if (user) {
-      if (!mongoose.Types.ObjectId.isValid(user)) {
+    if (userId) {
+      if (!mongoose.Types.ObjectId.isValid(userId)) {
         return res.status(400).json({
           success: false,
           message: "Invalid user ID",
         });
       }
 
-      const userExist = await User.findById(user).lean();
+      const userExist = await User.findById(userId).lean();
 
       if (!userExist) {
         return res.status(404).json({
@@ -817,33 +817,33 @@ const getCompleteDmtReport = async (req, res, next) => {
       reportMatch.type = type;
     }
 
-    if (search) {
-      reportMatch.$or = [
-        {
-          mobileNumber: {
-            $regex: search,
-            $options: "i",
-          },
-        },
+    // if (search) {
+    //   reportMatch.$or = [
+    //     {
+    //       mobileNumber: {
+    //         $regex: search,
+    //         $options: "i",
+    //       },
+    //     },
 
-        {
-          referenceId: {
-            $regex: search,
-            $options: "i",
-          },
-        },
-      ];
-    }
+    //     {
+    //       referenceId: {
+    //         $regex: search,
+    //         $options: "i",
+    //       },
+    //     },
+    //   ];
+    // }
 
     // =====================================================
     // USER + DOWNLINE FILTER
     // =====================================================
 
-    if (user) {
+    if (userId) {
       const userTree = await User.aggregate([
         {
           $match: {
-            _id: new mongoose.Types.ObjectId(user),
+            _id: new mongoose.Types.ObjectId(userId),
           },
         },
 
@@ -877,6 +877,13 @@ const getCompleteDmtReport = async (req, res, next) => {
     // =====================================================
     // MAIN AGGREGATION
     // =====================================================
+
+    const isNumber = /^\d+(\.\d+)?$/.test(search);
+    const escapeRegex = (text) => {
+      return text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    };
+
+    const safeSearch = escapeRegex(search);
 
     const dmtReport = await DmtReport.aggregate([
       {
@@ -927,6 +934,24 @@ const getCompleteDmtReport = async (req, res, next) => {
           totalCharge: "$gstData.totalCharge",
         },
       },
+
+      ...(search
+        ? [
+            {
+              $match: {
+                $or: [
+                  { category: { $regex: safeSearch, $options: "i" } },
+                  { referenceId: { $regex: safeSearch, $options: "i" } },
+                  { description: { $regex: safeSearch, $options: "i" } },
+                  { mobileNumber: { $regex: safeSearch, $options: "i" } },
+                  { fullName: { $regex: safeSearch, $options: "i" } },
+                  { userName: { $regex: safeSearch, $options: "i" } },
+                  ...(isNumber ? [{ amount: Number(safeSearch) }] : []),
+                ],
+              },
+            },
+          ]
+        : []),
 
       {
         $sort: {
@@ -1123,6 +1148,48 @@ const getDmtReportById = async (req, res, next) => {
         },
       },
       {
+        $lookup: {
+          from: "transactions",
+          let: {
+            refId: "$referenceId",
+            uid: "$userId",
+          },
+          pipeline: [
+            {
+              $match: {
+                $expr: {
+                  $and: [
+                    {
+                      $eq: ["$referenceId", "$$refId"],
+                    },
+                    {
+                      $eq: ["$userId", "$$uid"],
+                    },
+                  ],
+                },
+              },
+            },
+
+            {
+              $project: {
+                _id: 0,
+                status: 1,
+                meta: 1,
+                serviceType: 1,
+              },
+            },
+          ],
+          as: "transaction",
+        },
+      },
+
+      {
+        $unwind: {
+          path: "$transaction",
+          preserveNullAndEmptyArrays: true,
+        },
+      },
+      {
         $project: {
           gstData: 0,
           user: 0,
@@ -1135,11 +1202,28 @@ const getDmtReportById = async (req, res, next) => {
     ]);
 
     if (!report) {
-      return res.status(404).json({
-        success: false,
+      return res.status(200).json({
+        success: true,
         message: "DMT Report not found",
+        data: {},
       });
     }
+
+    const request = report?.transaction?.meta?.request || {};
+    const response = report?.transaction?.meta?.response || {};
+
+    const {
+      requestId,
+      userId,
+      otp,
+      amount,
+      tOtpRequestId,
+      latitude,
+      longitude,
+      publicIp,
+      ...formattedRequest
+    } = request;
+    const { data, ...formattedResponse } = response;
 
     const formattedData = report
       ? {
@@ -1150,6 +1234,9 @@ const getDmtReportById = async (req, res, next) => {
           gst: paiseToRupee(report?.gst),
           totalDebit: paiseToRupee(report?.totalDebit),
           totalCharge: paiseToRupee(report?.totalCharge),
+          request: formattedRequest,
+          response: formattedResponse,
+          transaction: undefined,
         }
       : null;
 

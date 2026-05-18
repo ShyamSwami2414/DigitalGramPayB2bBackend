@@ -7,6 +7,7 @@ const {
 const { authenticateUser } = require("../../middleware/authMiddleware");
 const { authorizeRoles } = require("../../middleware/roleMiddleware");
 const checkAllowedPermission = require("../../middleware/adminPermissionCheck");
+const asyncHandler = require("../../utils/asyncHandler");
 const router = express.Router();
 
 router.get(
@@ -14,7 +15,7 @@ router.get(
   authenticateUser,
   authorizeRoles("admin"),
   checkAllowedPermission("COMMISSION"),
-  getCommissionList,
+  asyncHandler(getCommissionList),
 );
 
 router.post(
@@ -22,7 +23,7 @@ router.post(
   authenticateUser,
   authorizeRoles("admin"),
   checkAllowedPermission("COMMISSION"),
-  createCommission,
+  asyncHandler(createCommission),
 );
 
 router.delete(
@@ -30,7 +31,7 @@ router.delete(
   authenticateUser,
   authorizeRoles("admin"),
   checkAllowedPermission("COMMISSION"),
-  deleteCommissionPlan,
+  asyncHandler(deleteCommissionPlan),
 );
 
 module.exports = router;

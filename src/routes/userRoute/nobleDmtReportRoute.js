@@ -8,6 +8,8 @@ const {
   getDmtReportById,
 } = require("../../controllers/userController/nobleDmtReportController");
 
+const asyncHandler = require("../../utils/asyncHandler");
+
 const router = express.Router();
 
 //get my last 5 aeps transaction
@@ -15,14 +17,14 @@ router.get(
   "/my-dmt-history",
   authenticateUser,
   checkUserPaymentAndKYC,
-  getMyLastDmtHistory,
+  asyncHandler(getMyLastDmtHistory),
 );
 
 router.get(
   "/dmt-stats",
   authenticateUser,
   checkUserPaymentAndKYC,
-  getDmtStats,
+  asyncHandler(getDmtStats),
 );
 
 //get all aeps transaction of me and my downline
@@ -30,14 +32,14 @@ router.get(
   "/complete-dmt-report",
   authenticateUser,
   checkUserPaymentAndKYC,
-  getCompleteDmtReport,
+  asyncHandler(getCompleteDmtReport),
 );
 
 router.get(
   "/report/:id",
   authenticateUser,
   checkUserPaymentAndKYC,
-  getDmtReportById,
+  asyncHandler(getDmtReportById),
 );
 
 module.exports = router;

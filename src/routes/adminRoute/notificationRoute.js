@@ -8,6 +8,7 @@ const {
 const { authenticateUser } = require("../../middleware/authMiddleware");
 const { authorizeRoles } = require("../../middleware/roleMiddleware");
 const checkAllowedPermission = require("../../middleware/adminPermissionCheck");
+const asyncHandler = require("../../utils/asyncHandler");
 const router = express.Router();
 
 router.get(
@@ -15,7 +16,7 @@ router.get(
   authenticateUser,
   authorizeRoles("admin"),
   checkAllowedPermission("SETTINGS"),
-  getAllNotification,
+  asyncHandler(getAllNotification),
 );
 
 router.post(
@@ -23,7 +24,7 @@ router.post(
   authenticateUser,
   authorizeRoles("admin"),
   checkAllowedPermission("SETTINGS"),
-  createNotification,
+  asyncHandler(createNotification),
 );
 
 router.patch(
@@ -31,7 +32,7 @@ router.patch(
   authenticateUser,
   authorizeRoles("admin"),
   checkAllowedPermission("SETTINGS"),
-  toggleNotificationStatus,
+  asyncHandler(toggleNotificationStatus),
 );
 
 router.delete(
@@ -39,7 +40,7 @@ router.delete(
   authenticateUser,
   authorizeRoles("admin"),
   checkAllowedPermission("SETTINGS"),
-  deleteNotification,
+  asyncHandler(deleteNotification),
 );
 
 module.exports = router;

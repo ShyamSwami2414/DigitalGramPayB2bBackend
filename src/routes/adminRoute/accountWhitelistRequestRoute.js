@@ -6,6 +6,7 @@ const {
 } = require("../../controllers/adminController/accountWhitelistRequestController");
 const { authorizeRoles } = require("../../middleware/roleMiddleware");
 const checkAllowedPermission = require("../../middleware/adminPermissionCheck");
+const asyncHandler = require("../../utils/asyncHandler");
 const router = express.Router();
 
 router.get(
@@ -13,7 +14,7 @@ router.get(
   authenticateUser,
   authorizeRoles("admin"),
   checkAllowedPermission("ACCOUNT_WHITELIST"),
-  getAccountWhitelistRequest,
+  asyncHandler(getAccountWhitelistRequest),
 );
 
 router.patch(
@@ -21,7 +22,7 @@ router.patch(
   authenticateUser,
   authorizeRoles("admin"),
   checkAllowedPermission("ACCOUNT_WHITELIST"),
-  approveRejectRequest,
+  asyncHandler(approveRejectRequest),
 );
 
 module.exports = router;

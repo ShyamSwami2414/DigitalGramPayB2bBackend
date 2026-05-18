@@ -198,6 +198,8 @@ exports.payBbpsBill = async (req, res, next) => {
     console.log(req.body, "req.body");
     console.log(data, "data");
 
+    // return res.json({ success: true, message: billAmount });
+
     refid = refid?.trim();
     billerId = billerId?.trim();
     customerName = customerName?.trim();
@@ -359,6 +361,7 @@ exports.payBbpsBill = async (req, res, next) => {
       success: true,
       message: "Bill Paid Successfully",
       data: {
+        referenceId: response?.referenceId,
         status: response?.status,
         txnid: response?.txnid,
         RespAmount: response?.data?.RespAmount,

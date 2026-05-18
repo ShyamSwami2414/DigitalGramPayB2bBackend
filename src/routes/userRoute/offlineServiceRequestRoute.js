@@ -8,6 +8,7 @@ const {
 const createUploader = require("../../middleware/uploadMiddleware");
 const multerErrorHandler = require("../../middleware/multerErrorHandler");
 const checkUserPaymentAndKYC = require("../../middleware/kycPaymentCheckMiddleware");
+const asyncHandler = require("../../utils/asyncHandler");
 const router = express.Router();
 
 const upload = createUploader("offlineServiceRequest", /jpeg|jpg|png|pdf/, 2048);
@@ -17,20 +18,20 @@ router.post(
   authenticateUser,
   checkUserPaymentAndKYC,
   multerErrorHandler(upload.any()),
-  createOfflineServiceRequest,
+  asyncHandler(createOfflineServiceRequest),
 );
 
 router.get(
   "/fetch-offline-service-request",
   authenticateUser,
   checkUserPaymentAndKYC,
-  listOfflineServiceRequests,
+  asyncHandler(listOfflineServiceRequests),
 );
 
 router.get(
   "/fetch-offline-service-request/:id",
   authenticateUser,
-  getOfflineServiceRequestById,
+  asyncHandler(getOfflineServiceRequestById),
 );
 
 module.exports = router;

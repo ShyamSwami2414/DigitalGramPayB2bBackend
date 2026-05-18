@@ -6,7 +6,7 @@ const { rupeeToPaise, paiseToRupee } = require("../../utils/money");
 const {
   generateUniqueRefernceId,
 } = require("../../utils/generateUniqueReferenceId");
-const HoldReleaseHistory = require("../../models/holdReleaseHistoryModel");
+const UserWalletReport = require("../../models/userWalletReportModel");
 
 exports.getWalletBalances = async (req, res, next) => {
   try {
@@ -51,14 +51,15 @@ exports.getWalletBalances = async (req, res, next) => {
 
 exports.getAllUserWallet = async (req, res, next) => {
   try {
-    let { page = 1, limit = 10 } = req.query;
+    let { page = 1, limit = 10, search = "" } = req.query;
     page = Number(page);
     limit = Number(limit);
+    search = search?.trim()?.toLowerCase();
 
     const skip = (page - 1) * limit;
     const filter = { isDeleted: false };
 
-    const userWallets = await UserWallet.aggregate([
+    const result = await UserWallet.aggregate([
       { $match: filter },
       {
         $lookup: {
@@ -81,6 +82,22 @@ exports.getAllUserWallet = async (req, res, next) => {
           phone: "$user.phone",
         },
       },
+      ...(search
+        ? [
+            {
+              $match: {
+                $or: [
+                  { firstName: { $regex: search, $options: "i" } },
+                  { lastName: { $regex: search, $options: "i" } },
+                  { fullName: { $regex: search, $options: "i" } },
+                  { email: { $regex: search, $options: "i" } },
+                  { phone: { $regex: search, $options: "i" } },
+                  { userName: { $regex: search, $options: "i" } },
+                ],
+              },
+            },
+          ]
+        : []),
       {
         $project: {
           fullName: 1,
@@ -92,11 +109,28 @@ exports.getAllUserWallet = async (req, res, next) => {
           mainHoldAmount: { $round: ["$mainHoldAmount", 2] },
         },
       },
-      { $skip: skip },
-      { $limit: limit },
+
+      {
+        $facet: {
+          data: [
+            {
+              $skip: skip,
+            },
+            {
+              $limit: limit,
+            },
+          ],
+          totalCount: [
+            {
+              $count: "total",
+            },
+          ],
+        },
+      },
     ]);
 
-    const total = await UserWallet.countDocuments(filter);
+    const userWallets = result[0]?.data;
+    const total = result[0]?.totalCount[0]?.total || 0;
 
     const formattedData = userWallets.map((item) => ({
       ...item,
@@ -227,10 +261,7 @@ exports.holdReleaseAmount = async (req, res, next) => {
 
     // save reason only when HOLD
     if (type === "hold" && reason) {
-      const reasonField =
-        walletType === "aeps" ? "aepsHoldReason" : "mainHoldReason";
-
-      updateData.$set = { [reasonField]: reason };
+      updateData.$set = { reason: reason };
     }
 
     const updatedUserWallet = await UserWallet.findOneAndUpdate(
@@ -248,19 +279,18 @@ exports.holdReleaseAmount = async (req, res, next) => {
       });
     }
 
-    await HoldReleaseHistory.create(
+    await UserWalletReport.create(
       [
         {
           userId: userId,
           wallet: walletType,
           amount: amount,
           type: type,
-          holdReason: isHolded ? reason : null,
-          holdBy: isHolded ? req.user.id : undefined,
-          releasedBy: !isHolded ? req.user.id : undefined,
+          reason: isHolded ? reason : null,
+          actionBy: req.user.id,
         },
       ],
-      { session },
+      { session: session },
     );
 
     const walletObj = updatedUserWallet.toObject();
@@ -298,7 +328,7 @@ exports.creditDebitAmount = async (req, res, next) => {
     amount = Number(amount);
 
     const amountInPaise = rupeeToPaise(amount);
-    const referenceId = generateUniqueRefernceId();
+    const referenceId = generateUniqueRefernceId("CDW");
 
     type = type?.trim().toLowerCase();
     walletType = walletType?.trim().toLowerCase();
@@ -430,6 +460,20 @@ exports.creditDebitAmount = async (req, res, next) => {
         },
       ],
       { session },
+    );
+
+    await UserWalletReport.create(
+      [
+        {
+          userId: userId,
+          wallet: walletType,
+          amount: amount,
+          type: type,
+          reason: reason ? reason : null,
+          actionBy: req.user.id,
+        },
+      ],
+      { session: session },
     );
 
     updatedUserWallet = updatedUserWallet ? updatedUserWallet.toObject() : null;

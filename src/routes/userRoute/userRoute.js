@@ -7,31 +7,32 @@ const {
 } = require("../../controllers/userController/userController");
 const { authenticateUser } = require("../../middleware/authMiddleware");
 const checkUserPaymentAndKYC = require("../../middleware/kycPaymentCheckMiddleware");
+const asyncHandler = require("../../utils/asyncHandler");
 const router = express.Router();
 
 router.post(
   "/create-user",
   authenticateUser,
   checkUserPaymentAndKYC,
-  createUser,
+  asyncHandler(createUser),
 );
 
 //get all user under me only
-router.get("/get-users", authenticateUser, checkUserPaymentAndKYC, getAllUsers);
+router.get("/get-users", authenticateUser, checkUserPaymentAndKYC, asyncHandler(getAllUsers));
 
 //this api return all user whether direct or indirect child all
 router.get(
   "/get-downline-users",
   authenticateUser,
   checkUserPaymentAndKYC,
-  getMyDownlineUsers,
+  asyncHandler(getMyDownlineUsers),
 );
 
 router.patch(
   "/update-user-status/:id",
   authenticateUser,
   checkUserPaymentAndKYC,
-  updateUserStatus,
+  asyncHandler(updateUserStatus),
 );
 
 module.exports = router;

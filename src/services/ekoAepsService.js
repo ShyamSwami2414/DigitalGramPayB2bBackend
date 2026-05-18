@@ -34,6 +34,7 @@ const userWallet = require("../models/userWallet");
 const walletLedgerModel = require("../models/walletLedgerModel");
 const tdsLedgerModel = require("../models/tdsLedgerModel");
 const { processCommission } = require("./common/commissionService");
+const Transaction = require("../models/transactionModel");
 
 exports.onboardEkoAepsUser = async ({
   userId,
@@ -51,7 +52,7 @@ exports.onboardEkoAepsUser = async ({
   try {
     session.startTransaction();
 
-    const referenceId = generateUniqueRefernceId();
+    const referenceId = generateUniqueRefernceId("EAE");
     const registrationCharges = 1000;
 
     const { openingBalance, closingBalance } = await debitWallet({
@@ -157,7 +158,7 @@ exports.activateService = async ({
   try {
     session.startTransaction();
 
-    const referenceId = generateUniqueRefernceId();
+    const referenceId = generateUniqueRefernceId("EAS");
 
     const onboardMerchant = await EkoOnboardAepsUser.findOne({
       userId: userId,
@@ -248,7 +249,7 @@ exports.kycOtp = async ({
   try {
     session.startTransaction();
 
-    const referenceId = generateUniqueRefernceId();
+    const referenceId = generateUniqueRefernceId("EAE");
 
     const onboardMerchant = await EkoOnboardAepsUser.findOne({
       userId: userId,
@@ -320,7 +321,7 @@ exports.verifyOtp = async ({ userId, requestId, otp, latitude, longitude }) => {
   try {
     session.startTransaction();
 
-    const referenceId = generateUniqueRefernceId();
+    const referenceId = generateUniqueRefernceId("EAE");
 
     const onboardMerchant = await EkoOnboardAepsUser.findOne({
       userId: userId,
@@ -405,7 +406,7 @@ exports.ekycBiometric = async ({
   try {
     session.startTransaction();
 
-    const referenceId = generateUniqueRefernceId();
+    const referenceId = generateUniqueRefernceId("EAE");
 
     const onboardMerchant = await EkoOnboardAepsUser.findOne({
       userId: userId,
@@ -494,7 +495,7 @@ exports.dailyBiometricLogin = async ({
   try {
     session.startTransaction();
 
-    const referenceId = generateUniqueRefernceId();
+    const referenceId = generateUniqueRefernceId("EAE");
 
     const dailyAepsLoginCharge = 100;
 
@@ -674,7 +675,7 @@ exports.initiateAepsTransaction = async ({
   try {
     session.startTransaction();
 
-    const referenceId = generateUniqueRefernceId();
+    const referenceId = generateUniqueRefernceId("EAE");
 
     const { packageId, serviceId } = await validateUserPackageAndService({
       userId: userId,
@@ -710,6 +711,43 @@ exports.initiateAepsTransaction = async ({
           referenceId: referenceId,
           txnStatus: "PENDING",
           amount: amount, //paise
+        },
+      ],
+      { session: session },
+    );
+
+    await Transaction.create(
+      [
+        {
+          userId: userId,
+          referenceId: referenceId,
+          serviceType: "AEPS",
+          serviceCategory: serviceTypeName,
+          amount: amount, //paise
+          wallet: "aeps",
+          // type: "credit",
+          status: "INITIATED",
+          meta: {
+            request: {
+              client_referenceId: referenceId, //auto genertae
+              userId: userId,
+              requestId, //client send idempotency
+              serviceType: serviceType,
+              initiatorId: onboardMerchant?.initiatorId,
+              userCode: onboardMerchant?.userCode,
+              mobile: onboardMerchant?.mobile,
+              aadhaar: aadhaar,
+              latitude,
+              longitude,
+              sourceIp: sourceIp,
+              amount: amount,
+              bankCode: bankCode,
+              otpRefId: onboardMerchant?.temp_otp_ref_id,
+              referenceTid: onboardMerchant?.temp_reference_tid,
+              pidData: pidData,
+              serviceTypeName,
+            },
+          },
         },
       ],
       { session: session },
@@ -822,6 +860,21 @@ exports.initiateAepsTransaction = async ({
             ],
             { session: successSession },
           );
+
+          await Transaction.updateOne(
+            {
+              referenceId: referenceId,
+            },
+            {
+              $set: {
+                status: "SUCCESS",
+                providerTxnId: result?.txn_ref,
+                remark: result ? result?.message : "",
+                "meta.response": result ? result : "",
+              },
+            },
+            { session: successSession },
+          );
         } else if (serviceTypeName === "WITHDRAW") {
           const { openingBalance, closingBalance } = await creditWallet({
             userId: userId,
@@ -878,7 +931,9 @@ exports.initiateAepsTransaction = async ({
         throw error;
       }
     } else {
+      const failedSession = await mongoose.startSession();
       try {
+        failedSession.startTransaction();
         const data = result?.data?.data;
         await EkoAepsReport.findOneAndUpdate(
           { referenceId: referenceId },
@@ -894,9 +949,31 @@ exports.initiateAepsTransaction = async ({
               rawResponse: result,
             },
           },
+          { session: failedSession },
         );
+
+        await Transaction.updateOne(
+          { referenceId: referenceId },
+          {
+            $set: {
+              status: "FAILED",
+              isRefunded: true,
+              remark: result ? result?.message : "",
+              "meta.response": result,
+            },
+          },
+          { session: failedSession },
+        );
+
+        await failedSession.commitTransaction();
       } catch (error) {
+        if (failedSession.inTransaction()) {
+          await failedSession.abortTransaction();
+        }
+
         throw result;
+      } finally {
+        failedSession.endSession();
       }
     }
 

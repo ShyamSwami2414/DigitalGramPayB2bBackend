@@ -8,12 +8,14 @@ const {
 } = require("../../controllers/adminController/enquiryController");
 const checkAllowedPermission = require("../../middleware/adminPermissionCheck");
 
+const asyncHandler = require("../../utils/asyncHandler");
+
 router.get(
   "/all-enquiries",
   authenticateUser,
   authorizeRoles("admin"),
   checkAllowedPermission("ENQUIRY"),
-  getEnquiries,
+  asyncHandler(getEnquiries),
 );
 
 module.exports = router;

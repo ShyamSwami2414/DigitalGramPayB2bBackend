@@ -5,6 +5,9 @@ const mongoose = require("mongoose");
 const { generateOTP } = require("../../utils/generateOTP");
 const { generateToken } = require("../../utils/jwt");
 const { sendEmail } = require("../../utils/email");
+const {
+  generateOtpEmail,
+} = require("../../templates/emailTemplates/otpEmailTemplate");
 
 exports.adminRegister = async (req, res, next) => {
   try {
@@ -35,7 +38,7 @@ exports.adminRegister = async (req, res, next) => {
       phone,
       email,
       password: hashedPassword,
-      permissionIds : permissionIds
+      permissionIds: permissionIds,
     });
 
     await newAdmin.save();
@@ -85,12 +88,17 @@ exports.superAdminLogin = async (req, res, next) => {
 
     await otp.save();
 
+    const html = generateOtpEmail({
+      name: admin?.name,
+      otp: newOtp,
+    });
+
     await sendEmail(
       admin.email,
       [],
       [],
       "Your OTP for Super Admin Login",
-      `Your OTP is: ${newOtp}. It is valid for 2 minutes.`,
+      html,
     );
 
     res.status(200).json({

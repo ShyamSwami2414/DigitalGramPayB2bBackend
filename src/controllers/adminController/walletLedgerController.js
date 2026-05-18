@@ -5,16 +5,242 @@ const { paiseToRupee } = require("../../utils/money");
 
 exports.aepsToEwalletHistory = async (req, res, next) => {
   try {
-    let { page = 1, limit = 10, search = "" } = req.query;
+    let {
+      page = 1,
+      limit = 10,
+      search = "",
+      userId = "",
+      status = "",
+      from = "",
+      to = "",
+      range = "",
+    } = req.query;
     page = Number(page);
     limit = Number(limit);
-    search = search.trim();
+    search = search?.trim();
+
+    if (!from || from === "null" || from === "undefined") {
+      from = undefined;
+    }
+
+    if (!to || to === "null" || to === "undefined") {
+      to = undefined;
+    }
+
+    if (!range || range === "null" || range === "undefined") {
+      range = undefined;
+    }
+
+    // =====================================================
+    // PAGINATION
+    // =====================================================
+
     const skip = (page - 1) * limit;
 
     const filter = {
       wallet: "aeps",
       type: "debit",
     };
+
+    const now = new Date();
+
+    let fromDate;
+    let toDate;
+
+    const allowedStatus = ["success", "failed", "pending"];
+
+    const allowedRanges = ["today", "yesterday", "last7days", "thismonth"];
+
+    // =====================================================
+    // STATUS VALIDATION
+    // =====================================================
+
+    if (status && !allowedStatus.includes(status)) {
+      const err = new Error("Invalid Status");
+
+      err.statusCode = 400;
+
+      throw err;
+    }
+
+    // =====================================================
+    // RANGE VALIDATION
+    // =====================================================
+
+    if (range && !allowedRanges.includes(range)) {
+      const err = new Error("Invalid Range");
+
+      err.statusCode = 400;
+
+      throw err;
+    }
+
+    // =====================================================
+    // FUTURE DATE VALIDATION
+    // =====================================================
+
+    if (from && new Date(from) > now) {
+      const err = new Error("Starting Date can not be in future");
+
+      err.statusCode = 400;
+
+      throw err;
+    }
+
+    if (to && new Date(to) > now) {
+      const err = new Error("Ending Date can not be in future");
+
+      err.statusCode = 400;
+
+      throw err;
+    }
+
+    // =====================================================
+    // STATUS FILTER
+    // =====================================================
+
+    if (status) {
+      filter.status = status?.toUpperCase();
+    }
+
+    // =====================================================
+    // RANGE FILTER
+    // =====================================================
+
+    if (range) {
+      switch (range) {
+        case "today":
+          fromDate = new Date();
+
+          fromDate.setHours(0, 0, 0, 0);
+
+          toDate = new Date();
+
+          toDate.setHours(23, 59, 59, 999);
+
+          break;
+
+        case "yesterday":
+          fromDate = new Date();
+
+          fromDate.setDate(fromDate.getDate() - 1);
+
+          fromDate.setHours(0, 0, 0, 0);
+
+          toDate = new Date();
+
+          toDate.setDate(toDate.getDate() - 1);
+
+          toDate.setHours(23, 59, 59, 999);
+
+          break;
+
+        case "last7days":
+          fromDate = new Date();
+
+          fromDate.setDate(fromDate.getDate() - 6);
+
+          fromDate.setHours(0, 0, 0, 0);
+
+          toDate = new Date();
+
+          toDate.setHours(23, 59, 59, 999);
+
+          break;
+
+        case "thismonth":
+          fromDate = new Date(now.getFullYear(), now.getMonth(), 1);
+
+          toDate = new Date();
+
+          toDate.setHours(23, 59, 59, 999);
+
+          break;
+      }
+    }
+
+    // =====================================================
+    // MANUAL DATE FILTER
+    // =====================================================
+    else {
+      const isValidDate = (date) => !isNaN(new Date(date).getTime());
+
+      if (from) {
+        if (!isValidDate(from)) {
+          const err = new Error("Invalid 'from' date");
+
+          err.statusCode = 400;
+
+          throw err;
+        }
+
+        fromDate = new Date(from);
+      }
+
+      if (to) {
+        if (!isValidDate(to)) {
+          const err = new Error("Invalid 'to' date");
+
+          err.statusCode = 400;
+
+          throw err;
+        }
+
+        toDate = new Date(to);
+      }
+
+      if (fromDate && toDate && fromDate > toDate) {
+        const err = new Error("'from' cannot be greater than 'to'");
+
+        err.statusCode = 400;
+
+        throw err;
+      }
+
+      if (toDate) {
+        toDate.setHours(23, 59, 59, 999);
+      }
+    }
+
+    // =====================================================
+    // APPLY DATE FILTER
+    // =====================================================
+
+    if (fromDate || toDate) {
+      filter.createdAt = {};
+
+      if (fromDate) {
+        filter.createdAt.$gte = fromDate;
+      }
+
+      if (toDate) {
+        filter.createdAt.$lte = toDate;
+      }
+    }
+
+    // =====================================================
+    // USER VALIDATION
+    // =====================================================
+
+    if (userId) {
+      if (!mongoose.Types.ObjectId.isValid(userId)) {
+        return res.status(400).json({
+          success: false,
+          message: "Invalid user ID",
+        });
+      }
+
+      const userExist = await User.findById(userId).lean();
+
+      if (!userExist) {
+        return res.status(404).json({
+          success: false,
+          message: "User not found",
+        });
+      }
+
+      filter.userId = new mongoose.Types.ObjectId(userId);
+    }
 
     if (isNaN(page) || page < 1) {
       return res.status(400).json({
@@ -30,34 +256,11 @@ exports.aepsToEwalletHistory = async (req, res, next) => {
       });
     }
 
-    if (search) {
-      filter.$or = [
-        {
-          openingBalance: {
-            $regex: search,
-            $options: "i",
-          },
-        },
-
-        {
-          closingBalance: {
-            $regex: search,
-            $options: "i",
-          },
-        },
-        {
-          referenceId: {
-            $regex: search,
-            $options: "i",
-          },
-        },
-      ];
-    }
-
     const walletTransferHistory = await WalletLedger.aggregate([
       {
         $match: filter,
       },
+
       {
         $lookup: {
           from: "users",
@@ -66,52 +269,130 @@ exports.aepsToEwalletHistory = async (req, res, next) => {
           as: "user",
         },
       },
+
       {
-        $unwind: "$user",
-      },
-      {
-        $addFields: {
-          fullName: { $concat: ["$user.firstName", " ", "$user.lastName"] },
-          userName: "$user.userName",
+        $unwind: {
+          path: "$user",
+          preserveNullAndEmptyArrays: true,
         },
       },
-      {
-        $project: {
-          userId: 1,
-          fullName: 1,
-          userName: 1,
-          wallet: 1,
-          type: 1,
-          amount: 1,
-          openingBalance: 1,
-          closingBalance: 1,
-          description: 1,
-          referenceId: 1,
-          createdAt: 1,
-          updatedAt: 1,
-        },
-      },
+
+      ...(search
+        ? [
+            {
+              $match: {
+                $or: [
+                  {
+                    referenceId: {
+                      $regex: search,
+                      $options: "i",
+                    },
+                  },
+
+                  {
+                    wallet: {
+                      $regex: search,
+                      $options: "i",
+                    },
+                  },
+
+                  {
+                    type: {
+                      $regex: search,
+                      $options: "i",
+                    },
+                  },
+
+                  {
+                    description: {
+                      $regex: search,
+                      $options: "i",
+                    },
+                  },
+
+                  {
+                    "user.userName": {
+                      $regex: search,
+                      $options: "i",
+                    },
+                  },
+
+                  {
+                    $expr: {
+                      $regexMatch: {
+                        input: {
+                          $concat: ["$user.firstName", " ", "$user.lastName"],
+                        },
+                        regex: search,
+                        options: "i",
+                      },
+                    },
+                  },
+                ],
+              },
+            },
+          ]
+        : []),
+
       {
         $sort: {
           createdAt: -1,
         },
       },
+
       {
-        $skip: skip,
-      },
-      {
-        $limit: limit,
+        $facet: {
+          data: [
+            {
+              $skip: skip,
+            },
+
+            {
+              $limit: limit,
+            },
+
+            {
+              $project: {
+                userId: 1,
+
+                fullName: {
+                  $concat: ["$user.firstName", " ", "$user.lastName"],
+                },
+
+                userName: "$user.userName",
+
+                wallet: 1,
+                type: 1,
+                amount: 1,
+                openingBalance: 1,
+                closingBalance: 1,
+                description: 1,
+                referenceId: 1,
+                createdAt: 1,
+                updatedAt: 1,
+              },
+            },
+          ],
+
+          totalCount: [
+            {
+              $count: "count",
+            },
+          ],
+        },
       },
     ]);
 
-    const formattedData = walletTransferHistory.map((item) => ({
+    const data = walletTransferHistory?.[0]?.data || [];
+
+    const total = walletTransferHistory?.[0]?.totalCount?.[0]?.count || 0;
+
+    const formattedData = data.map((item) => ({
       ...item,
       amount: paiseToRupee(item?.amount),
       openingBalance: paiseToRupee(item?.openingBalance),
       closingBalance: paiseToRupee(item?.closingBalance),
     }));
-
-    const total = await WalletLedger.countDocuments(filter);
 
     return res.status(200).json({
       success: true,
@@ -548,9 +829,9 @@ exports.getAllLedgetEntryList = async (req, res, next) => {
       },
       {
         $addFields: {
-          // commissionAmount: "$tds.commissionAmount",
+          commission: "$tds.commissionAmount",
           tdsAmount: "$tds.tdsAmount",
-          // netCommission: "$tds.netCommission",
+          netCommission: "$tds.netCommission",
         },
       },
       {
@@ -618,25 +899,32 @@ exports.getAllLedgetEntryList = async (req, res, next) => {
     // ===============================
     //  FORMAT
     // ===============================
-    const formattedData = walletLedger.map((item) => ({
-      ...item,
-      amount: paiseToRupee(item?.amount),
-      openingBalance: paiseToRupee(item?.openingBalance),
-      closingBalance: paiseToRupee(item?.closingBalance),
-      commission: item?.commission ? paiseToRupee(item.commission) : 0,
-      tdsAmount: item?.tdsAmount ? paiseToRupee(item.tdsAmount) : 0,
-      // commissionAmount: item?.commissionAmount
-      //   ? paiseToRupee(item.commissionAmount)
-      //   : undefined,
+    const formattedData = walletLedger.map((item) => {
+      const { amount, ...rest } = item;
 
-      // netCommission: item?.netCommission
-      //   ? paiseToRupee(item.netCommission)
-      //   : undefined,
+      return {
+        ...rest,
+        amount: paiseToRupee(amount - item?.chargesAmount - item?.gstAmount),
+        openingBalance: paiseToRupee(item?.openingBalance),
+        chargesAmount: paiseToRupee(item?.chargesAmount),
+        closingBalance: paiseToRupee(item?.closingBalance),
+        commission: item?.commission ? paiseToRupee(item.commission) : 0,
+        tdsAmount: item?.tdsAmount ? paiseToRupee(item.tdsAmount) : 0,
+        commission: item?.commission
+          ? paiseToRupee(item.commission)
+          : undefined,
 
-      gstAmount: item?.gstAmount ? paiseToRupee(item.gstAmount) : 0,
+        netCommission: item?.netCommission
+          ? paiseToRupee(item.netCommission)
+          : undefined,
 
-      totalCharges: item?.totalCharge ? paiseToRupee(item.totalCharge) : 0,
-    }));
+        gstAmount: item?.gstAmount ? paiseToRupee(item.gstAmount) : 0,
+
+        totalCharges: paiseToRupee(
+          (item?.chargesAmount || 0) + (item?.gstAmount || 0),
+        ),
+      };
+    });
 
     return res.status(200).json({
       success: true,

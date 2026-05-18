@@ -58,8 +58,11 @@ const walletLedgerSchema = new mongoose.Schema(
     amount: {
       type: Number,
       required: true,
-      set: round2,
     },
+
+    // settledAmount: {
+    //   type: Number,
+    // },
 
     openingBalance: {
       type: Number,

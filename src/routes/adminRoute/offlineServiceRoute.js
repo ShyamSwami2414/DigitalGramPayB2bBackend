@@ -11,6 +11,7 @@ const { authorizeRoles } = require("../../middleware/roleMiddleware");
 const createUploader = require("../../middleware/uploadMiddleware");
 const multerErrorHandler = require("../../middleware/multerErrorHandler");
 const checkAllowedPermission = require("../../middleware/adminPermissionCheck");
+const asyncHandler = require("../../utils/asyncHandler");
 const router = express.Router();
 
 const upload = createUploader("offlineServices", /jpeg|jpg|png|pdf/, 2048);
@@ -20,7 +21,7 @@ router.get(
   authenticateUser,
   authorizeRoles("admin"),
   checkAllowedPermission("OFFLINE_SERVICE"),
-  listAllOfflineServices,
+  asyncHandler(listAllOfflineServices),
 );
 
 router.post(
@@ -29,7 +30,7 @@ router.post(
   authorizeRoles("admin"),
   multerErrorHandler(upload.single("offlineServiceImage")),
   checkAllowedPermission("OFFLINE_SERVICE"),
-  createOfflineService,
+  asyncHandler(createOfflineService),
 );
 
 router.get(
@@ -37,7 +38,7 @@ router.get(
   authenticateUser,
   authorizeRoles("admin"),
   checkAllowedPermission("OFFLINE_SERVICE"),
-  getOfflineServiceById,
+  asyncHandler(getOfflineServiceById),
 );
 
 router.put(
@@ -46,7 +47,7 @@ router.put(
   authorizeRoles("admin"),
   multerErrorHandler(upload.single("offlineServiceImage")),
   checkAllowedPermission("OFFLINE_SERVICE"),
-  updateOfflineService,
+  asyncHandler(updateOfflineService),
 );
 
 router.delete(
@@ -54,7 +55,7 @@ router.delete(
   authenticateUser,
   authorizeRoles("admin"),
   checkAllowedPermission("OFFLINE_SERVICE"),
-  deleteOfflineService,
+  asyncHandler(deleteOfflineService),
 );
 
 module.exports = router;

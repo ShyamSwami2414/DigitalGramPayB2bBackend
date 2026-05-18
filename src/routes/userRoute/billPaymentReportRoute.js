@@ -7,6 +7,7 @@ const {
   getCompleteBillPaymentReport,
   getBbpsReportById,
 } = require("../../controllers/userController/billPaymentReportController");
+const asyncHandler = require("../../utils/asyncHandler");
 
 const router = express.Router();
 
@@ -15,14 +16,14 @@ router.get(
   "/my-bbps-history",
   authenticateUser,
   checkUserPaymentAndKYC,
-  getMyLastBillPaymentHistory,
+  asyncHandler(getMyLastBillPaymentHistory),
 );
 
 router.get(
   "/bbps-stats",
   authenticateUser,
   checkUserPaymentAndKYC,
-  getBillPaymentStats,
+  asyncHandler(getBillPaymentStats),
 );
 
 //get all recharge transaction of me and my downline
@@ -30,14 +31,14 @@ router.get(
   "/complete-bbps-report",
   authenticateUser,
   checkUserPaymentAndKYC,
-  getCompleteBillPaymentReport,
+  asyncHandler(getCompleteBillPaymentReport),
 );
 
 router.get(
   "/report/:id",
   authenticateUser,
   checkUserPaymentAndKYC,
-  getBbpsReportById,
+  asyncHandler(getBbpsReportById),
 );
 
 module.exports = router;

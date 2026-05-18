@@ -11,12 +11,14 @@ const { authenticateUser } = require("../../middleware/authMiddleware");
 const { authorizeRoles } = require("../../middleware/roleMiddleware");
 const checkAllowedPermission = require("../../middleware/adminPermissionCheck");
 
+const asyncHandler = require("../../utils/asyncHandler");
+
 router.get(
   "/support-stats",
   authenticateUser,
   authorizeRoles("admin"),
   checkAllowedPermission("SUPPORT"),
-  getSupportStats,
+  asyncHandler(getSupportStats),
 );
 
 router.get(
@@ -24,7 +26,7 @@ router.get(
   authenticateUser,
   authorizeRoles("admin"),
   checkAllowedPermission("SUPPORT"),
-  getSupportRequests,
+  asyncHandler(getSupportRequests),
 );
 
 router.get(
@@ -32,7 +34,7 @@ router.get(
   authenticateUser,
   authorizeRoles("admin"),
   checkAllowedPermission("SUPPORT"),
-  getSupportRequestById,
+  asyncHandler(getSupportRequestById),
 );
 
 router.patch(
@@ -40,7 +42,7 @@ router.patch(
   authenticateUser,
   authorizeRoles("admin"),
   checkAllowedPermission("SUPPORT"),
-  updateSupportStatus,
+  asyncHandler(updateSupportStatus),
 );
 
 router.patch(
@@ -48,7 +50,7 @@ router.patch(
   authenticateUser,
   authorizeRoles("admin"),
   checkAllowedPermission("SUPPORT"),
-  addRemark,
+  asyncHandler(addRemark),
 );
 
 module.exports = router;
