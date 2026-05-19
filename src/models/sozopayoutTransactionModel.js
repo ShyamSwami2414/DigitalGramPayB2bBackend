@@ -93,6 +93,10 @@ const payoutTransactionSchema = new mongoose.Schema(
     failureReason: {
       type: String,
     },
+
+    description: {
+      type: String,
+    },
   },
   {
     timestamps: true,

@@ -78,7 +78,9 @@ const validateUserPackageAndService = async ({
 
   if (!commissionPlan) {
     // return { packageId: user.packageId, serviceId: service._id };
-    throw new Error(`Commission Plan not configured for this slab`);
+    throw new Error(
+      `Commission not set for this service, Please contact Admin`,
+    );
   }
 
   const validPlan = commissionPlan.plan.find(
