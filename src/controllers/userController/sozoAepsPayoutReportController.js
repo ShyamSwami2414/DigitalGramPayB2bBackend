@@ -1097,6 +1097,7 @@ const getCompletePayoutReport = async (req, res, next) => {
               $project: {
                 beneficiaryName: 1,
                 beneficiaryPhone: 1,
+                description: 1,
                 ifsc: 1,
                 bankAccount: 1,
                 amount: 1,
@@ -1229,6 +1230,7 @@ const getPayoutReportById = async (req, res, next) => {
           message: "$reason" || "$message",
           beneficiaryName: 1,
           beneficiaryPhone: 1,
+          description: 1,
           ifsc: 1,
           bankAccount: 1,
           status: "$status",
