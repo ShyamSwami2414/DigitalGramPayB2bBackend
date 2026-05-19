@@ -74,4 +74,5 @@ module.exports = (app) => {
     require("./sozoXpressPayoutReportRoute"),
   );
   app.use(`${apiPrefix}/dashboard`, require("./dashboardRoute"));
+  app.use(`${apiPrefix}/charge`, require("./chargeRoute"));
 };
