@@ -223,6 +223,7 @@ exports.initiateAepsPayoutTransfer = async ({
         await processRefund({
           userId: userId,
           amount: amountInPaiseWithChargeGst, //paise
+          serviceType: "AEPS_PAYOUT",
           referenceId: referenceId,
           walletType: "aeps",
           description: `Complete Refund With Charges: AepsPayout Failed`,

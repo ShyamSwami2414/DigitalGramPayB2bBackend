@@ -120,6 +120,7 @@ exports.instantAepsOutletRegister = async ({
       const { openingBalance, closingBalance } = await processRefund({
         userId: userId,
         amount: registrationCharges, //paise
+        serviceType: "AEPS",
         serviceCategory: "ONE_TIME_CHARGES",
         referenceId: referenceId,
         walletType: "main",
@@ -465,6 +466,7 @@ exports.dailyLogin = async ({
         await processRefund({
           userId: userId,
           amount: dailyAepsLoginCharge,
+          serviceType: "AEPS",
           serviceCategory: "DAILY_LOGIN",
           referenceId: referenceId,
           walletType: "main",
