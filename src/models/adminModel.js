@@ -56,7 +56,14 @@ const adminSchema = new mongoose.Schema(
       ],
       default: [],
     },
+
     bio: { type: String, default: "" },
+
+    passwordResetToken: {
+      type: String,
+    },
+
+    resetPasswordExpires: { type: Date },
 
     isActive: { type: Boolean, default: true },
 
