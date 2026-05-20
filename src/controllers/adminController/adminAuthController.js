@@ -8,6 +8,7 @@ const { sendEmail } = require("../../utils/email");
 const {
   generateOtpEmail,
 } = require("../../templates/emailTemplates/otpEmailTemplate");
+const crypto = require("crypto");
 
 exports.adminRegister = async (req, res, next) => {
   try {
@@ -311,6 +312,248 @@ exports.fetchProfile = async (req, res, next) => {
       success: true,
       message: "Profile fetched successfully",
       data: result[0],
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+exports.forgotPassword = async (req, res, next) => {
+  try {
+    let { email } = req.body;
+    email = email?.trim();
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+    if (!emailRegex.test(email)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid email format",
+      });
+    }
+
+    if (!email) {
+      return res.status(400).json({
+        success: false,
+        message: "Email is required",
+      });
+    }
+
+    const admin = await Admin.findOne({
+      email: email,
+      isActive: true,
+      isDeleted: false,
+    });
+
+    if (!admin) {
+      return res.status(404).json({
+        success: false,
+        message: "Admin not found",
+      });
+    }
+
+    // Delete old OTPs
+    await Otp.deleteMany({
+      userId: admin._id,
+      purpose: "FORGOT_PASSWORD",
+    });
+
+    const generatedOtp = generateOTP();
+
+    await Otp.create({
+      userId: admin._id,
+      otp: generatedOtp,
+      purpose: "FORGOT_PASSWORD",
+      expiresAt: new Date(Date.now() + 2 * 60 * 1000),
+    });
+
+    const html = generateOtpEmail({
+      name: `${admin.name}`,
+      otp: generatedOtp,
+      reason: "Password Reset",
+    });
+
+    await sendEmail(admin.email, [], [], "Reset Password OTP", html);
+
+    return res.status(200).json({
+      success: true,
+      message: "If the email exists, OTP has been sent successfully",
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+//forgot-password flow
+exports.verifyResetPasswordOtp = async (req, res, next) => {
+  const session = await mongoose.startSession();
+  try {
+    session.startTransaction();
+    let { email, otp } = req.body;
+    otp = otp?.trim();
+
+    console.log(otp, "otp");
+
+    if (!email || !otp) {
+      const err = new Error("Email and OTP are required");
+      err.statusCode = 400;
+      throw err;
+    }
+
+    const admin = await Admin.findOne({ email });
+    if (!admin) {
+      const err = new Error("Admin not found");
+      err.statusCode = 404;
+      throw err;
+    }
+
+    const savedOtp = await Otp.findOne({
+      userId: admin._id,
+      isUsed: false,
+    }).sort({
+      createdAt: -1,
+    });
+
+    if (!savedOtp) {
+      const err = new Error("OTP not found");
+      err.statusCode = 404;
+      throw err;
+    }
+
+    if (savedOtp.otp !== otp) {
+      const err = new Error("Invalid OTP");
+      err.statusCode = 400;
+      throw err;
+    }
+
+    // if (savedOtp.expiresAt < new Date()) {
+    //   const err = new Error("OTP has expired");
+    //   err.statusCode = 400;
+    //   throw err;
+    // }
+
+    savedOtp.isUsed = true;
+
+    const resetToken = crypto.randomBytes(32).toString("hex");
+
+    admin.passwordResetToken = resetToken;
+    admin.resetPasswordExpires = Date.now() + 10 * 60 * 1000; //10 minutes
+
+    await savedOtp.save({ session: session });
+    await admin.save({ session: session });
+
+    await Otp.deleteMany({ userId: admin._id }).session(session);
+
+    await session.commitTransaction();
+    session.endSession();
+
+    res.status(200).json({
+      success: true,
+      message: "OTP Verified Successsfully",
+      data: {
+        resetToken: resetToken,
+      },
+    });
+  } catch (error) {
+    if (session.inTransaction) {
+      await session.abortTransaction();
+    }
+
+    next(error);
+  } finally {
+    session.endSession();
+  }
+};
+
+//forgot-password flow
+exports.resetPassword = async (req, res, next) => {
+  try {
+    let { resetToken, newPassword, confirmPassword } = req.body;
+    newPassword = newPassword?.trim();
+    confirmPassword = confirmPassword?.trim();
+
+    // Required field validation
+    const requiredFields = ["resetToken", "newPassword", "confirmPassword"];
+
+    const missingFields = [];
+
+    requiredFields.forEach((field) => {
+      if (!req.body[field]) {
+        missingFields.push(field);
+      }
+    });
+
+    if (missingFields.length > 0) {
+      return res.status(400).json({
+        success: false,
+        message: `Missing required fields: ${missingFields.join(", ")}`,
+      });
+    }
+
+    // Match passwords
+    if (newPassword !== confirmPassword) {
+      return res.status(400).json({
+        success: false,
+        message: "Passwords do not match",
+      });
+    }
+
+    // Password strength validation
+    const passwordRegex =
+      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,20}$/;
+
+    if (!passwordRegex.test(newPassword)) {
+      return res.status(400).json({
+        success: false,
+        message:
+          "Password must be 8-20 characters and include uppercase, lowercase, number, and special character",
+      });
+    }
+
+    // Find admin using reset token
+    const admin = await Admin.findOne({
+      passwordResetToken: resetToken,
+
+      resetPasswordExpires: {
+        $gt: Date.now(),
+      },
+
+      isDeleted: false,
+    });
+
+    if (!admin) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid or expired reset token",
+      });
+    }
+
+    // Prevent same password reuse
+    const isSamePassword = await bcrypt.comparePassword(
+      newPassword,
+      admin.password,
+    );
+
+    if (isSamePassword) {
+      return res.status(400).json({
+        success: false,
+        message: "New password must be different from old password",
+      });
+    }
+
+    // Hash password
+    const hashedPassword = await bcrypt.hashPassword(newPassword);
+
+    admin.password = hashedPassword;
+    // Clear reset token
+    admin.passwordResetToken = null;
+    admin.resetPasswordExpires = null;
+
+    await admin.save();
+
+    return res.status(200).json({
+      success: true,
+      message: "Password reset successfully",
     });
   } catch (error) {
     next(error);
