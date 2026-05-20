@@ -2,6 +2,7 @@ const express = require("express");
 const {
   aepsToEwalletHistory,
   getAllLedgetEntryList,
+  getAdminWalletStats,
 } = require("../../controllers/adminController/walletLedgerController");
 const { authorizeRoles } = require("../../middleware/roleMiddleware");
 const { authenticateUser } = require("../../middleware/authMiddleware");
@@ -23,6 +24,15 @@ router.get(
   authorizeRoles("admin"),
   checkAllowedPermission("REPORTS"),
   asyncHandler(getAllLedgetEntryList),
+);
+
+//stats combined from both ledger  and reports
+router.get(
+  "/wallet-stats",
+  authenticateUser,
+  authorizeRoles("admin"),
+  checkAllowedPermission("REPORTS"),
+  asyncHandler(getAdminWalletStats),
 );
 
 module.exports = router;
