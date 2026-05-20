@@ -1,5 +1,6 @@
 const FundRequest = require("../../models/fundRequestModel");
 const Transaction = require("../../models/transactionModel");
+const WalletLedger = require("../../models/walletLedgerModel");
 const User = require("../../models/userModel");
 const Service = require("../../models/serviceModel");
 const mongoose = require("mongoose");
@@ -188,7 +189,7 @@ exports.latestTransactions = async (req, res, next) => {
 
     console.log(filter, "filter");
 
-    const result = await Transaction.aggregate([
+    const result = await WalletLedger.aggregate([
       {
         $match: filter,
       },
@@ -487,7 +488,7 @@ exports.transactionStatusStats = async (req, res, next) => {
             amount: "$pendingAmount",
           },
 
-          rejected: {
+          failed: {
             count: "$failedCount",
             amount: "$failedAmount",
           },

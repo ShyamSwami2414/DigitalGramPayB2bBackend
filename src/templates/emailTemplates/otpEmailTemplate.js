@@ -1,6 +1,11 @@
 const config = require("../../config/client");
 
-exports.generateOtpEmail = ({ name, otp, expiryMinutes = 2 }) => {
+exports.generateOtpEmail = ({
+  name,
+  otp,
+  reason = "Verify your identity", //login
+  expiryMinutes = 2,
+}) => {
   return `
   <!DOCTYPE html>
   <html>
@@ -83,7 +88,7 @@ exports.generateOtpEmail = ({ name, otp, expiryMinutes = 2 }) => {
                   font-size:15px;
                   line-height:1.7;
                 ">
-                  We received a request to verify your identity. Please use the OTP below to continue.
+                  We received a request to ${reason}. Please use the OTP below to continue.
                 </p>
 
                 <!-- OTP BOX -->

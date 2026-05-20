@@ -292,7 +292,11 @@ exports.getServiceMonthlyStats = async (req, res, next) => {
     // SINGLE SERVICE
     if (serviceType) {
       // payout subtype handling
-      if (serviceType === "aeps-payout1" || serviceType === "xpress-payout1") {
+      if (
+        serviceType === "aeps-payout1" ||
+        serviceType === "xpress-payout1" ||
+        serviceType === "upi-payout1"
+      ) {
         selectedModels.push({
           serviceType,
           model: PayoutReport,
@@ -603,7 +607,11 @@ exports.getPerformanceStats = async (req, res, next) => {
     // SINGLE SERVICE
     if (serviceType) {
       // payout services
-      if (serviceType === "aeps-payout1" || serviceType === "xpress-payout1") {
+      if (
+        serviceType === "aeps-payout1" ||
+        serviceType === "xpress-payout1" ||
+        serviceType === "upi-payout1"
+      ) {
         selectedModels.push({
           serviceType,
           model: PayoutReport,
@@ -639,12 +647,16 @@ exports.getPerformanceStats = async (req, res, next) => {
         };
 
         // payout subtype filter
-        if (serviceType === "aeps-payout") {
+        if (serviceType === "aeps-payout1") {
           currentFilter.serviceType = "AEPS_PAYOUT";
         }
 
-        if (serviceType === "xpress-payout") {
+        if (serviceType === "xpress-payout1") {
           currentFilter.serviceType = "XPRESS_PAYOUT";
+        }
+
+        if (serviceType === "upi-payout1") {
+          currentFilter.serviceType = "UPI_PAYOUT";
         }
 
         const result = await model.aggregate([
@@ -965,6 +977,12 @@ exports.getVolumeAnalytics = async (req, res, next) => {
         serviceType: "xpress-payout1",
         model: PayoutReport,
         payoutType: "XPRESS_PAYOUT",
+      },
+
+      {
+        serviceType: "upi-payout1",
+        model: PayoutReport,
+        payoutType: "UPI_PAYOUT",
       },
     ];
 
