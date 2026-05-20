@@ -1090,7 +1090,7 @@ exports.doCashWithdraw = async ({
           { session: failedSession },
         );
 
-        failedSession.commitTransaction();
+        await failedSession.commitTransaction();
 
         result = {
           ...result,
