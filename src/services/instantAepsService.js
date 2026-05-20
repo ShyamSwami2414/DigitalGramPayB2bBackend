@@ -71,6 +71,7 @@ exports.instantAepsOutletRegister = async ({
       userId: userId,
       amount: registrationCharges, //paise
       serviceType: "AEPS",
+      serviceCategory: "ONE_TIME_CHARGES",
       referenceId: referenceId,
       description: "Aeps Outlet Registration Charges",
       session: session,
@@ -119,6 +120,7 @@ exports.instantAepsOutletRegister = async ({
       const { openingBalance, closingBalance } = await processRefund({
         userId: userId,
         amount: registrationCharges, //paise
+        serviceCategory: "ONE_TIME_CHARGES",
         referenceId: referenceId,
         walletType: "main",
         description: "Outlet Register Failed, Charges Refunded",
@@ -368,6 +370,7 @@ exports.dailyLogin = async ({
       userId: userId,
       amount: dailyAepsLoginCharge, //paise
       serviceType: "AEPS",
+      serviceCategory: "DAILY_LOGIN",
       referenceId: referenceId,
       description: "Aeps Daily Login Charges",
       session: session,
@@ -462,6 +465,7 @@ exports.dailyLogin = async ({
         await processRefund({
           userId: userId,
           amount: dailyAepsLoginCharge,
+          serviceCategory: "DAILY_LOGIN",
           referenceId: referenceId,
           walletType: "main",
           description: `Refund: Daily Login Failed `,
@@ -530,7 +534,7 @@ exports.doBalanceEnquiry = async ({
         {
           userId: userId,
           outletId: merchantExist?.outletId,
-          serviceType: "BALANCE-INQUIRY",
+          serviceType: "BALANCE-ENQUIRY",
           providerName: "INSTANT",
           referenceId: referenceId,
           txnStatus: "PENDING",
@@ -894,7 +898,7 @@ exports.doCashWithdraw = async ({
         {
           userId: userId,
           outletId: merchantExist?.outletId,
-          serviceType: "CASH-WITHDRAW",
+          serviceType: "CASH-WITHDRAWAL",
           providerName: "INSTANT",
           referenceId: referenceId,
           txnStatus: "PENDING",
@@ -910,7 +914,7 @@ exports.doCashWithdraw = async ({
           userId: userId,
           referenceId: referenceId,
           serviceType: "AEPS",
-          serviceCategory: "CASH-WITHDRAW",
+          serviceCategory: "CASH-WITHDRAWAL",
           amount: amount, //paise
           wallet: "aeps",
           // type: "credit",
@@ -1011,7 +1015,7 @@ exports.doCashWithdraw = async ({
           amount: amount, // paise
           walletType: "aeps",
           serviceType: "AEPS",
-          serviceCategory: "CASH_WITHDRAW",
+          serviceCategory: "CASH_WITHDRAWAL",
           referenceId: referenceId,
           description: "Aeps Cash Withdrawal",
           session: withdrawSession,
@@ -1025,11 +1029,11 @@ exports.doCashWithdraw = async ({
             serviceId: serviceId,
             serviceType: "AEPS",
             walletType: "aeps",
-            serviceCategory: "CASH_WITHDRAW",
+            serviceCategory: "CASH_WITHDRAWAL",
             pipeline: "aeps1",
             referenceId: referenceId,
             providerTxnId: result?.txn_ref,
-            description: "Aeps Withdraw Commission",
+            description: "Aeps Withdrawal Commission",
             apiMessage: result?.message,
             apiResponse: result,
             session: withdrawSession,

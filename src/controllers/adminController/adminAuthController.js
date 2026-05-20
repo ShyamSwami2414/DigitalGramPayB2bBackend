@@ -500,7 +500,7 @@ exports.resetPassword = async (req, res, next) => {
 
     // Password strength validation
     const passwordRegex =
-      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,20}$/;
+      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^\w\s]).{8,20}$/;
 
     if (!passwordRegex.test(newPassword)) {
       return res.status(400).json({
