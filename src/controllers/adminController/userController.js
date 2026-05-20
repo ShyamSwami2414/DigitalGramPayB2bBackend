@@ -1021,7 +1021,10 @@ exports.assignServiceToUser = async (req, res, next) => {
       data: user,
     });
   } catch (error) {
-    await session.abortTransaction();
+    if (session.inTransaction()) {
+      await session.abortTransaction();
+    }
+
     next(error);
   } finally {
     session.endSession();

@@ -18,8 +18,10 @@ const ekotAepsLogSchema = new mongoose.Schema(
         "EKYC-BIOMETRIC",
         "DAILY-LOGIN",
         "WITHDRAW",
+        "WITHDRAWAL",
         "STATEMENT",
         "INQUIRY",
+        "ENQUIRY",
       ],
     },
 
