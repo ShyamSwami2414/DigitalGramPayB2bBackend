@@ -109,6 +109,7 @@ exports.onboardEkoAepsUser = async ({
       console.log("Entered Error Dealing block");
       const { openingBalance, closingBalance } = await processRefund({
         userId: userId,
+        serviceType: "AEPS",
         serviceCategory: "ONE_TIME_CHARGES",
         amount: registrationCharges, //paise
         referenceId: referenceId,
@@ -612,6 +613,7 @@ exports.dailyBiometricLogin = async ({
 
         await processRefund({
           userId: userId,
+          serviceType: "AEPS",
           serviceCategory: "DAILY_LOGIN",
           amount: dailyAepsLoginCharge,
           referenceId: referenceId,
