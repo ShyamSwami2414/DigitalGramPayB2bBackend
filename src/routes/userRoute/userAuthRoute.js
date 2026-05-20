@@ -24,7 +24,7 @@ router.post("/verify-user-otp", asyncHandler(verifyUserOtp));
 //for forgot-password otp
 router.post("/verify-password-otp", asyncHandler(verifyResetPasswordOtp));
 
-router.patch("/forgot-password", asyncHandler(forgotPassword));
+router.post("/forgot-password", asyncHandler(forgotPassword));
 
 //for forgot-password flow
 router.post("/reset-password", asyncHandler(resetPassword));

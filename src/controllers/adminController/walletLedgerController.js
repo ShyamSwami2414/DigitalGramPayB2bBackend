@@ -521,68 +521,474 @@ exports.getAllLedgetEntryList = async (req, res, next) => {
     // BASE PIPELINE
     // ======================================================
 
+    // const basePipeline = [
+    //   {
+    //     $match: filter,
+    //   },
+
+    //   // ======================================================
+    //   // USER LOOKUP
+    //   // ======================================================
+
+    //   {
+    //     $lookup: {
+    //       from: "users",
+    //       let: {
+    //         uid: "$userId",
+    //       },
+    //       pipeline: [
+    //         {
+    //           $match: {
+    //             $expr: {
+    //               $eq: ["$_id", "$$uid"],
+    //             },
+    //           },
+    //         },
+    //         {
+    //           $project: {
+    //             firstName: 1,
+    //             lastName: 1,
+    //             userName: 1,
+    //           },
+    //         },
+    //       ],
+    //       as: "user",
+    //     },
+    //   },
+
+    //   {
+    //     $unwind: {
+    //       path: "$user",
+    //       preserveNullAndEmptyArrays: true,
+    //     },
+    //   },
+
+    //   {
+    //     $addFields: {
+    //       fullName: {
+    //         $concat: [
+    //           { $ifNull: ["$user.firstName", ""] },
+    //           " ",
+    //           { $ifNull: ["$user.lastName", ""] },
+    //         ],
+    //       },
+
+    //       userName: "$user.userName",
+    //     },
+    //   },
+
+    //   {
+    //     $unset: ["user"],
+    //   },
+
+    //   // ======================================================
+    //   // GROUP
+    //   // ======================================================
+
+    //   {
+    //     $group: {
+    //       _id: {
+    //         referenceId: "$referenceId",
+    //         userId: "$userId",
+    //       },
+
+    //       entries: {
+    //         $push: "$$ROOT",
+    //       },
+
+    //       createdAt: {
+    //         $max: "$createdAt",
+    //       },
+    //     },
+    //   },
+
+    //   // ======================================================
+    //   // FLAGS
+    //   // ======================================================
+
+    //   {
+    //     $addFields: {
+    //       hasRefund: {
+    //         $anyElementTrue: {
+    //           $map: {
+    //             input: "$entries",
+    //             as: "e",
+    //             in: {
+    //               $eq: ["$$e.entryType", "REFUND"],
+    //             },
+    //           },
+    //         },
+    //       },
+
+    //       hasCommission: {
+    //         $anyElementTrue: {
+    //           $map: {
+    //             input: "$entries",
+    //             as: "e",
+    //             in: {
+    //               $eq: ["$$e.entryType", "COMMISSION"],
+    //             },
+    //           },
+    //         },
+    //       },
+
+    //       hasWalletRefill: {
+    //         $anyElementTrue: {
+    //           $map: {
+    //             input: "$entries",
+    //             as: "e",
+    //             in: {
+    //               $eq: ["$$e.entryType", "WALLET_REFILL"],
+    //             },
+    //           },
+    //         },
+    //       },
+
+    //       hasAEPS: {
+    //         $anyElementTrue: {
+    //           $map: {
+    //             input: "$entries",
+    //             as: "e",
+    //             in: {
+    //               $eq: ["$$e.serviceType", "AEPS_TO_MAIN"],
+    //             },
+    //           },
+    //         },
+    //       },
+    //     },
+    //   },
+
+    //   // ======================================================
+    //   // MERGE CONDITION
+    //   // ======================================================
+
+    //   {
+    //     $addFields: {
+    //       shouldMerge: {
+    //         $and: [
+    //           {
+    //             $not: ["$hasRefund"],
+    //           },
+    //           {
+    //             $not: ["$hasWalletRefill"],
+    //           },
+    //           // {
+    //           //   $not: ["$hasAEPS"],
+    //           // },
+    //           "$hasCommission",
+    //         ],
+    //       },
+    //     },
+    //   },
+
+    //   // ======================================================
+    //   // MERGE LOGIC
+    //   // ======================================================
+
+    //   {
+    //     $project: {
+    //       createdAt: 1,
+
+    //       data: {
+    //         $cond: [
+    //           "$shouldMerge",
+
+    //           [
+    //             {
+    //               $mergeObjects: [
+    //                 // MAIN ENTRY
+    //                 {
+    //                   $arrayElemAt: [
+    //                     {
+    //                       $filter: {
+    //                         input: "$entries",
+    //                         as: "e",
+    //                         cond: {
+    //                           $and: [
+    //                             {
+    //                               $not: {
+    //                                 $in: [
+    //                                   "$$e.entryType",
+    //                                   ["CHARGES", "COMMISSION", "REFUND"],
+    //                                 ],
+    //                               },
+    //                             },
+
+    //                             {
+    //                               $ne: ["$$e.serviceType", null],
+    //                             },
+
+    //                             {
+    //                               $ne: ["$$e.serviceType", ""],
+    //                             },
+    //                           ],
+    //                         },
+    //                       },
+    //                     },
+    //                     0,
+    //                   ],
+    //                 },
+
+    //                 // COMMISSION
+    //                 {
+    //                   commission: {
+    //                     $sum: {
+    //                       $map: {
+    //                         input: "$entries",
+    //                         as: "e",
+    //                         in: {
+    //                           $cond: [
+    //                             {
+    //                               $eq: ["$$e.entryType", "COMMISSION"],
+    //                             },
+    //                             "$$e.amount",
+    //                             0,
+    //                           ],
+    //                         },
+    //                       },
+    //                     },
+    //                   },
+    //                 },
+    //               ],
+    //             },
+    //           ],
+
+    //           "$entries",
+    //         ],
+    //       },
+    //     },
+    //   },
+
+    //   {
+    //     $unwind: "$data",
+    //   },
+
+    //   {
+    //     $replaceRoot: {
+    //       newRoot: "$data",
+    //     },
+    //   },
+
+    //   // ======================================================
+    //   // TDS LOOKUP
+    //   // ======================================================
+
+    //   {
+    //     $lookup: {
+    //       from: "tdsledgers",
+
+    //       let: {
+    //         refId: "$referenceId",
+    //         uid: "$userId",
+    //       },
+
+    //       pipeline: [
+    //         {
+    //           $match: {
+    //             $expr: {
+    //               $and: [
+    //                 {
+    //                   $eq: ["$referenceId", "$$refId"],
+    //                 },
+
+    //                 {
+    //                   $eq: ["$userId", "$$uid"],
+    //                 },
+    //               ],
+    //             },
+    //           },
+    //         },
+
+    //         {
+    //           $group: {
+    //             _id: null,
+
+    //             commissionAmount: {
+    //               $sum: "$commissionAmount",
+    //             },
+
+    //             tdsAmount: {
+    //               $sum: "$tdsAmount",
+    //             },
+
+    //             netCommission: {
+    //               $sum: "$netCommission",
+    //             },
+    //           },
+    //         },
+    //       ],
+
+    //       as: "tds",
+    //     },
+    //   },
+
+    //   {
+    //     $unwind: {
+    //       path: "$tds",
+    //       preserveNullAndEmptyArrays: true,
+    //     },
+    //   },
+
+    //   {
+    //     $addFields: {
+    //       commission: {
+    //         $cond: [
+    //           {
+    //             $eq: ["$entryType", "BONUS"],
+    //           },
+    //           0,
+    //           {
+    //             $ifNull: ["$tds.commissionAmount", "$commission"],
+    //           },
+    //         ],
+    //       },
+
+    //       tdsAmount: {
+    //         $cond: [
+    //           {
+    //             $eq: ["$entryType", "BONUS"],
+    //           },
+    //           0,
+    //           {
+    //             $ifNull: ["$tds.tdsAmount", 0],
+    //           },
+    //         ],
+    //       },
+
+    //       netCommission: {
+    //         $cond: [
+    //           {
+    //             $eq: ["$entryType", "BONUS"],
+    //           },
+    //           0,
+    //           {
+    //             $ifNull: ["$tds.netCommission", 0],
+    //           },
+    //         ],
+    //       },
+    //     },
+    //   },
+
+    //   {
+    //     $unset: ["tds"],
+    //   },
+
+    //   // ======================================================
+    //   // GST LOOKUP
+    //   // ======================================================
+
+    //   {
+    //     $lookup: {
+    //       from: "gstledgers",
+
+    //       let: {
+    //         refId: "$referenceId",
+    //         uid: "$userId",
+    //       },
+
+    //       pipeline: [
+    //         {
+    //           $match: {
+    //             $expr: {
+    //               $and: [
+    //                 {
+    //                   $eq: ["$referenceId", "$$refId"],
+    //                 },
+
+    //                 {
+    //                   $eq: ["$userId", "$$uid"],
+    //                 },
+    //               ],
+    //             },
+    //           },
+    //         },
+
+    //         {
+    //           $group: {
+    //             _id: null,
+
+    //             chargesAmount: {
+    //               $sum: "$chargesAmount",
+    //             },
+
+    //             gstAmount: {
+    //               $sum: "$gstAmount",
+    //             },
+
+    //             totalCharge: {
+    //               $sum: "$totalCharge",
+    //             },
+    //           },
+    //         },
+    //       ],
+
+    //       as: "gst",
+    //     },
+    //   },
+
+    //   {
+    //     $unwind: {
+    //       path: "$gst",
+    //       preserveNullAndEmptyArrays: true,
+    //     },
+    //   },
+
+    //   {
+    //     $addFields: {
+    //       chargesAmount: {
+    //         $cond: [
+    //           {
+    //             $eq: ["$entryType", "BONUS"],
+    //           },
+    //           0,
+    //           {
+    //             $ifNull: ["$gst.chargesAmount", 0],
+    //           },
+    //         ],
+    //       },
+
+    //       gstAmount: {
+    //         $cond: [
+    //           {
+    //             $eq: ["$entryType", "BONUS"],
+    //           },
+    //           0,
+    //           {
+    //             $ifNull: ["$gst.gstAmount", 0],
+    //           },
+    //         ],
+    //       },
+
+    //       totalCharges: {
+    //         $cond: [
+    //           {
+    //             $eq: ["$entryType", "BONUS"],
+    //           },
+    //           0,
+    //           {
+    //             $ifNull: ["$gst.totalCharge", 0],
+    //           },
+    //         ],
+    //       },
+    //     },
+    //   },
+
+    //   {
+    //     $unset: ["gst"],
+    //   },
+    // ];
+
     const basePipeline = [
+      // ======================================================
+      // MATCH
+      // ======================================================
+
       {
         $match: filter,
       },
 
       // ======================================================
-      // USER LOOKUP
-      // ======================================================
-
-      {
-        $lookup: {
-          from: "users",
-          let: {
-            uid: "$userId",
-          },
-          pipeline: [
-            {
-              $match: {
-                $expr: {
-                  $eq: ["$_id", "$$uid"],
-                },
-              },
-            },
-            {
-              $project: {
-                firstName: 1,
-                lastName: 1,
-                userName: 1,
-              },
-            },
-          ],
-          as: "user",
-        },
-      },
-
-      {
-        $unwind: {
-          path: "$user",
-          preserveNullAndEmptyArrays: true,
-        },
-      },
-
-      {
-        $addFields: {
-          fullName: {
-            $concat: [
-              { $ifNull: ["$user.firstName", ""] },
-              " ",
-              { $ifNull: ["$user.lastName", ""] },
-            ],
-          },
-
-          userName: "$user.userName",
-        },
-      },
-
-      {
-        $unset: ["user"],
-      },
-
-      // ======================================================
-      // GROUP
+      // GROUP FIRST
       // ======================================================
 
       {
@@ -620,13 +1026,29 @@ exports.getAllLedgetEntryList = async (req, res, next) => {
             },
           },
 
-          hasCommission: {
+          hasMainTxn: {
             $anyElementTrue: {
               $map: {
                 input: "$entries",
                 as: "e",
                 in: {
-                  $eq: ["$$e.entryType", "COMMISSION"],
+                  $and: [
+                    {
+                      $ne: ["$$e.entryType", "REFUND"],
+                    },
+
+                    {
+                      $ne: ["$$e.entryType", "CHARGES"],
+                    },
+
+                    {
+                      $ne: ["$$e.entryType", "COMMISSION"],
+                    },
+
+                    {
+                      $ne: ["$$e.entryType", "BONUS"],
+                    },
+                  ],
                 },
               },
             },
@@ -659,7 +1081,7 @@ exports.getAllLedgetEntryList = async (req, res, next) => {
       },
 
       // ======================================================
-      // MERGE CONDITION
+      // SHOULD MERGE
       // ======================================================
 
       {
@@ -667,15 +1089,16 @@ exports.getAllLedgetEntryList = async (req, res, next) => {
           shouldMerge: {
             $and: [
               {
-                $not: ["$hasRefund"],
-              },
-              {
                 $not: ["$hasWalletRefill"],
               },
+
               {
                 $not: ["$hasAEPS"],
               },
-              "$hasCommission",
+
+              {
+                $not: ["$hasRefund"],
+              },
             ],
           },
         },
@@ -696,35 +1119,106 @@ exports.getAllLedgetEntryList = async (req, res, next) => {
               [
                 {
                   $mergeObjects: [
-                    // MAIN ENTRY
+                    // FALLBACK FIRST
+                    {
+                      $arrayElemAt: ["$entries", 0],
+                    },
+
+                    // MAIN TRANSACTION ENTRY
                     {
                       $arrayElemAt: [
                         {
                           $filter: {
                             input: "$entries",
                             as: "e",
+
                             cond: {
-                              $ne: ["$$e.entryType", "COMMISSION"],
+                              $and: [
+                                {
+                                  $not: {
+                                    $in: [
+                                      "$$e.entryType",
+                                      ["CHARGES", "COMMISSION", "REFUND"],
+                                    ],
+                                  },
+                                },
+
+                                {
+                                  $ne: ["$$e.serviceType", null],
+                                },
+
+                                {
+                                  $ne: ["$$e.serviceType", ""],
+                                },
+                              ],
                             },
                           },
                         },
+
                         0,
                       ],
                     },
 
-                    // COMMISSION
+                    // CHARGES
                     {
+                      charges: {
+                        $sum: {
+                          $map: {
+                            input: "$entries",
+                            as: "e",
+
+                            in: {
+                              $cond: [
+                                {
+                                  $eq: ["$$e.entryType", "CHARGES"],
+                                },
+
+                                "$$e.amount",
+
+                                0,
+                              ],
+                            },
+                          },
+                        },
+                      },
+
+                      // COMMISSION
                       commission: {
                         $sum: {
                           $map: {
                             input: "$entries",
                             as: "e",
+
                             in: {
                               $cond: [
                                 {
                                   $eq: ["$$e.entryType", "COMMISSION"],
                                 },
+
                                 "$$e.amount",
+
+                                0,
+                              ],
+                            },
+                          },
+                        },
+                      },
+
+                      // REFUND
+                      refund: {
+                        $sum: {
+                          $map: {
+                            input: "$entries",
+                            as: "e",
+
+                            in: {
+                              $cond: [
+                                {
+                                  $eq: ["$$e.entryType", "REFUND"],
+                                },
+
+                                "$$e.amount",
+
                                 0,
                               ],
                             },
@@ -742,6 +1236,10 @@ exports.getAllLedgetEntryList = async (req, res, next) => {
         },
       },
 
+      // ======================================================
+      // FLATTEN
+      // ======================================================
+
       {
         $unwind: "$data",
       },
@@ -750,6 +1248,53 @@ exports.getAllLedgetEntryList = async (req, res, next) => {
         $replaceRoot: {
           newRoot: "$data",
         },
+      },
+
+      // ======================================================
+      // USER LOOKUP
+      // ======================================================
+
+      {
+        $lookup: {
+          from: "users",
+
+          localField: "userId",
+
+          foreignField: "_id",
+
+          as: "user",
+        },
+      },
+
+      {
+        $unwind: {
+          path: "$user",
+          preserveNullAndEmptyArrays: true,
+        },
+      },
+
+      {
+        $addFields: {
+          userName: "$user.userName",
+
+          fullName: {
+            $concat: [
+              {
+                $ifNull: ["$user.firstName", ""],
+              },
+
+              " ",
+
+              {
+                $ifNull: ["$user.lastName", ""],
+              },
+            ],
+          },
+        },
+      },
+
+      {
+        $unset: ["user"],
       },
 
       // ======================================================
@@ -819,7 +1364,9 @@ exports.getAllLedgetEntryList = async (req, res, next) => {
               {
                 $eq: ["$entryType", "BONUS"],
               },
+
               0,
+
               {
                 $ifNull: ["$tds.commissionAmount", "$commission"],
               },
@@ -831,7 +1378,9 @@ exports.getAllLedgetEntryList = async (req, res, next) => {
               {
                 $eq: ["$entryType", "BONUS"],
               },
+
               0,
+
               {
                 $ifNull: ["$tds.tdsAmount", 0],
               },
@@ -843,7 +1392,9 @@ exports.getAllLedgetEntryList = async (req, res, next) => {
               {
                 $eq: ["$entryType", "BONUS"],
               },
+
               0,
+
               {
                 $ifNull: ["$tds.netCommission", 0],
               },
@@ -923,7 +1474,9 @@ exports.getAllLedgetEntryList = async (req, res, next) => {
               {
                 $eq: ["$entryType", "BONUS"],
               },
+
               0,
+
               {
                 $ifNull: ["$gst.chargesAmount", 0],
               },
@@ -935,7 +1488,9 @@ exports.getAllLedgetEntryList = async (req, res, next) => {
               {
                 $eq: ["$entryType", "BONUS"],
               },
+
               0,
+
               {
                 $ifNull: ["$gst.gstAmount", 0],
               },
@@ -947,7 +1502,9 @@ exports.getAllLedgetEntryList = async (req, res, next) => {
               {
                 $eq: ["$entryType", "BONUS"],
               },
+
               0,
+
               {
                 $ifNull: ["$gst.totalCharge", 0],
               },
