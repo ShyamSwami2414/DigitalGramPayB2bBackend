@@ -1813,7 +1813,7 @@ exports.getWalletTransferHistory = async (req, res, next) => {
     const filter = {
       userId: new mongoose.Types.ObjectId(req.user.id),
       wallet: "main",
-      serviceType: "AEPSTOMAIN",
+      entryType: "AEPS_TO_MAIN",
     };
 
     console.log(req.query);
