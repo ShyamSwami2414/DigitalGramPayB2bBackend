@@ -3,7 +3,7 @@ const mongoose = require("mongoose");
 
 exports.listOfflineServiceRequests = async (req, res, next) => {
   try {
-    let { page = 1, limit = 10, serach = "", status = "" } = req.query;
+    let { page = 1, limit = 10, search = "", status = "" } = req.query;
     page = Number(page);
     limit = Number(limit);
     search = search?.trim();
