@@ -5,7 +5,7 @@ const { authenticateUser } = require("../../middleware/authMiddleware");
 const { authorizeRoles } = require("../../middleware/roleMiddleware");
 const {
   getPolicyByType,
-  addPolicy,
+  addOrUpdatePolicy,
   updatePolicy,
   deletePolicy,
 } = require("../../controllers/adminController/policyController");
@@ -25,7 +25,7 @@ router.post(
   authenticateUser,
   authorizeRoles("admin"),
   checkAllowedPermission("SETTINGS"),
-  asyncHandler(addPolicy),
+  asyncHandler(addOrUpdatePolicy),
 );
 
 router.put(

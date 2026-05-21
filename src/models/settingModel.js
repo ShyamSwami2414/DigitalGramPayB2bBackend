@@ -1,56 +1,77 @@
 const mongoose = require("mongoose");
 
-const settingSchema = new mongoose.Schema({
-
+const settingSchema = new mongoose.Schema(
+  {
     requireAdminApprovalForCredentials: {
-        type: Boolean,
-        default: false
+      type: Boolean,
+      default: false,
     },
 
     isKycOnline: {
-        type: Boolean,
-        default: false
+      type: Boolean,
+      default: false,
     },
 
     title: {
-        type: String,
-        default: ""
+      type: String,
+      default: "",
     },
 
     logoUrl: {
-        type: String,
-        default: ""
+      type: String,
+      default: "",
     },
 
     faviconUrl: {
-        type: String,
-        default: ""
+      type: String,
+      default: "",
     },
 
     qrCodeUrl: {
-        type: String,
-        default: ""
+      type: String,
+      default: "",
     },
 
     email: {
-        type: String,
-        default: ""
+      type: String,
+      default: "",
     },
 
     phone: {
-        type: String,
-        default: ""
+      type: String,
+      default: "",
+    },
+
+    facebook: {
+      type: String,
+      default: "",
+    },
+
+    twitter: {
+      type: String,
+      default: "",
+    },
+
+    instagram: {
+      type: String,
+      default: "",
+    },
+
+    linkedin: {
+      type: String,
+      default: "",
     },
 
     address: {
-        type: String,
-        default: ""
+      type: String,
+      default: "",
     },
-},
-    {
-        timestamps: true,
-        versionKey: false
-    }
+  },
+
+  {
+    timestamps: true,
+    versionKey: false,
+  },
 );
 
 module.exports = mongoose.model("Setting", settingSchema);
