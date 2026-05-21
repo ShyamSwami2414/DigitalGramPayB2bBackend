@@ -377,7 +377,7 @@ exports.forgotPassword = async (req, res, next) => {
 
     return res.status(200).json({
       success: true,
-      message: "If the email exists, OTP has been sent successfully",
+      message: "OTP has been sent successfully on your registered email",
     });
   } catch (error) {
     next(error);
