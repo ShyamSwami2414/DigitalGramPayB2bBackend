@@ -22,6 +22,9 @@ const {
   generateOtpEmail,
 } = require("../../templates/emailTemplates/otpEmailTemplate");
 const crypto = require("crypto");
+const {
+  getPlatform,
+} = require("../../middleware/requestSourceTrackerMiddleware");
 
 exports.userRegister = async (req, res, next) => {
   try {
@@ -267,6 +270,10 @@ exports.userLogin = async (req, res, next) => {
     console.log(systemDetails?.location?.latitude, "latitude");
     console.log(systemDetails?.ip, "Ip");
 
+    const channel = getPlatform(req);
+
+    console.log(channel, "channel");
+
     if (!email || !password || !userName) {
       return res
         .status(400)
@@ -292,6 +299,7 @@ exports.userLogin = async (req, res, next) => {
       ipAddress: systemDetails?.ip,
       longitude: systemDetails?.location?.longitude,
       latitude: systemDetails?.location?.latitude,
+      channel: channel,
       device: ua?.device,
       browser: ua?.browser,
       os: ua?.os,
