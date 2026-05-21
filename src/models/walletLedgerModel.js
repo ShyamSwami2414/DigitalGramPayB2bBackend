@@ -13,7 +13,15 @@ const walletLedgerSchema = new mongoose.Schema(
 
     serviceType: {
       type: "String",
-      enum: ["RECHARGE", "BBPS", "AEPS", "DMT", "AEPS_PAYOUT", "XPRESS_PAYOUT"],
+      enum: [
+        "RECHARGE",
+        "BBPS",
+        "AEPS",
+        "DMT",
+        "AEPS_PAYOUT",
+        "XPRESS_PAYOUT",
+        "OFFLINE_SERVICE",
+      ],
       trim: true,
       uppercase: true,
     },
@@ -39,6 +47,7 @@ const walletLedgerSchema = new mongoose.Schema(
         "CREDIT_WALLET",
         "DEBIT_WALLET",
         "ORDER",
+        "OFFLINE_SERVICE_REQUEST",
       ],
       trim: true,
       uppercase: true,

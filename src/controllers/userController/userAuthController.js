@@ -843,7 +843,7 @@ exports.forgotPassword = async (req, res, next) => {
 
     return res.status(200).json({
       success: true,
-      message: "If the email exists, OTP has been sent successfully",
+      message: "OTP has been sent successfully on your registered email",
     });
   } catch (error) {
     next(error);
@@ -955,6 +955,9 @@ exports.resetPassword = async (req, res, next) => {
         message: `Missing required fields: ${missingFields.join(", ")}`,
       });
     }
+
+    console.log(newPassword, "newPassword");
+    console.log(confirmPassword, "confirmPassword");
 
     // Match passwords
     if (newPassword !== confirmPassword) {
