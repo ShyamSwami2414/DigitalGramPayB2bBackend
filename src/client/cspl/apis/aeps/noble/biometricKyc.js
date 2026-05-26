@@ -31,7 +31,7 @@ exports.kyc = async ({
         userAgent: userAgent,
         latitude: String(latitude),
         longitude: String(longitude),
-        businessNature: businessNature,
+        businessNature: "Mobility",
         annualIncome: annualIncome,
         bioType: String(bioType),
         pidData: pidData,
@@ -39,7 +39,7 @@ exports.kyc = async ({
       {
         headers: {
           "X-TIMESTAMP": timestamp,
-          "X-REQUEST-ID": client_referenceId,
+          "X-REQUEST-ID": transactionId,
           "X-API-KEY": process.env.CSPL_API_KEY,
           "X-Forwarded-For": process.env.SERVER_IP,
         },
@@ -54,9 +54,7 @@ exports.kyc = async ({
     const responseTime = Date.now() - startTime;
 
     const isSuccess =
-      response?.data?.status === 1 ||
-      response?.data?.statusCode === "AG0001" ||
-      response?.data?.statusCode === "AG00001";
+      response?.data?.data?.status === 1 && response?.data?.data?.statusCode === "AG0001";
 
     console.log("isSuccess", isSuccess);
 
@@ -65,7 +63,7 @@ exports.kyc = async ({
     if (providerStatus !== "SUCCESS") {
       throw {
         providerStatus: providerStatus,
-        message: response?.data.message,
+        message: response?.data?.message,
         fullResponse: response?.data,
       };
     }
@@ -90,7 +88,7 @@ exports.kyc = async ({
           userAgent: userAgent,
           latitude: String(latitude),
           longitude: String(longitude),
-          businessNature: businessNature,
+          businessNature: "Mobility",
           annualIncome: annualIncome,
           bioType: String(bioType),
           pidData: pidData,
@@ -129,7 +127,7 @@ exports.kyc = async ({
           userAgent: userAgent,
           latitude: String(latitude),
           longitude: String(longitude),
-          businessNature: businessNature,
+          businessNature: "Mobility",
           annualIncome: annualIncome,
           bioType: String(bioType),
           pidData: pidData,

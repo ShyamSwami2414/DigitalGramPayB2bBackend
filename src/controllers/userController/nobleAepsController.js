@@ -4,13 +4,18 @@ const {
 const NobleAepsState = require("../../models/nobleAepsStateModel");
 const mongoose = require("mongoose");
 const NobleAepsAgent = require("../../models/nobleAepsAgentModel");
+const NobleAepsBank = require("../../models/nobleAepsBankModel");
 const { generateAgentCode } = require("../../utils/generateNobleAepsAgentCode");
 const {
   nobleAepsOnboardAgent,
   loadAepsAgent,
   biometricKyc,
   daily2faLogin,
+  initiateAepsTransaction,
+  retrieveUniqueAgentId,
 } = require("../../services/nobleAepsService");
+const getMobileDeviceId = require("../../utils/generateNobleMobileDeviceId");
+const { rupeeToPaise } = require("../../utils/money");
 
 exports.getAepsStateList = async (req, res, next) => {
   try {
@@ -110,6 +115,7 @@ exports.onboardNewAgent = async (req, res, next) => {
     ];
 
     // const channel = getChannelForNobleAeps(req);
+    const agentCode = await generateAgentCode();
 
     const ipAddress = (
       req.headers["x-forwarded-for"] || req.socket.remoteAddress
@@ -249,7 +255,7 @@ exports.onboardNewAgent = async (req, res, next) => {
     }
 
     const response = await nobleAepsOnboardAgent({
-      userId,
+      userId: userId,
       requestId: idempotency,
       channel: source,
       ipAddress: ipAddress,
@@ -259,6 +265,7 @@ exports.onboardNewAgent = async (req, res, next) => {
       lastName: lastName,
       email: email,
       mobileNumber: mobileNumber,
+      agentCode: agentCode,
 
       aadhaar: aadhaar,
       panNumber: panNumber,
@@ -284,8 +291,8 @@ exports.onboardNewAgent = async (req, res, next) => {
 
     if (
       response &&
-      (response?.data?.statusCode === "AG00001" ||
-        response?.data?.statusCode === "AG0001")
+      response?.data?.status === 1 &&
+      response?.data?.statusCode === "AG0001"
     ) {
       const data = response?.data?.responseData?.[0];
 
@@ -300,9 +307,14 @@ exports.onboardNewAgent = async (req, res, next) => {
         });
       }
 
+      const [day, month, year] = dob.split("/");
+
+      const formattedDob = new Date(`${year}-${month}-${day}`);
+
       const agentRegister = new NobleAepsAgent({
         userId: userId,
         uniqueAgentId: data?.uniqueAgentId,
+        agentCode: agentCode,
         channel: source,
         ipAddress: ipAddress,
 
@@ -314,7 +326,7 @@ exports.onboardNewAgent = async (req, res, next) => {
 
         aadhaar: aadhaar,
         panNumber: panNumber,
-        dob: dob,
+        dob: formattedDob,
 
         address,
         state,
@@ -348,7 +360,7 @@ exports.onboardNewAgent = async (req, res, next) => {
   }
 };
 
-exports.checkAgentStatus = async (req, res, next) => {
+exports.checkAgentLoadStatus = async (req, res, next) => {
   try {
     const userId = req.user.id;
     const idempotency = req.headers["idempotency-key"];
@@ -367,11 +379,7 @@ exports.checkAgentStatus = async (req, res, next) => {
 
     console.log(response, "response");
 
-    if (
-      response &&
-      (response?.data?.statusCode === "AG0001" ||
-        response?.data?.statusCode === "AG00001")
-    ) {
+    if (response && response?.data?.statusCode === "AG0001") {
       const data = response?.data?.responseData?.[0];
 
       console.log(data, "data");
@@ -379,7 +387,7 @@ exports.checkAgentStatus = async (req, res, next) => {
         success: true,
         data: {
           message: response?.data?.description || response?.data?.message,
-          isKycRequired: data.isKycRequired === "YES" ? true : false,
+          isKycRequired: data.KycRequired === "YES" ? true : false,
           is2faRequired: data?.Daily2fa_AEPS_Required === "YES" ? true : false,
         },
       });
@@ -433,6 +441,19 @@ exports.completetBiometricKyc = async (req, res, next) => {
       });
     }
 
+    const userAgent = req.headers["user-agent"] || "";
+
+    console.log(userAgent, "userAgent");
+
+    const deviceId = getMobileDeviceId(userAgent);
+
+    if (source === "WEB") {
+      mobileDeviceId = deviceId;
+    }
+
+    console.log(source, "source");
+    console.log(mobileDeviceId, "mobileDeviceId");
+
     const missingFields = [];
 
     requiredFields.forEach((field) => {
@@ -449,8 +470,6 @@ exports.completetBiometricKyc = async (req, res, next) => {
     }
 
     // const channel = getChannelForNobleAeps(req);
-
-    const userAgent = req.headers["user-agent"] || "";
 
     const ipAddress = (
       req.headers["x-forwarded-for"] || req.socket.remoteAddress
@@ -518,8 +537,8 @@ exports.completetBiometricKyc = async (req, res, next) => {
 
     console.log(response, "response");
 
-    if (response && response?.statusCode === "AG0001") {
-      const data = response?.responseData?.[0];
+    if (response && response?.data?.statusCode === "AG0001") {
+      const data = response?.data?.responseData?.[0];
 
       console.log(data, "data");
 
@@ -537,21 +556,24 @@ exports.completetBiometricKyc = async (req, res, next) => {
       if (!update) {
         throw Error("Merchant not exist");
       }
-    }
 
-    return res.status(200).json({
-      success: true,
-      data: {
-        status: response?.responseData?.tranStatus,
-        message: response?.description || response?.message,
-        transactionId: response?.responseData?.transactionId,
-      },
-    });
+      return res.status(200).json({
+        success: true,
+        data: {
+          message: response?.description || response?.message,
+          status: data?.tranStatus,
+          transactionId: data?.transactionId,
+        },
+      });
+    } else {
+      throw Error(response?.message || response?.data?.message);
+    }
   } catch (error) {
     next(error);
   }
 };
 
+//this one check onboard status 2th number not for load
 exports.checkAgentOnboardStatus = async (req, res, next) => {
   try {
     const userId = req.user.id;
@@ -564,27 +586,22 @@ exports.checkAgentOnboardStatus = async (req, res, next) => {
       });
     }
 
-    const response = await loadAepsAgent({
+    const response = await retrieveUniqueAgentId({
       userId: userId,
       requestId: idempotency,
     });
 
     console.log(response, "response");
 
-    if (
-      response &&
-      (response?.data?.statusCode === "AG0001" ||
-        response?.data?.statusCode === "AG00001")
-    ) {
+    if (response && response?.data?.statusCode === "AG0001") {
       const data = response?.data?.responseData?.[0];
 
       console.log(data, "data");
       return res.status(200).json({
         success: true,
         data: {
+          status: response?.data?.message,
           message: response?.data?.description || response?.data?.message,
-          isKycRequired: data.isKycRequired === "YES" ? true : false,
-          is2faRequired: data?.Daily2fa_AEPS_Required === "YES" ? true : false,
         },
       });
     } else {
@@ -632,6 +649,19 @@ exports.dailyLogin = async (req, res, next) => {
       });
     }
 
+    const userAgent = req.headers["user-agent"] || "";
+
+    console.log(userAgent, "userAgent");
+
+    const deviceId = getMobileDeviceId(userAgent);
+
+    if (source === "WEB") {
+      mobileDeviceId = deviceId;
+    }
+
+    console.log(source, "source");
+    console.log(mobileDeviceId, "mobileDeviceId");
+
     const missingFields = [];
 
     requiredFields.forEach((field) => {
@@ -648,8 +678,6 @@ exports.dailyLogin = async (req, res, next) => {
     }
 
     // const channel = getChannelForNobleAeps(req);
-
-    const userAgent = req.headers["user-agent"] || "";
 
     const ipAddress = (
       req.headers["x-forwarded-for"] || req.socket.remoteAddress
@@ -715,8 +743,8 @@ exports.dailyLogin = async (req, res, next) => {
 
     console.log(response, "response");
 
-    if (response && response?.statusCode === "AG0001") {
-      const data = response?.responseData?.[0];
+    if (response && response?.data?.statusCode === "AG0001") {
+      const data = response?.data?.responseData?.[0];
 
       console.log(data, "data");
 
@@ -734,16 +762,18 @@ exports.dailyLogin = async (req, res, next) => {
       if (!update) {
         throw Error("Merchant not exist");
       }
-    }
 
-    return res.status(200).json({
-      success: true,
-      data: {
-        status: response?.responseData?.tranStatus,
-        message: response?.description || response?.message,
-        transactionId: response?.responseData?.transactionId,
-      },
-    });
+      return res.status(200).json({
+        success: true,
+        data: {
+          message: response?.description || response?.message,
+          status: data?.tranStatus,
+          transactionId: data?.transactionId,
+        },
+      });
+    } else {
+      throw Error(response?.message || response?.data?.message);
+    }
   } catch (error) {
     next(error);
   }
@@ -751,10 +781,9 @@ exports.dailyLogin = async (req, res, next) => {
 
 const getTransactionType = (serviceName) => {
   const map = {
-    withdraw: "CW",
-    inquiry: "BE",
+    withdrawal: "CW",
+    enquiry: "BE",
     statement: "MS",
-    transfer: "MT",
   };
 
   return map[serviceName?.toLowerCase()] || null;
@@ -763,33 +792,45 @@ const getTransactionType = (serviceName) => {
 exports.doTransaction = async (req, res, next) => {
   try {
     let {
-      sourceIp,
-      serviceType,
-      aadhaar,
-      bankId,
-      amount = 0,
+      source,
+      mobileDeviceId,
       latitude,
       longitude,
+      bioType = "FINGER",
+      transactionType,
       pidData,
+      amount = 0,
+      bankId,
+      aadhaar,
+      customerMobile,
     } = req.body;
 
-    console.log(req.body, "body");
-
+    source = source?.trim()?.toUpperCase();
+    mobileDeviceId = mobileDeviceId?.trim();
     latitude = Number(latitude);
     longitude = Number(longitude);
-    sourceIp = sourceIp?.trim();
+    bioType = bioType?.trim()?.toUpperCase();
+    transactionType = transactionType?.trim()?.toLowerCase();
     bankId = bankId?.trim();
-    serviceType = serviceType?.trim().toLowerCase();
+    aadhaar = aadhaar?.trim();
+    customerMobile = customerMobile?.trim();
     amount = Number(amount);
 
+    console.log(req.body, "BODY");
+
+    const userId = req.user.id;
+    const idempotency = req.headers["idempotency-key"];
+
     const requiredFields = [
-      "sourceIp",
-      "serviceType",
-      "bankId",
+      "source",
       "latitude",
       "longitude",
+      "bioType",
+      "transactionType",
+      "bankId",
       "pidData",
       "aadhaar",
+      "customerMobile",
     ];
 
     const missingFields = [];
@@ -807,59 +848,26 @@ exports.doTransaction = async (req, res, next) => {
       });
     }
 
-    if (!mongoose.Types.ObjectId.isValid(bankId)) {
+    if (!/^[6-9]\d{9}$/.test(customerMobile)) {
       return res.status(400).json({
         success: false,
-        message: "Invalid Bank ID",
+        message: "Invalid Indian mobile number",
       });
     }
 
-    const isBankExist = await EkoBank.findOne({ _id: bankId })
-      .select("bankCode")
-      .lean();
-
-    if (!isBankExist) {
-      return res.status(404).json({
-        success: false,
-        message: " Bank not found",
-      });
+    const aadhaarRegex = /^\d{12}$/;
+    if (!aadhaarRegex.test(aadhaar)) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Aadhaar must be 12 digits" });
     }
 
-    if (!["withdraw", "inquiry", "statement"].includes(serviceType)) {
-      return res.status(400).json({
-        success: false,
-        message: "Invalid Service Name Selected",
-      });
-    }
-
-    // Check invalid number
-    if (isNaN(amount)) {
-      return res.status(400).json({
-        success: false,
-        message: "Invalid amount",
-      });
-    }
-
-    const serviceCode = getTransactionType(serviceType);
-    const amountInPaise = rupeeToPaise(amount);
-
-    // const encryptAadhaar = encryptEkoAadhar(aadhaar);
-
-    //rupee comparison 100 rupee
-    if (serviceType === "withdraw" && amount < 100) {
-      return res.status(400).json({
-        success: false,
-        message: "Minimum withdrawal amount is 100",
-      });
-    }
-
-    //rupee comparison 0 rupee
-    if (["inquiry", "statement"].includes(serviceType) && amount !== 0) {
-      return res.status(400).json({
-        success: false,
-        message: "Amount must be 0 for Balance-Enquiry and Mini-Statement",
-      });
-    }
+    const ipAddress = (
+      req.headers["x-forwarded-for"] || req.socket.remoteAddress
+    )
+      .split(",")[0]
+      .replace("::ffff:", "")
+      .trim();
 
     if (isNaN(latitude) || isNaN(longitude)) {
       return res.status(400).json({
@@ -883,9 +891,6 @@ exports.doTransaction = async (req, res, next) => {
       });
     }
 
-    const userId = req.user.id;
-    const idempotency = req.headers["idempotency-key"];
-
     if (!idempotency) {
       return res.status(400).json({
         success: false,
@@ -893,18 +898,102 @@ exports.doTransaction = async (req, res, next) => {
       });
     }
 
+    if (!["FINGER", "FACE", "IRIS"].includes(bioType)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid Bio type",
+      });
+    }
+
+    if (!pidData) {
+      return res
+        .status(400)
+        .json({ success: false, message: "PID data is required" });
+    }
+
+    if (source === "APP" && !mobileDeviceId) {
+      return res.status(400).json({
+        success: false,
+        message: `mobileDeviceId is required`,
+      });
+    }
+
+    const userAgent = req.headers["user-agent"] || "";
+
+    console.log(userAgent, "userAgent");
+
+    const deviceId = getMobileDeviceId(userAgent);
+
+    if (source === "WEB") {
+      mobileDeviceId = deviceId;
+    }
+
+    console.log(source, "source");
+    console.log(mobileDeviceId, "mobileDeviceId");
+
+    if (!["withdrawal", "enquiry", "statement"].includes(transactionType)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid Transaction Type Selected",
+      });
+    }
+
+    const transactionTypeCode = getTransactionType(transactionType);
+
+    if (!mongoose.Types.ObjectId.isValid(bankId)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid Bank ID",
+      });
+    }
+
+    const isBankExist = await NobleAepsBank.findOne({ _id: bankId })
+      .select("bankIn bankName")
+      .lean();
+
+    if (!isBankExist) {
+      return res.status(404).json({
+        success: false,
+        message: "Bank not found",
+      });
+    }
+
+    const amountInPaise = rupeeToPaise(amount);
+
+    //rupee comparison 100 rupee
+    if (transactionType === "withdrawal" && amount < 100) {
+      return res.status(400).json({
+        success: false,
+        message: "Minimum withdrawal amount is 100",
+      });
+    }
+
+    //rupee comparison 0 rupee
+    if (["enquiry", "statement"].includes(transactionType) && amount !== 0) {
+      return res.status(400).json({
+        success: false,
+        message: "Amount must be 0 for Balance-Enquiry and Mini-Statement",
+      });
+    }
+
     const response = await initiateAepsTransaction({
-      userId,
+      userId: userId,
       requestId: idempotency,
-      latitude: latitude,
-      longitude: longitude,
-      pidData: pidData,
-      serviceType: serviceCode,
-      sourceIp: sourceIp,
-      amount: amountInPaise,
-      serviceTypeName: serviceType?.toUpperCase(), //just for logs type
-      bankCode: isBankExist?.bankCode,
+      channel: source,
+      mobileDeviceId: mobileDeviceId ? mobileDeviceId : undefined,
+      latitude,
+      longitude,
+      bioType,
+      transactionType: transactionTypeCode,
+      serviceTypeName: transactionType?.toUpperCase(), //just for logs type
+      pidData,
+      bankIn: isBankExist.bankIn,
+      bankName: isBankExist.bankName,
       aadhaar: aadhaar,
+      customerMobile: customerMobile,
+      amount: amountInPaise,
+      ipAddress: ipAddress,
+      userAgent: userAgent,
     });
 
     console.log(response, "response");

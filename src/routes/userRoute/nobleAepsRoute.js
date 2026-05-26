@@ -1,18 +1,20 @@
 const express = require("express");
 const {
   getAepsStateList,
+  getAepsBankList,
   onboardNewAgent,
-  checkAgentStatus,
+  checkAgentLoadStatus,
   completetBiometricKyc,
   checkAgentOnboardStatus,
   dailyLogin,
-  doTransaction
+  doTransaction,
 } = require("../../controllers/userController/nobleAepsController");
 const { authenticateUser } = require("../../middleware/authMiddleware");
 
 const checkUserPaymentAndKYC = require("../../middleware/kycPaymentCheckMiddleware");
 const apiLogger = require("../../middleware/apiLogger");
 const asyncHandler = require("../../utils/asyncHandler");
+const idempotencyMiddleware = require("../../middleware/idempotencyMiddleware");
 const router = express.Router();
 
 router.get(
@@ -22,24 +24,42 @@ router.get(
   asyncHandler(getAepsStateList),
 );
 
+router.get(
+  "/bank-list",
+  authenticateUser,
+  apiLogger,
+  asyncHandler(getAepsBankList),
+);
+
 router.post(
   "/onboard",
   authenticateUser,
+  idempotencyMiddleware,
   apiLogger,
   asyncHandler(onboardNewAgent),
 );
 
-//load
+//onboard-statuss
+router.get(
+  "/check-onboard-status",
+  authenticateUser,
+  idempotencyMiddleware,
+  apiLogger,
+  asyncHandler(checkAgentOnboardStatus),
+);
+
+//load agent
 router.get(
   "/check-status",
   authenticateUser,
   apiLogger,
-  asyncHandler(checkAgentStatus),
+  asyncHandler(checkAgentLoadStatus),
 );
 
 router.post(
   "/biometric-kyc",
   authenticateUser,
+  idempotencyMiddleware,
   apiLogger,
   asyncHandler(completetBiometricKyc),
 );
@@ -47,23 +67,17 @@ router.post(
 router.post(
   "/daily-login",
   authenticateUser,
+  idempotencyMiddleware,
   apiLogger,
   asyncHandler(dailyLogin),
 );
 
 router.post(
-  "/do-transaction",
+  "/transaction",
   authenticateUser,
+  idempotencyMiddleware,
   apiLogger,
   asyncHandler(doTransaction),
-);
-
-//onboard-statuss
-router.get(
-  "/check-onboard-status",
-  authenticateUser,
-  apiLogger,
-  asyncHandler(checkAgentOnboardStatus),
 );
 
 module.exports = router;

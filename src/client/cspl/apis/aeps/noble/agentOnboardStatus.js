@@ -36,9 +36,8 @@ exports.agentOnboardStatus = async ({
     const responseTime = Date.now() - startTime;
 
     const isSuccess =
-      response?.data?.data?.status === 1 ||
-      response?.data?.data?.statusCode === "AG00001";
-    response?.data?.data?.statusCode === "AG0001";
+      response?.data?.data?.status === 1 &&
+      response?.data?.data?.statusCode === "AG0001";
 
     let providerStatus = isSuccess ? "SUCCESS" : "FAILED";
 

@@ -37,7 +37,7 @@ exports.dailyLogin = async ({
       {
         headers: {
           "X-TIMESTAMP": timestamp,
-          "X-REQUEST-ID": client_referenceId,
+          "X-REQUEST-ID": transactionId,
           "X-API-KEY": process.env.CSPL_API_KEY,
           "X-Forwarded-For": process.env.SERVER_IP,
         },
@@ -52,9 +52,8 @@ exports.dailyLogin = async ({
     const responseTime = Date.now() - startTime;
 
     const isSuccess =
-      response?.data?.status === 1 ||
-      response?.data?.statusCode === "AG0001" ||
-      response?.data?.statusCode === "AG00001";
+      response?.data?.data?.status === 1 &&
+      response?.data?.data?.statusCode === "AG0001";
 
     console.log("isSuccess", isSuccess);
 
@@ -63,7 +62,7 @@ exports.dailyLogin = async ({
     if (providerStatus !== "SUCCESS") {
       throw {
         providerStatus: providerStatus,
-        message: response?.data.message,
+        message: response?.data?.message,
         fullResponse: response?.data,
       };
     }
