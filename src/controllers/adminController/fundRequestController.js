@@ -189,6 +189,10 @@ exports.fundRequestStats = async (req, res, next) => {
 
           total: { $sum: 1 },
 
+          pendingAmount: {
+            $sum: { $cond: [{ $eq: ["$status", "pending"] }, "$amount", 0] },
+          },
+
           approvedAmount: {
             $sum: { $cond: [{ $eq: ["$status", "approved"] }, "$amount", 0] },
           },
@@ -205,6 +209,7 @@ exports.fundRequestStats = async (req, res, next) => {
           approved: 1,
           rejected: 1,
           approvedAmount: 1,
+          pendingAmount: 1,
           rejectedAmount: 1,
           // total: 1
         },
@@ -216,6 +221,7 @@ exports.fundRequestStats = async (req, res, next) => {
           ...result,
           approvedAmount: paiseToRupee(result?.approvedAmount),
           rejectedAmount: paiseToRupee(result?.rejectedAmount),
+          pendingAmount: paiseToRupee(result?.pendingAmount),
         }
       : {
           pending: 0,
@@ -223,6 +229,7 @@ exports.fundRequestStats = async (req, res, next) => {
           rejected: 0,
           total: 0,
           approvedAmount: 0,
+          pendingAmount: 0,
           rejectedAmount: 0,
         };
 
