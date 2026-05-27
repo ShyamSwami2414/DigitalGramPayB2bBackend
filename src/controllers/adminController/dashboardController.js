@@ -415,6 +415,8 @@ exports.transactionStatusStats = async (req, res, next) => {
       filter.userId = new mongoose.Types.ObjectId(user);
     }
 
+    let serviceExist;
+
     if (service) {
       if (!mongoose.Types.ObjectId.isValid(service)) {
         return res
@@ -422,7 +424,7 @@ exports.transactionStatusStats = async (req, res, next) => {
           .json({ success: false, message: "Invalid service ID" });
       }
 
-      const serviceExist = await Service.findOne({ _id: service }).lean();
+      serviceExist = await Service.findOne({ _id: service }).lean();
 
       if (!serviceExist) {
         return res
@@ -430,6 +432,8 @@ exports.transactionStatusStats = async (req, res, next) => {
           .json({ success: false, message: "Service not found" });
       }
     }
+
+    filter.serviceType = serviceExist?.name?.toUpperCase();
 
     console.log(filter, "filter");
 
@@ -1005,6 +1009,8 @@ exports.totalVolumeStats = async (req, res, next) => {
       filter.userId = new mongoose.Types.ObjectId(user);
     }
 
+    let serviceExist;
+
     if (service) {
       if (!mongoose.Types.ObjectId.isValid(service)) {
         return res
@@ -1012,7 +1018,7 @@ exports.totalVolumeStats = async (req, res, next) => {
           .json({ success: false, message: "Invalid service ID" });
       }
 
-      const serviceExist = await Service.findOne({ _id: service }).lean();
+      serviceExist = await Service.findOne({ _id: service }).lean();
 
       if (!serviceExist) {
         return res
@@ -1020,6 +1026,8 @@ exports.totalVolumeStats = async (req, res, next) => {
           .json({ success: false, message: "Service not found" });
       }
     }
+
+    filter.serviceType = serviceExist?.name?.toUpperCase();
 
     console.log(filter, "filter");
 
