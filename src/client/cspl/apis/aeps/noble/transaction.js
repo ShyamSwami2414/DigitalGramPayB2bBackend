@@ -1,5 +1,6 @@
 const csplClient = require("../../../cspl.client");
 const NobleAepsLogs = require("../../../../../models/nobleAepsLogsModel");
+const { paiseToRupee } = require("../../../../../utils/money");
 
 exports.transaction = async ({
   userId,
@@ -15,7 +16,7 @@ exports.transaction = async ({
   longitude,
   transactionType,
   serviceTypeName,
-  amount,
+  amount, //paise
   bankIn,
   bankName,
   aadhaar,
@@ -26,6 +27,7 @@ exports.transaction = async ({
   const timestamp = new Date().toISOString();
   const startTime = Date.now();
   const serviceType = "AEPS";
+  const amountInRupee = paiseToRupee(amount);
   try {
     const response = await csplClient.post(
       "e2/aeps/transaction",
@@ -40,9 +42,9 @@ exports.transaction = async ({
         latitude: String(latitude),
         longitude: String(longitude),
         tranType: transactionType,
-        amount: String(amount),
+        amount: String(amountInRupee),
         bankName: bankName,
-        bankIn: bankIn,
+        bankIn: String(bankIn),
         mobileNumber: mobileNumber,
         aadhaarNumber: aadhaar,
         bioType: String(bioType),
@@ -103,9 +105,9 @@ exports.transaction = async ({
           latitude: String(latitude),
           longitude: String(longitude),
           tranType: transactionType,
-          amount: String(amount),
+          amount: String(amountInRupee),
           bankName: bankName,
-          bankIn: bankIn,
+          bankIn: String(bankIn),
           mobileNumber: mobileNumber,
           aadhaarNumber: aadhaar,
           bioType: String(bioType),
@@ -147,9 +149,9 @@ exports.transaction = async ({
           latitude: String(latitude),
           longitude: String(longitude),
           tranType: transactionType,
-          amount: String(amount),
+          amount: String(amountInRupee),
           bankName: bankName,
-          bankIn: bankIn,
+          bankIn: String(bankIn),
           mobileNumber: mobileNumber,
           aadhaarNumber: aadhaar,
           bioType: String(bioType),
