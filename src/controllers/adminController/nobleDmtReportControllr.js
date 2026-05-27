@@ -487,8 +487,9 @@ const getDmtStats = async (req, res, next) => {
         amount: 0,
       },
 
-      commissionOverview: {
-        totalCommission: 0,
+      total: {
+        totalCount: 0,
+        totalAmount: 0,
       },
     };
 
@@ -499,25 +500,23 @@ const getDmtStats = async (req, res, next) => {
     const formattedData = result
       ? {
           totalSuccess: {
-            count: result.successCount || 0,
-
-            amount: paiseToRupee(result.successAmount || 0),
+            count: result?.successCount || 0,
+            amount: paiseToRupee(result?.successAmount || 0),
           },
 
           totalPending: {
-            count: result.pendingCount || 0,
-
-            amount: paiseToRupee(result.pendingAmount || 0),
+            count: result?.pendingCount || 0,
+            amount: paiseToRupee(result?.pendingAmount || 0),
           },
 
           totalFailed: {
-            count: result.failedCount || 0,
-
-            amount: paiseToRupee(result.failedAmount || 0),
+            count: result?.failedCount || 0,
+            amount: paiseToRupee(result?.failedAmount || 0),
           },
 
-          commissionOverview: {
-            totalCommission: paiseToRupee(result.totalCommission || 0),
+          total: {
+            totalCount: result?.totalCount || 0,
+            totalAmount: paiseToRupee(result?.totalAmount || 0),
           },
         }
       : defaultStats;
