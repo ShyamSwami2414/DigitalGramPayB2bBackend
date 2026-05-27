@@ -3,7 +3,7 @@ const mongoose = require("mongoose");
 const {
   generateUniqueRefernceId,
 } = require("../utils/generateUniqueReferenceId");
-const { debitWallet } = require("./common/walletService");
+const { debitWallet, creditWallet } = require("./common/walletService");
 const { agentOnboard } = require("../client/cspl/apis/aeps/noble/agentOnboard");
 const { processRefund } = require("./common/refundService");
 const NobleAepsState = require("../models/nobleAepsStateModel");
@@ -20,6 +20,11 @@ const {
   agentOnboardStatus,
 } = require("../client/cspl/apis/aeps/noble/agentOnboardStatus");
 const { transaction } = require("../client/cspl/apis/aeps/noble/transaction");
+const { calculateTds } = require("../helpers/calculateTds");
+const userWallet = require("../models/userWallet");
+const walletLedgerModel = require("../models/walletLedgerModel");
+const tdsLedgerModel = require("../models/tdsLedgerModel");
+const { processCommission } = require("./common/commissionService");
 
 exports.nobleAepsOnboardAgent = async ({
   userId,
@@ -630,6 +635,8 @@ exports.initiateAepsTransaction = async ({
 }) => {
   const session = await mongoose.startSession();
   try {
+    console.log(serviceTypeName, "serviceTypeName");
+
     session.startTransaction();
 
     const referenceId = generateUniqueRefernceId("NAE");
@@ -637,7 +644,7 @@ exports.initiateAepsTransaction = async ({
     const { packageId, serviceId } = await validateUserPackageAndService({
       userId: userId,
       serviceName: "aeps",
-      serviceType: serviceTypeName,
+      serviceTypeName: serviceTypeName,
       pipeline: "aeps3",
       amount: amount, //paise
     });
@@ -656,6 +663,16 @@ exports.initiateAepsTransaction = async ({
     }
 
     console.log(existingAgent, "existingAgent");
+
+    const bioTypeMap = {
+      FINGER: 0,
+      FACE: 1,
+      IRIS: 2,
+    };
+
+    const bioTypeCode = bioTypeMap[bioType];
+
+    console.log(bioTypeCode, "bioType");
 
     await NobleAepsReport.create(
       [
@@ -700,7 +717,7 @@ exports.initiateAepsTransaction = async ({
               amount: amount,
               bankIn: bankIn,
               bankName: bankName,
-
+              bioTypeCode: bioTypeCode,
               pidData: pidData,
               serviceTypeName: serviceTypeName,
             },
@@ -728,44 +745,43 @@ exports.initiateAepsTransaction = async ({
         latitude: latitude,
         longitude: longitude,
         transactionType: transactionType,
+        serviceTypeName: serviceTypeName,
         amount: amount,
         bankIn: bankIn,
         bankName: bankName,
         aadhaar: aadhaar,
-        mobileNumber: mobileNumber,
-        bioType: bioType,
+        mobileNumber: customerMobile,
+        bioType: bioTypeCode, 
         pidData: pidData,
       });
     } catch (error) {
       result = {
-        status: false,
-        reason: error?.comment,
+        status: "FAILED",
         message:
-          error?.comment ||
-          error?.reason ||
           error?.response?.data?.message ||
           error.message ||
           "Something went wrong",
-        data: error?.response?.data || null,
+        data:
+          error?.response?.data || error?.data || error?.fullResponse || null,
       };
     }
 
     console.log(
-      "aeps eko initiate transaction service",
+      "aeps noble initiate transaction service",
       JSON.stringify(result, null, 2),
     );
 
-    console.log("Status", result?.status);
+    console.log("Status", result?.data?.statusCode || result?.status);
 
     if (
-      result?.status === true &&
-      result?.txn_status === "success" &&
-      result?.data?.response_status_id === 0 &&
-      result?.data?.status === 0
+      result?.data?.status === 1 &&
+      result?.data?.statusCode === "AG0001" &&
+      result?.data?.message === "Success"
     ) {
       console.log("Entered Success Block");
       const successSession = await mongoose.startSession();
-      const data = result?.data?.data;
+      const data = result?.data?.responseData?.[0];
+      console.log(data, "data");
 
       let openingBalance = 0;
       let closingBalance = 0;
@@ -783,6 +799,12 @@ exports.initiateAepsTransaction = async ({
             { $inc: { aepsWallet: netCommission } },
             { new: true, session: successSession },
           );
+
+          if (!wallet) {
+            const err = new Error("User wallet not found");
+            err.statusCode = 404;
+            throw err;
+          }
 
           closingBalance = wallet.aepsWallet;
           openingBalance = closingBalance - netCommission;
@@ -828,7 +850,9 @@ exports.initiateAepsTransaction = async ({
               $set: {
                 status: "SUCCESS",
                 providerTxnId: result?.txn_ref,
-                remark: result ? result?.message : "",
+                remark: result
+                  ? result?.data?.description || result?.message
+                  : "",
                 "meta.response": result ? result : "",
               },
             },
@@ -855,25 +879,27 @@ exports.initiateAepsTransaction = async ({
               serviceType: "AEPS",
               walletType: "aeps",
               serviceCategory: "CASH_WITHDRAWAL",
-              pipeline: "aeps2",
+              pipeline: "aeps3",
               referenceId: referenceId,
               providerTxnId: result?.txn_ref,
               description: "Aeps Withdrawal Commission",
-              apiMessage: result?.message,
+              apiMessage: result?.data?.description || result?.message,
               apiResponse: result,
               session: successSession,
             });
         }
 
-        await EkoAepsReport.findOneAndUpdate(
+        await NobleAepsReport.findOneAndUpdate(
           { referenceId: referenceId },
           {
             $set: {
               txnStatus: "SUCCESS",
-              providerTxnId: data?.tid,
-              balance: data?.customer_balance,
-              miniStatement: data?.mini_statement_list,
-              aadhaar: data?.aadhar,
+              providerTxnId: data?.transactionId,
+              balance: data?.balance,
+              bankName: data?.bankName,
+              aadhaar: data?.aadhaarNumber,
+              miniStatement: data?.miniStatement,
+
               message: result?.data?.message,
               reason: data?.comment,
               rawResponse: result,
@@ -893,16 +919,19 @@ exports.initiateAepsTransaction = async ({
       const failedSession = await mongoose.startSession();
       try {
         failedSession.startTransaction();
-        const data = result?.data?.data;
-        await EkoAepsReport.findOneAndUpdate(
+        const data = result?.data?.responseData?.[0];
+        console.log(data, "data");
+
+        await NobleAepsReport.findOneAndUpdate(
           { referenceId: referenceId },
           {
             $set: {
               txnStatus: "FAILED",
-              providerTxnId: data?.tid,
-              accountBalance: data?.customer_balance,
+              providerTxnId: data?.transactionId,
+              accountBalance: data?.balance,
               bankName: data?.bankName,
-              aadhaar: data?.aadhar,
+              aadhaar: data?.aadhaarNumber,
+
               message: result?.data?.message,
               reason: data?.comment,
               rawResponse: result,

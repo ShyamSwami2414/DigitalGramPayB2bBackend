@@ -686,7 +686,7 @@ exports.initiateAepsTransaction = async ({
     const { packageId, serviceId } = await validateUserPackageAndService({
       userId: userId,
       serviceName: "aeps",
-      serviceType: serviceTypeName,
+      serviceTypeName: serviceTypeName,
       pipeline: "aeps2",
       amount: amount, //paise
     });

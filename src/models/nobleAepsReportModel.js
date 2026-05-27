@@ -14,7 +14,7 @@ const nobleAepsReportSchema = new mongoose.Schema(
       trim: true,
     },
 
-    agentUniqueId: {
+    uniqueAgentId: {
       type: String,
       required: true,
       trim: true,
@@ -67,6 +67,10 @@ const nobleAepsReportSchema = new mongoose.Schema(
     miniStatement: {
       type: Array,
       default: [],
+    },
+
+    bankName: {
+      type: String,
     },
 
     bankRefNumber: {

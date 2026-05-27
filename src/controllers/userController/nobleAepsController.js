@@ -29,6 +29,18 @@ exports.getAepsStateList = async (req, res, next) => {
   }
 };
 
+exports.getAepsBankList = async (req, res, next) => {
+  try {
+    const banks = await NobleAepsBank.find().select("bankName").lean();
+
+    return res
+      .status(200)
+      .json({ success: true, message: "Aeps Bank List", data: banks });
+  } catch (error) {
+    next(error);
+  }
+};
+
 exports.onboardNewAgent = async (req, res, next) => {
   try {
     let {
@@ -948,7 +960,7 @@ exports.doTransaction = async (req, res, next) => {
     }
 
     const isBankExist = await NobleAepsBank.findOne({ _id: bankId })
-      .select("bankIn bankName")
+      .select("bankIIN bankName")
       .lean();
 
     if (!isBankExist) {
@@ -987,7 +999,7 @@ exports.doTransaction = async (req, res, next) => {
       transactionType: transactionTypeCode,
       serviceTypeName: transactionType?.toUpperCase(), //just for logs type
       pidData,
-      bankIn: isBankExist.bankIn,
+      bankIn: isBankExist.bankIIN,
       bankName: isBankExist.bankName,
       aadhaar: aadhaar,
       customerMobile: customerMobile,
@@ -1000,26 +1012,34 @@ exports.doTransaction = async (req, res, next) => {
 
     if (
       response &&
-      response?.status === true &&
-      response?.txn_status === "success"
+      response?.data?.status === 1 &&
+      response?.data?.statusCode === "AG0001" &&
+      response?.data?.message === "Success"
     ) {
-      const data = response?.data?.data;
+      const data = response?.data?.responseData?.[0];
+
+      console.log(data, "data");
 
       return res.status(200).json({
         success: true,
         data: {
           referenceId: response?.referenceId,
+          transactionId: response?.transactionId,
           message: response?.data?.message,
-          date: data?.transaction_date,
-          merchantName: data?.merchantname,
-          aadhar: data?.aadhar,
-          customerBalance: data?.customer_balance,
+          description: response?.data?.description,
+          aadhar: data?.aadhaarNumber,
+          bankName: data?.bankName,
           amount: data?.amount,
-          miniStatement: data?.mini_statement_list,
+          balance: data?.balance,
+          miniStatement: data?.miniStatement,
         },
       });
     } else {
-      throw Error(response?.message || response?.data?.message);
+      throw Error(
+        response?.message ||
+          response?.data?.description ||
+          response?.data?.message,
+      );
     }
   } catch (error) {
     next(error);

@@ -2,7 +2,7 @@ const mongoose = require("mongoose");
 
 const nobleAepsBankSchema = new mongoose.Schema(
   {
-    bankIn: {
+    bankIIN: {
       type: String,
       required: true,
       trim: true,

@@ -16,7 +16,11 @@ const nobleAepsLogSchema = new mongoose.Schema(
         "AEPS-BIOMETRIC-KYC",
         "DAILY-LOGIN",
         "ONBOARD-STATUS-CHECK",
-        "TRANSACTION"
+        "TRANSACTION",
+        "ENQUIRY",
+        "STATEMENT",
+        "WITHDRAWAL",
+        "WITHDRAW",
       ],
     },
 
