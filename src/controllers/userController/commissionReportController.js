@@ -1,4 +1,5 @@
 const WalletLedger = require("../../models/walletLedgerModel");
+const Service = require("../../models/serviceModel");
 const { paiseToRupee } = require("../../utils/money");
 const mongoose = require("mongoose");
 
@@ -10,6 +11,7 @@ exports.getCommissionReportStats = async (req, res, next) => {
       search = "",
       //   user = "",
       status = "",
+      service = "",
       from = "",
       to = "",
       range = "",
@@ -22,6 +24,7 @@ exports.getCommissionReportStats = async (req, res, next) => {
     search = search?.trim();
     // user = user?.trim();
     status = status?.trim().toLowerCase();
+    service = service?.trim();
 
     range = typeof range === "string" ? range?.trim().toLowerCase() : "";
     from = typeof from === "string" ? from.trim() : "";
@@ -185,6 +188,26 @@ exports.getCommissionReportStats = async (req, res, next) => {
     //   }
     // }
 
+    let serviceExist;
+
+    if (service) {
+      if (!mongoose.Types.ObjectId.isValid(service)) {
+        return res
+          .status(400)
+          .json({ success: false, message: "Invalid service ID" });
+      }
+
+      serviceExist = await Service.findOne({ _id: service }).lean();
+
+      if (!serviceExist) {
+        return res
+          .status(404)
+          .json({ success: false, message: "Service not found" });
+      }
+    }
+
+    filter.serviceType = serviceExist?.name.toUpperCase();
+
     console.log(filter, "filter");
 
     const [result] = await WalletLedger.aggregate([
@@ -303,7 +326,7 @@ exports.completeCommissionReport = async (req, res, next) => {
       search = "",
       //   user = "",
       status = "",
-      serviceType = "",
+      service = "",
       from = "",
       to = "",
       range = "",
@@ -315,8 +338,8 @@ exports.completeCommissionReport = async (req, res, next) => {
     limit = Number(limit);
     search = search?.trim();
     // user = user?.trim();
-    status = status?.trim().toLowerCase();
-    serviceType = serviceType?.trim().toLowerCase();
+    status = status?.trim()?.toLowerCase();
+    service = service?.trim();
 
     range = typeof range === "string" ? range?.trim().toLowerCase() : "";
     from = typeof from === "string" ? from.trim() : "";
@@ -346,15 +369,15 @@ exports.completeCommissionReport = async (req, res, next) => {
 
     const allowedStatus = ["success", "failed", "pending"];
     const allowedRanges = ["today", "yesterday", "last7days", "thismonth"];
-    const allowedServices = [
-      "recharge1",
-      "bbps1",
-      "dmt1",
-      "aeps1",
-      "aeps2",
-      "xpress-payout1",
-      "aeps-payout1",
-    ];
+    // const allowedServices = [
+    //   "recharge1",
+    //   "bbps1",
+    //   "dmt1",
+    //   "aeps1",
+    //   "aeps2",
+    //   "xpress-payout1",
+    //   "aeps-payout1",
+    // ];
 
     if (isNaN(page) || page < 1) {
       return res.status(400).json({
@@ -376,11 +399,11 @@ exports.completeCommissionReport = async (req, res, next) => {
       throw err;
     }
 
-    if (serviceType && !allowedServices.includes(serviceType)) {
-      const err = new Error("Invalid Service");
-      err.statusCode = 400;
-      throw err;
-    }
+    // if (serviceType && !allowedServices.includes(serviceType)) {
+    //   const err = new Error("Invalid Service");
+    //   err.statusCode = 400;
+    //   throw err;
+    // }
 
     if (range && !allowedRanges.includes(range)) {
       const err = new Error("Invalid Range");
@@ -499,6 +522,24 @@ exports.completeCommissionReport = async (req, res, next) => {
 
     //   filter.userId = new mongoose.Types.ObjectId(user);
     // }
+
+    if (service) {
+      if (!mongoose.Types.ObjectId.isValid(service)) {
+        return res
+          .status(400)
+          .json({ success: false, message: "Invalid service ID" });
+      }
+
+      const serviceExist = await Service.findOne({ _id: service }).lean();
+
+      if (!serviceExist) {
+        return res
+          .status(404)
+          .json({ success: false, message: "Service not found" });
+      }
+
+      filter.serviceType = serviceExist?.name.toUpperCase();
+    }
 
     console.log(filter, "filter");
 
