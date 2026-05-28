@@ -78,7 +78,10 @@ exports.transaction = async ({
     if (providerStatus !== "SUCCESS") {
       throw {
         providerStatus: providerStatus,
-        message: response?.data?.description || response?.data?.message,
+        message:
+          response?.data?.data?.description ||
+          response?.data?.data?.message ||
+          response?.data?.message,
         fullResponse: response?.data,
       };
     }
@@ -124,7 +127,7 @@ exports.transaction = async ({
 
     return response?.data;
   } catch (error) {
-    console.log("API Error Response:", error?.response?.data || error?.message);
+    console.log("API Error Response:", error?.message || error?.response?.data);
 
     console.log("Failed Block Log");
     console.log(" BEFORE LOG SAVE");
@@ -164,6 +167,7 @@ exports.transaction = async ({
       });
     } catch (logError) {
       console.log(" LOG SAVE FAILED:", logError);
+      throw logError;
     }
 
     console.log(" AFTER LOG SAVE");

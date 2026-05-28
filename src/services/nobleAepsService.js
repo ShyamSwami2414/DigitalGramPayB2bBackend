@@ -759,7 +759,8 @@ exports.initiateAepsTransaction = async ({
         status: "FAILED",
         message:
           error?.response?.data?.message ||
-          error.message ||
+          error?.message ||
+           error?.description ||
           "Something went wrong",
         data:
           error?.response?.data || error?.data || error?.fullResponse || null,
