@@ -1014,7 +1014,8 @@ exports.doTransaction = async (req, res, next) => {
       response &&
       response?.data?.status === 1 &&
       response?.data?.statusCode === "AG0001" &&
-      response?.data?.message === "Success"
+      response?.data?.message === "Success" &&
+      response?.data?.responseData?.[0]?.tranStatus === "Success"
     ) {
       const data = response?.data?.responseData?.[0];
 
@@ -1031,7 +1032,7 @@ exports.doTransaction = async (req, res, next) => {
           bankName: data?.bankName,
           amount: data?.amount,
           balance: data?.balance,
-          miniStatement: data?.miniStatement,
+          miniStatement: data?.transactions,
         },
       });
     } else {

@@ -69,7 +69,8 @@ exports.transaction = async ({
 
     const isSuccess =
       response?.data?.data?.status === 1 &&
-      response?.data?.data?.statusCode === "AG0001";
+      response?.data?.data?.statusCode === "AG0001" &&
+      response?.data?.data?.responseData?.[0]?.tranStatus === "Success";
 
     console.log("isSuccess", isSuccess);
 

@@ -751,7 +751,7 @@ exports.initiateAepsTransaction = async ({
         bankName: bankName,
         aadhaar: aadhaar,
         mobileNumber: customerMobile,
-        bioType: bioTypeCode, 
+        bioType: bioTypeCode,
         pidData: pidData,
       });
     } catch (error) {
@@ -760,7 +760,7 @@ exports.initiateAepsTransaction = async ({
         message:
           error?.response?.data?.message ||
           error?.message ||
-           error?.description ||
+          error?.description ||
           "Something went wrong",
         data:
           error?.response?.data || error?.data || error?.fullResponse || null,
@@ -777,12 +777,17 @@ exports.initiateAepsTransaction = async ({
     if (
       result?.data?.status === 1 &&
       result?.data?.statusCode === "AG0001" &&
-      result?.data?.message === "Success"
+      result?.data?.message === "Success" &&
+      result?.data?.responseData?.[0]?.tranStatus === "Success"
     ) {
       console.log("Entered Success Block");
       const successSession = await mongoose.startSession();
       const data = result?.data?.responseData?.[0];
       console.log(data, "data");
+      const balanceValue =
+        data?.balance != null
+          ? Number(String(data.balance).replace(/,/g, ""))
+          : 0;
 
       let openingBalance = 0;
       let closingBalance = 0;
@@ -896,17 +901,21 @@ exports.initiateAepsTransaction = async ({
             $set: {
               txnStatus: "SUCCESS",
               providerTxnId: data?.transactionId,
-              balance: data?.balance,
+              balance: balanceValue,
               bankName: data?.bankName,
               aadhaar: data?.aadhaarNumber,
-              miniStatement: data?.miniStatement,
+              miniStatement: data?.transactions,
 
               message: result?.data?.message,
               reason: data?.comment,
               rawResponse: result,
             },
           },
+          { session: successSession },
         );
+
+        await successSession.commitTransaction();
+        successSession.endSession();
 
         console.log(result);
         return {
@@ -914,6 +923,11 @@ exports.initiateAepsTransaction = async ({
           referenceId: referenceId,
         };
       } catch (error) {
+        if (successSession.inTransaction()) {
+          await successSession.abortTransaction();
+          successSession.endSession();
+        }
+
         throw error;
       }
     } else {
