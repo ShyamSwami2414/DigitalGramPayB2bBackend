@@ -701,7 +701,7 @@ const getCompleteAepsReport = async (req, res, next) => {
         });
       }
 
-      // ✅ ONLY check if NOT self
+      //  ONLY check if NOT self
       if (!userObjectId.equals(currentUserId)) {
         const downlineData = await User.aggregate([
           { $match: { _id: currentUserId } },
@@ -871,6 +871,30 @@ const getCompleteAepsReport = async (req, res, next) => {
               { $ifNull: ["$user.lastName", ""] },
             ],
           },
+        },
+      },
+
+      {
+        $lookup: {
+          from: "tdsledgers",
+          localField: "referenceId",
+          foreignField: "referenceId",
+          as: "commission",
+        },
+      },
+
+      {
+        $unwind: {
+          path: "$commission",
+          preserveNullAndEmptyArrays: true,
+        },
+      },
+
+      {
+        $addFields: {
+          commission: "$commission.commissionAmount",
+          netCommission: "$commission.netCommission",
+          tds: "$commission.tdsAmount",
         },
       },
 
@@ -1107,6 +1131,29 @@ const getAepsReportById = async (req, res, next) => {
           // message: "$rawResponse.message",
           // requestBody: "$provider.request",
           // responseBody: "$provider.response",
+        },
+      },
+      {
+        $lookup: {
+          from: "tdsledgers",
+          localField: "referenceId",
+          foreignField: "referenceId",
+          as: "commission",
+        },
+      },
+
+      {
+        $unwind: {
+          path: "$commission",
+          preserveNullAndEmptyArrays: true,
+        },
+      },
+
+      {
+        $addFields: {
+          commission: "$commission.commissionAmount",
+          netCommission: "$commission.netCommission",
+          tds: "$commission.tdsAmount",
         },
       },
       {
