@@ -19,6 +19,8 @@ const limiter = rateLimit({
   message: "Too many requests from this IP, please try again after 5 minutes",
 });
 
+app.set("trust proxy", true);
+
 // app.use(limiter);
 
 // Serve static files from the public folder

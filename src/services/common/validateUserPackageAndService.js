@@ -6,7 +6,7 @@ const Commission = require("../../models/commissionModel");
 const validateUserPackageAndService = async ({
   userId,
   serviceName,
-  serviceTypeName = null, //for aeps2 {"withdraw", "inquiry", "statement"}
+  serviceTypeName = null, //for aeps2 {"withdrawal", "enquiry", "statement"}
   pipeline,
   operatorId = null,
   categoryId = null,
@@ -76,15 +76,17 @@ const validateUserPackageAndService = async ({
   }).lean();
 
   console.log(commissionPlan, "commissionPlan");
+  console.log(serviceTypeName, "serviceTypeName");
 
   if (!commissionPlan) {
-    if (serviceTypeName && serviceTypeName !== "WITHDRAW") {
+    if (
+      serviceTypeName &&
+      !["WITHDRAW", "WITHDRAWAL"].includes(serviceTypeName)
+    ) {
       return { packageId: user.packageId, serviceId: service._id };
     }
 
-    throw new Error(
-      `Commission not set for this service, Please contact Admin`,
-    );
+    throw new Error(`Commission not Set, Please contact Admin`);
   }
 
   const validPlan = commissionPlan.plan.find(
@@ -92,7 +94,10 @@ const validateUserPackageAndService = async ({
   );
 
   if (!validPlan) {
-    if (serviceTypeName && serviceTypeName !== "WITHDRAW") {
+    if (
+      serviceTypeName &&
+      !["WITHDRAW", "WITHDRAWAL"].includes(serviceTypeName)
+    ) {
       return { packageId: user.packageId, serviceId: service._id };
     }
 
