@@ -75,5 +75,7 @@ module.exports = (app) => {
     `${apiPrefix}/aepsPayoutBankRequest`,
     require("./sozoAepsPayoutBankRequestRoute"),
   );
-  //aeps2
+  //aeps3
+  app.use(`${apiPrefix}/nAepsReport`, require("./nobleAepsReportRoute"));
+
 };

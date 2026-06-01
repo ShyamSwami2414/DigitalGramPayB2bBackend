@@ -76,4 +76,7 @@ module.exports = (app) => {
   app.use(`${apiPrefix}/dashboard`, require("./dashboardRoute"));
   app.use(`${apiPrefix}/charge`, require("./chargeRoute"));
   app.use(`${apiPrefix}/config`, require("./webConfigRoute"));
+
+  app.use(`${apiPrefix}/nAeps`, require("./nobleAepsRoute"));
+  app.use(`${apiPrefix}/nAepsReport`, require("./nobleAepsReportRoute"));
 };
