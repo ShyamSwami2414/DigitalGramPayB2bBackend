@@ -43,6 +43,7 @@ const tdsLedgerModel = require("../models/tdsLedgerModel");
 const {
   validateUserPackageAndService,
 } = require("./common/validateUserPackageAndService");
+const Transaction = require("../models/transactionModel");
 
 exports.instantAepsOutletRegister = async ({
   userId,
@@ -62,7 +63,7 @@ exports.instantAepsOutletRegister = async ({
   try {
     session.startTransaction();
 
-    const referenceId = generateUniqueRefernceId();
+    const referenceId = generateUniqueRefernceId("IAE");
     const registrationCharges = 1000;
     const encryptedAadhaar = encryptAadhaar(aadhaar);
 
@@ -70,6 +71,7 @@ exports.instantAepsOutletRegister = async ({
       userId: userId,
       amount: registrationCharges, //paise
       serviceType: "AEPS",
+      serviceCategory: "ONE_TIME_CHARGES",
       referenceId: referenceId,
       description: "Aeps Outlet Registration Charges",
       session: session,
@@ -118,6 +120,8 @@ exports.instantAepsOutletRegister = async ({
       const { openingBalance, closingBalance } = await processRefund({
         userId: userId,
         amount: registrationCharges, //paise
+        serviceType: "AEPS",
+        serviceCategory: "ONE_TIME_CHARGES",
         referenceId: referenceId,
         walletType: "main",
         description: "Outlet Register Failed, Charges Refunded",
@@ -145,7 +149,7 @@ exports.checkBiometricKycStatus = async ({ userId, requestId }) => {
   try {
     session.startTransaction();
 
-    const referenceId = generateUniqueRefernceId();
+    const referenceId = generateUniqueRefernceId("IAE");
     const spKey = "WAP";
 
     const merchantExist = await Merchant.findOne({ userId: userId })
@@ -283,7 +287,7 @@ exports.biometricKyc = async ({
   try {
     session.startTransaction();
 
-    const referenceId = generateUniqueRefernceId(); //backend unique
+    const referenceId = generateUniqueRefernceId("IAE"); //backend unique
 
     const merchantExist = await Merchant.findOne({ userId: userId })
       .select("_id outletId temp_ref ")
@@ -360,13 +364,14 @@ exports.dailyLogin = async ({
   try {
     session.startTransaction();
 
-    const referenceId = generateUniqueRefernceId(); //backend unique
+    const referenceId = generateUniqueRefernceId("IAE"); //backend unique
     const dailyAepsLoginCharge = 100;
 
     const { openingBalance, closingBalance } = await debitWallet({
       userId: userId,
       amount: dailyAepsLoginCharge, //paise
       serviceType: "AEPS",
+      serviceCategory: "DAILY_LOGIN",
       referenceId: referenceId,
       description: "Aeps Daily Login Charges",
       session: session,
@@ -461,6 +466,8 @@ exports.dailyLogin = async ({
         await processRefund({
           userId: userId,
           amount: dailyAepsLoginCharge,
+          serviceType: "AEPS",
+          serviceCategory: "DAILY_LOGIN",
           referenceId: referenceId,
           walletType: "main",
           description: `Refund: Daily Login Failed `,
@@ -511,7 +518,7 @@ exports.doBalanceEnquiry = async ({
   try {
     session.startTransaction();
 
-    const referenceId = generateUniqueRefernceId(); //backend unique
+    const referenceId = generateUniqueRefernceId("IAE"); //backend unique
 
     const merchantExist = await Merchant.findOne({ userId: userId })
       .select("_id outletId")
@@ -529,7 +536,7 @@ exports.doBalanceEnquiry = async ({
         {
           userId: userId,
           outletId: merchantExist?.outletId,
-          serviceType: "BALANCE-INQUIRY",
+          serviceType: "BALANCE-ENQUIRY",
           providerName: "INSTANT",
           referenceId: referenceId,
           txnStatus: "PENDING",
@@ -657,7 +664,7 @@ exports.doMiniStatement = async ({
   try {
     session.startTransaction();
 
-    const referenceId = generateUniqueRefernceId(); //backend unique
+    const referenceId = generateUniqueRefernceId("IAE"); //backend unique
 
     const merchantExist = await Merchant.findOne({ userId: userId })
       .select("_id outletId")
@@ -866,7 +873,7 @@ exports.doCashWithdraw = async ({
   try {
     session.startTransaction();
 
-    const referenceId = generateUniqueRefernceId(); //backend unique
+    const referenceId = generateUniqueRefernceId("IAE"); //backend unique
 
     const { packageId, serviceId } = await validateUserPackageAndService({
       userId: userId,
@@ -893,11 +900,42 @@ exports.doCashWithdraw = async ({
         {
           userId: userId,
           outletId: merchantExist?.outletId,
-          serviceType: "CASH-WITHDRAW",
+          serviceType: "CASH-WITHDRAWAL",
           providerName: "INSTANT",
           referenceId: referenceId,
           txnStatus: "PENDING",
           amount: amount,
+        },
+      ],
+      { session: session },
+    );
+
+    await Transaction.create(
+      [
+        {
+          userId: userId,
+          referenceId: referenceId,
+          serviceType: "AEPS",
+          serviceCategory: "CASH-WITHDRAWAL",
+          amount: amount, //paise
+          wallet: "aeps",
+          // type: "credit",
+          status: "INITIATED",
+          meta: {
+            request: {
+              userId,
+              requestId, //client send idempotency
+              client_referenceId: referenceId, //auto genertae
+              mcode: merchantExist?.outletId,
+              mobile,
+              bankiin: iin,
+              amount, //paise
+              latitude,
+              longitude,
+              captureType,
+              biometricData,
+            },
+          },
         },
       ],
       { session: session },
@@ -959,12 +997,27 @@ exports.doCashWithdraw = async ({
           { session: withdrawSession },
         );
 
+        await Transaction.updateOne(
+          {
+            referenceId: referenceId,
+          },
+          {
+            $set: {
+              status: "SUCCESS",
+              providerTxnId: result?.txn_ref,
+              remark: result ? result?.message : "",
+              "meta.response": result ? result : "",
+            },
+          },
+          { session: withdrawSession },
+        );
+
         const { openingBalance, closingBalance } = await creditWallet({
           userId: userId,
           amount: amount, // paise
           walletType: "aeps",
           serviceType: "AEPS",
-          serviceCategory: "CASH_WITHDRAW",
+          serviceCategory: "CASH_WITHDRAWAL",
           referenceId: referenceId,
           description: "Aeps Cash Withdrawal",
           session: withdrawSession,
@@ -978,11 +1031,11 @@ exports.doCashWithdraw = async ({
             serviceId: serviceId,
             serviceType: "AEPS",
             walletType: "aeps",
-            serviceCategory: "CASH_WITHDRAW",
+            serviceCategory: "CASH_WITHDRAWAL",
             pipeline: "aeps1",
             referenceId: referenceId,
             providerTxnId: result?.txn_ref,
-            description: "Aeps Withdraw Commission",
+            description: "Aeps Withdrawal Commission",
             apiMessage: result?.message,
             apiResponse: result,
             session: withdrawSession,
@@ -1007,7 +1060,9 @@ exports.doCashWithdraw = async ({
         withdrawSession.endSession();
       }
     } else {
+      const failedSession = await mongoose.startSession();
       try {
+        failedSession.startTransaction();
         const data = result?.response?.data;
         await InstantAepsReport.findOneAndUpdate(
           { referenceId: referenceId },
@@ -1023,7 +1078,25 @@ exports.doCashWithdraw = async ({
               rawResponse: result,
             },
           },
+          { session: failedSession },
         );
+
+        await Transaction.updateOne(
+          {
+            referenceId: referenceId,
+          },
+          {
+            $set: {
+              status: "FAILED",
+              providerTxnId: result?.txn_ref,
+              remark: result ? result?.message : "",
+              "meta.response": result ? result : "",
+            },
+          },
+          { session: failedSession },
+        );
+
+        await failedSession.commitTransaction();
 
         result = {
           ...result,
@@ -1035,7 +1108,12 @@ exports.doCashWithdraw = async ({
         err.data = result?.data;
         throw err;
       } catch (error) {
+        if (failedSession.inTransaction()) {
+          await failedSession.abortTransaction();
+        }
         throw error;
+      } finally {
+        failedSession.endSession();
       }
     }
   } catch (error) {

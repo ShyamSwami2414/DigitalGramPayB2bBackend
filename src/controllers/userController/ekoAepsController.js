@@ -1005,7 +1005,7 @@ const doAepsTransaction = async (req, res, next) => {
     if (["inquiry", "statement"].includes(serviceType) && amount !== 0) {
       return res.status(400).json({
         success: false,
-        message: "Amount must be 0 for inquiry and statement",
+        message: "Amount must be 0 for Balance-Enquiry and Mini-Statement",
       });
     }
 

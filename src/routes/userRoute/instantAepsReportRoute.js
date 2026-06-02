@@ -8,6 +8,8 @@ const {
   getAepsReportById,
 } = require("../../controllers/userController/instantAepsReportController");
 
+const asyncHandler = require("../../utils/asyncHandler");
+
 const router = express.Router();
 
 //get my last 5 aeps transaction
@@ -15,14 +17,14 @@ router.get(
   "/my-aeps-history",
   authenticateUser,
   checkUserPaymentAndKYC,
-  getMyLastAepsHistory,
+  asyncHandler(getMyLastAepsHistory),
 );
 
 router.get(
   "/aeps-stats",
   authenticateUser,
   checkUserPaymentAndKYC,
-  getAepsStats,
+  asyncHandler(getAepsStats),
 );
 
 //get all aeps transaction of me and my downline
@@ -30,14 +32,14 @@ router.get(
   "/complete-aeps-report",
   authenticateUser,
   checkUserPaymentAndKYC,
-  getCompleteAepsReport,
+  asyncHandler(getCompleteAepsReport),
 );
 
 router.get(
   "/report/:id",
   authenticateUser,
   checkUserPaymentAndKYC,
-  getAepsReportById,
+  asyncHandler(getAepsReportById),
 );
 
 module.exports = router;

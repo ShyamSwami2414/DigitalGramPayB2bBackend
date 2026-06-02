@@ -475,16 +475,16 @@ exports.getAllUsers = async (req, res, next) => {
       filter.isActive = false;
     }
 
-    if (search) {
-      filter.$or = [
-        { firstName: { $regex: search, $options: "i" } },
-        { lastName: { $regex: search, $options: "i" } },
-        { email: { $regex: search, $options: "i" } },
-        { phone: { $regex: search, $options: "i" } },
-      ];
-    }
+    // if (search) {
+    //   filter.$or = [
+    //     { firstName: { $regex: search, $options: "i" } },
+    //     { lastName: { $regex: search, $options: "i" } },
+    //     { email: { $regex: search, $options: "i" } },
+    //     { phone: { $regex: search, $options: "i" } },
+    //   ];
+    // }
 
-    const users = await User.aggregate([
+    const result = await User.aggregate([
       { $match: filter },
 
       {
@@ -557,8 +557,31 @@ exports.getAllUsers = async (req, res, next) => {
               "$parentUserData.lastName",
             ],
           },
+          parentUserName: "$parentUserData.userName",
         },
       },
+
+      ...(search
+        ? [
+            {
+              $match: {
+                $or: [
+                  { firstName: { $regex: search, $options: "i" } },
+                  { lastName: { $regex: search, $options: "i" } },
+                  { email: { $regex: search, $options: "i" } },
+                  { phone: { $regex: search, $options: "i" } },
+
+                  // lookup fields
+                  { role: { $regex: search, $options: "i" } },
+                  { package: { $regex: search, $options: "i" } },
+                  { parentUser: { $regex: search, $options: "i" } },
+                  { userName: { $regex: search, $options: "i" } },
+                  { parentUserName: { $regex: search, $options: "i" } },
+                ],
+              },
+            },
+          ]
+        : []),
 
       {
         $project: {
@@ -573,11 +596,21 @@ exports.getAllUsers = async (req, res, next) => {
 
       { $sort: { createdAt: -1 } },
 
-      { $skip: skip },
-      { $limit: limit },
+      {
+        $facet: {
+          data: [{ $skip: skip }, { $limit: limit }],
+
+          totalCount: [
+            {
+              $count: "count",
+            },
+          ],
+        },
+      },
     ]);
 
-    const total = await User.countDocuments(filter);
+    const users = result[0]?.data || [];
+    const total = result[0]?.totalCount?.[0]?.count || 0;
 
     return res.status(200).json({
       success: true,
@@ -641,7 +674,10 @@ exports.createUser = async (req, res, next) => {
         .json({ success: false, message: "Package not found" });
     }
 
-    const existingUser = await User.findOne({ email });
+    const existingUser = await User.findOne({
+      $or: [{ email: email }, { phone: phone }],
+    }).select("email phone");
+
     if (existingUser) {
       return res
         .status(400)
@@ -985,7 +1021,10 @@ exports.assignServiceToUser = async (req, res, next) => {
       data: user,
     });
   } catch (error) {
-    await session.abortTransaction();
+    if (session.inTransaction()) {
+      await session.abortTransaction();
+    }
+
     next(error);
   } finally {
     session.endSession();

@@ -222,14 +222,6 @@ exports.addAepsPayoutBank = async (req, res, next) => {
       { session: session },
     );
 
-    await InstantAepsOutlet.findOneAndUpdate(
-      {
-        userId: userId,
-      },
-      { $inc: { aepsPayoutBanksAdded: 1 } },
-      { session: session },
-    );
-
     await session.commitTransaction();
 
     return res.status(201).json({
@@ -238,7 +230,9 @@ exports.addAepsPayoutBank = async (req, res, next) => {
       data: aepsPayoutBank,
     });
   } catch (error) {
-    await session.abortTransaction();
+    if (session.inTransaction()) {
+      await session.abortTransaction();
+    }
 
     next(error);
   } finally {
@@ -308,7 +302,9 @@ exports.deleteAepsPayoutBank = async (req, res, next) => {
       message: "AEPS payout bank deleted successfully",
     });
   } catch (error) {
-    await session.abortTransaction();
+    if (session.inTransaction()) {
+      await session.abortTransaction();
+    }
     next(error);
   } finally {
     session.endSession();

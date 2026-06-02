@@ -45,8 +45,7 @@ exports.getPolicyByType = async (req, res, next) => {
   }
 };
 
-
-exports.addPolicy = async (req, res, next) => {
+exports.addOrUpdatePolicy = async (req, res, next) => {
   try {
     let { type, siteTitle, policyHeading, content } = req.body;
 
@@ -54,7 +53,12 @@ exports.addPolicy = async (req, res, next) => {
     siteTitle = siteTitle?.trim().toLowerCase();
     policyHeading = policyHeading?.trim();
 
+    // =========================
+    // Validate Required Fields
+    // =========================
+
     const requiredFields = ["type", "siteTitle", "policyHeading", "content"];
+
     const missingFields = [];
 
     requiredFields.forEach((field) => {
@@ -70,6 +74,10 @@ exports.addPolicy = async (req, res, next) => {
       });
     }
 
+    // =========================
+    // Validate Type
+    // =========================
+
     if (!VALID_TYPES.includes(type)) {
       return res.status(400).json({
         success: false,
@@ -77,26 +85,30 @@ exports.addPolicy = async (req, res, next) => {
       });
     }
 
-    const isPolicyExist = await Policy.findOne({
-      type: type,
-      isDeleted: false,
-    });
+    // =========================
+    // Upsert Policy
+    // =========================
 
-    if (isPolicyExist) {
-      return res.status(400).json({
-        success: false,
-        message: "Policy type already exist",
-      });
-    }
-
-    const policy = new Policy({
-      type,
-      siteTitle,
-      policyHeading,
-      content,
-    });
-
-    await policy.save();
+    const policy = await Policy.findOneAndUpdate(
+      {
+        type,
+      },
+      {
+        $set: {
+          siteTitle,
+          policyHeading,
+          content,
+          isDeleted: false,
+          deletedAt: null,
+        },
+      },
+      {
+        new: true,
+        upsert: true,
+        runValidators: true,
+        setDefaultsOnInsert: true,
+      },
+    );
 
     return res.status(200).json({
       success: true,
@@ -104,6 +116,14 @@ exports.addPolicy = async (req, res, next) => {
       data: policy,
     });
   } catch (error) {
+    // Duplicate key handling
+    if (error.code === 11000) {
+      return res.status(400).json({
+        success: false,
+        message: `${Object.keys(error.keyPattern)[0]} already exists`,
+      });
+    }
+
     next(error);
   }
 };

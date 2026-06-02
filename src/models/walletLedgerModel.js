@@ -13,7 +13,15 @@ const walletLedgerSchema = new mongoose.Schema(
 
     serviceType: {
       type: "String",
-      enum: ["RECHARGE", "BBPS", "AEPS", "DMT", "AEPS_PAYOUT", "XPRESS_PAYOUT"],
+      enum: [
+        "RECHARGE",
+        "BBPS",
+        "AEPS",
+        "DMT",
+        "AEPS_PAYOUT",
+        "XPRESS_PAYOUT",
+        "OFFLINE_SERVICE",
+      ],
       trim: true,
       uppercase: true,
     },
@@ -32,12 +40,14 @@ const walletLedgerSchema = new mongoose.Schema(
         "BONUS", //upline earns when doenline pwrform charge based transaction
         "REFUND",
         "PAYOUT",
+        "DMT",
         "WALLET_REFILL",
         "AEPS_TO_MAIN",
         "FUND_REQUEST",
         "CREDIT_WALLET",
         "DEBIT_WALLET",
         "ORDER",
+        "OFFLINE_SERVICE_REQUEST",
       ],
       trim: true,
       uppercase: true,
@@ -58,8 +68,11 @@ const walletLedgerSchema = new mongoose.Schema(
     amount: {
       type: Number,
       required: true,
-      set: round2,
     },
+
+    // settledAmount: {
+    //   type: Number,
+    // },
 
     openingBalance: {
       type: Number,

@@ -38,8 +38,8 @@ const getDownlineUserIds = async (userId) => {
 //     status = status?.trim().toLowerCase();
 
 //     range = typeof range === "string" ? range?.trim().toLowerCase() : "";
-//     from = typeof from === "string" ? from.trim().toLowerCase() : "";
-//     to = typeof to === "string" ? to.trim().toLowerCase() : "";
+//     from = typeof from === "string" ? from.trim() : "";
+//     to = typeof to === "string" ? to.trim() : "";
 
 //     // normalize invalid inputs
 //     if (!from || from === "null" || from === "undefined") {
@@ -402,50 +402,471 @@ const getDownlineUserIds = async (userId) => {
 //     next(error);
 //   }
 // };
+// exports.getWalletStats = async (req, res, next) => {
+//   try {
+//     let { user = "", status = "", from = "", to = "", range = "" } = req.query;
+
+//     user = user?.trim();
+//     status = status?.trim().toLowerCase();
+
+//     range = typeof range === "string" ? range?.trim().toLowerCase() : "";
+//     from = typeof from === "string" ? from.trim() : "";
+//     to = typeof to === "string" ? to.trim() : "";
+
+//     if (!from || from === "null" || from === "undefined") from = undefined;
+//     if (!to || to === "null" || to === "undefined") to = undefined;
+//     if (!range || range === "null" || range === "undefined") range = undefined;
+
+//     const now = new Date();
+//     let fromDate, toDate;
+
+//     const allowedStatus = ["success", "failed", "pending"];
+//     const allowedRanges = ["today", "yesterday", "last7days", "thismonth"];
+
+//     //  VALIDATIONS
+//     if (status && !allowedStatus.includes(status)) {
+//       return res.status(400).json({ message: "Invalid Status" });
+//     }
+
+//     if (range && !allowedRanges.includes(range)) {
+//       return res.status(400).json({ message: "Invalid Range" });
+//     }
+
+//     if (from && new Date(from) > now) {
+//       return res.status(400).json({ message: "From date in future" });
+//     }
+
+//     if (to && new Date(to) > now) {
+//       return res.status(400).json({ message: "To date in future" });
+//     }
+
+//     //  DATE LOGIC
+//     if (range) {
+//       switch (range) {
+//         case "today":
+//           fromDate = new Date();
+//           fromDate.setHours(0, 0, 0, 0);
+//           toDate = new Date();
+//           toDate.setHours(23, 59, 59, 999);
+//           break;
+
+//         case "yesterday":
+//           fromDate = new Date();
+//           fromDate.setDate(fromDate.getDate() - 1);
+//           fromDate.setHours(0, 0, 0, 0);
+//           toDate = new Date();
+//           toDate.setDate(toDate.getDate() - 1);
+//           toDate.setHours(23, 59, 59, 999);
+//           break;
+
+//         case "last7days":
+//           fromDate = new Date();
+//           fromDate.setDate(fromDate.getDate() - 6);
+//           fromDate.setHours(0, 0, 0, 0);
+//           toDate = new Date();
+//           toDate.setHours(23, 59, 59, 999);
+//           break;
+
+//         case "thismonth":
+//           fromDate = new Date(now.getFullYear(), now.getMonth(), 1);
+//           toDate = new Date();
+//           toDate.setHours(23, 59, 59, 999);
+//           break;
+//       }
+//     } else {
+//       const isValidDate = (d) => !isNaN(new Date(d).getTime());
+
+//       if (from) {
+//         if (!isValidDate(from))
+//           return res.status(400).json({ message: "Invalid from date" });
+//         fromDate = new Date(from);
+//       }
+
+//       if (to) {
+//         if (!isValidDate(to))
+//           return res.status(400).json({ message: "Invalid to date" });
+//         toDate = new Date(to);
+//       }
+
+//       if (fromDate && toDate && fromDate > toDate) {
+//         return res
+//           .status(400)
+//           .json({ message: "'from' cannot be greater than 'to'" });
+//       }
+
+//       if (toDate) toDate.setHours(23, 59, 59, 999);
+//     }
+
+//     //  USER ACCESS + USER IDS
+//     let userIds = [];
+
+//     if (user) {
+//       //  ONLY selected user
+//       if (!mongoose.Types.ObjectId.isValid(user)) {
+//         return res.status(400).json({ message: "Invalid user ID" });
+//       }
+
+//       const userExist = await User.findById(user).lean();
+
+//       if (!userExist) {
+//         return res.status(404).json({ message: "User not found" });
+//       }
+
+//       if (
+//         userExist._id.toString() !== req.user.id.toString() &&
+//         userExist.parentUserId?.toString() !== req.user.id.toString()
+//       ) {
+//         return res.status(403).json({ message: "Access denied" });
+//       }
+
+//       userIds = [new mongoose.Types.ObjectId(user)];
+//     } else {
+//       // SELF + DOWNLINE
+//       const downline = await User.aggregate([
+//         { $match: { _id: new mongoose.Types.ObjectId(req.user.id) } },
+//         {
+//           $graphLookup: {
+//             from: "users",
+//             startWith: "$_id",
+//             connectFromField: "_id",
+//             connectToField: "parentUserId",
+//             as: "downline",
+//           },
+//         },
+//         {
+//           $project: {
+//             allIds: {
+//               $concatArrays: [
+//                 ["$_id"],
+//                 {
+//                   $map: {
+//                     input: "$downline",
+//                     as: "d",
+//                     in: "$$d._id",
+//                   },
+//                 },
+//               ],
+//             },
+//           },
+//         },
+//       ]);
+
+//       userIds = downline[0]?.allIds || [
+//         new mongoose.Types.ObjectId(req.user.id),
+//       ];
+//     }
+
+//     //  BASE FILTER
+//     const baseFilter = {
+//       userId: { $in: userIds },
+//       ...(fromDate || toDate
+//         ? {
+//             createdAt: {
+//               ...(fromDate && { $gte: fromDate }),
+//               ...(toDate && { $lte: toDate }),
+//             },
+//           }
+//         : {}),
+//     };
+
+//     const rechargeFilter = {
+//       ...baseFilter,
+//       ...(status && { status: status.toUpperCase() }),
+//     };
+
+//     const bbpsFilter = {
+//       ...baseFilter,
+//       ...(status && { status: status.toUpperCase() }),
+//     };
+
+//     const walletFilter = {
+//       ...baseFilter,
+//     };
+
+//     //  AGGREGATION
+//     const [result] = await RechargeReport.aggregate([
+//       { $match: rechargeFilter },
+//       {
+//         $project: {
+//           amount: 1,
+//           status: 1,
+//           netCommission: 1,
+//           isRefunded: 1,
+//           charge: { $literal: 0 },
+//           type: { $literal: null },
+//           source: { $literal: "RECHARGE" },
+//         },
+//       },
+
+//       {
+//         $unionWith: {
+//           coll: "bbpsreports",
+//           pipeline: [
+//             { $match: bbpsFilter },
+//             {
+//               $project: {
+//                 amount: 1,
+//                 status: 1,
+//                 netCommission: 1,
+//                 isRefunded: 1,
+//                 charge: { $literal: 0 },
+//                 type: { $literal: null },
+//                 source: { $literal: "BBPS" },
+//               },
+//             },
+//           ],
+//         },
+//       },
+
+//       {
+//         $unionWith: {
+//           coll: "walletledgers",
+//           pipeline: [
+//             { $match: walletFilter },
+//             {
+//               $project: {
+//                 amount: 1,
+//                 type: 1,
+//                 source: { $literal: "WALLET" },
+//                 status: { $literal: null },
+//                 netCommission: { $literal: 0 },
+//                 isRefunded: { $literal: false },
+//                 charge: { $literal: 0 },
+//               },
+//             },
+//           ],
+//         },
+//       },
+
+//       {
+//         $group: {
+//           _id: null,
+
+//           totalCount: { $sum: 1 },
+
+//           successCount: {
+//             $sum: { $cond: [{ $eq: ["$status", "SUCCESS"] }, 1, 0] },
+//           },
+//           successAmount: {
+//             $sum: {
+//               $cond: [{ $eq: ["$status", "SUCCESS"] }, "$amount", 0],
+//             },
+//           },
+
+//           pendingCount: {
+//             $sum: { $cond: [{ $eq: ["$status", "PENDING"] }, 1, 0] },
+//           },
+//           pendingAmount: {
+//             $sum: {
+//               $cond: [{ $eq: ["$status", "PENDING"] }, "$amount", 0],
+//             },
+//           },
+
+//           failedCount: {
+//             $sum: { $cond: [{ $eq: ["$status", "FAILED"] }, 1, 0] },
+//           },
+//           failedAmount: {
+//             $sum: {
+//               $cond: [{ $eq: ["$status", "FAILED"] }, "$amount", 0],
+//             },
+//           },
+
+//           refundCount: {
+//             $sum: { $cond: ["$isRefunded", 1, 0] },
+//           },
+//           refundAmount: {
+//             $sum: { $cond: ["$isRefunded", "$amount", 0] },
+//           },
+
+//           totalCredit: {
+//             $sum: {
+//               $cond: [
+//                 {
+//                   $and: [
+//                     { $eq: ["$type", "credit"] },
+//                     { $eq: ["$source", "WALLET"] },
+//                   ],
+//                 },
+//                 "$amount",
+//                 0,
+//               ],
+//             },
+//           },
+
+//           totalDebit: {
+//             $sum: {
+//               $cond: [
+//                 {
+//                   $and: [
+//                     { $eq: ["$type", "debit"] },
+//                     { $eq: ["$source", "WALLET"] },
+//                   ],
+//                 },
+//                 "$amount",
+//                 0,
+//               ],
+//             },
+//           },
+
+//           totalCommission: { $sum: "$netCommission" },
+//           totalCharges: { $sum: "$charge" },
+//         },
+//       },
+
+//       {
+//         $project: {
+//           _id: 0,
+//           total: { commission: "$totalCommission" },
+//           success: { count: "$successCount", amount: "$successAmount" },
+//           pending: { count: "$pendingCount", amount: "$pendingAmount" },
+//           failed: { count: "$failedCount", amount: "$failedAmount" },
+//           refund: { count: "$refundCount", amount: "$refundAmount" },
+//           totalCredit: 1,
+//           totalDebit: 1,
+//           totalCommission: 1,
+//           totalCharges: 1,
+//         },
+//       },
+//     ]);
+
+//     const defaultStats = {
+//       total: { commission: 0 },
+//       success: { count: 0, amount: 0 },
+//       pending: { count: 0, amount: 0 },
+//       failed: { count: 0, amount: 0 },
+//       refund: { count: 0, amount: 0 },
+//       totalCredit: 0,
+//       totalDebit: 0,
+//       totalCommission: 0,
+//       totalCharges: 0,
+//     };
+
+//     const formattedData = result
+//       ? {
+//           ...result,
+//           total: {
+//             // count: result?.total?.count,
+//             // amount: paiseToRupee(result?.total?.amount),
+//             commission: paiseToRupee(result?.total?.commission),
+//           },
+
+//           success: {
+//             count: result?.success?.count,
+//             amount: paiseToRupee(result?.success?.amount),
+//           },
+
+//           pending: {
+//             count: result?.pending?.count,
+//             amount: paiseToRupee(result?.pending?.amount),
+//           },
+
+//           failed: {
+//             count: result?.failed?.count,
+//             amount: paiseToRupee(result?.failed?.amount),
+//           },
+
+//           refund: {
+//             count: result?.refund?.count,
+//             amount: paiseToRupee(result?.refund?.amount),
+//           },
+
+//           totalCredit: paiseToRupee(result?.totalCredit),
+//           totalDebit: paiseToRupee(result?.totalDebit),
+//           totalCommission: paiseToRupee(result?.totalCommission),
+//           totalCharges: paiseToRupee(result?.totalCharges),
+//         }
+//       : defaultStats;
+
+//     return res.status(200).json({
+//       success: true,
+//       message: "Wallet Ledger - Report Stats ",
+//       data: formattedData,
+//     });
+//   } catch (error) {
+//     next(error);
+//   }
+// };
+
+// this api only for wallet aeps to main wallet transfer history
+
 exports.getWalletStats = async (req, res, next) => {
   try {
     let { user = "", status = "", from = "", to = "", range = "" } = req.query;
 
     user = user?.trim();
-    status = status?.trim().toLowerCase();
+    status = status?.trim()?.toLowerCase();
 
-    range = typeof range === "string" ? range?.trim().toLowerCase() : "";
+    range = typeof range === "string" ? range.trim().toLowerCase() : "";
     from = typeof from === "string" ? from.trim() : "";
     to = typeof to === "string" ? to.trim() : "";
 
-    if (!from || from === "null" || from === "undefined") from = undefined;
-    if (!to || to === "null" || to === "undefined") to = undefined;
-    if (!range || range === "null" || range === "undefined") range = undefined;
+    // ======================================================
+    // NORMALIZE
+    // ======================================================
+
+    if (!from || from === "null" || from === "undefined") {
+      from = undefined;
+    }
+
+    if (!to || to === "null" || to === "undefined") {
+      to = undefined;
+    }
+
+    if (!range || range === "null" || range === "undefined") {
+      range = undefined;
+    }
+
+    // ======================================================
+    // VALIDATIONS
+    // ======================================================
 
     const now = new Date();
-    let fromDate, toDate;
+
+    let fromDate;
+    let toDate;
 
     const allowedStatus = ["success", "failed", "pending"];
+
     const allowedRanges = ["today", "yesterday", "last7days", "thismonth"];
 
-    //  VALIDATIONS
     if (status && !allowedStatus.includes(status)) {
-      return res.status(400).json({ message: "Invalid Status" });
+      return res.status(400).json({
+        success: false,
+        message: "Invalid Status",
+      });
     }
 
     if (range && !allowedRanges.includes(range)) {
-      return res.status(400).json({ message: "Invalid Range" });
+      return res.status(400).json({
+        success: false,
+        message: "Invalid Range",
+      });
     }
 
     if (from && new Date(from) > now) {
-      return res.status(400).json({ message: "From date in future" });
+      return res.status(400).json({
+        success: false,
+        message: "Starting date cannot be future",
+      });
     }
 
     if (to && new Date(to) > now) {
-      return res.status(400).json({ message: "To date in future" });
+      return res.status(400).json({
+        success: false,
+        message: "Ending date cannot be future",
+      });
     }
 
-    //  DATE LOGIC
+    // ======================================================
+    // RANGE FILTER
+    // ======================================================
+
     if (range) {
       switch (range) {
         case "today":
           fromDate = new Date();
           fromDate.setHours(0, 0, 0, 0);
+
           toDate = new Date();
           toDate.setHours(23, 59, 59, 999);
           break;
@@ -454,6 +875,7 @@ exports.getWalletStats = async (req, res, next) => {
           fromDate = new Date();
           fromDate.setDate(fromDate.getDate() - 1);
           fromDate.setHours(0, 0, 0, 0);
+
           toDate = new Date();
           toDate.setDate(toDate.getDate() - 1);
           toDate.setHours(23, 59, 59, 999);
@@ -463,67 +885,83 @@ exports.getWalletStats = async (req, res, next) => {
           fromDate = new Date();
           fromDate.setDate(fromDate.getDate() - 6);
           fromDate.setHours(0, 0, 0, 0);
+
           toDate = new Date();
           toDate.setHours(23, 59, 59, 999);
           break;
 
         case "thismonth":
           fromDate = new Date(now.getFullYear(), now.getMonth(), 1);
+
           toDate = new Date();
           toDate.setHours(23, 59, 59, 999);
           break;
       }
     } else {
-      const isValidDate = (d) => !isNaN(new Date(d).getTime());
+      const isValidDate = (date) => !isNaN(new Date(date).getTime());
 
       if (from) {
-        if (!isValidDate(from))
-          return res.status(400).json({ message: "Invalid from date" });
+        if (!isValidDate(from)) {
+          return res.status(400).json({
+            success: false,
+            message: "Invalid from date",
+          });
+        }
+
         fromDate = new Date(from);
+        fromDate.setHours(0, 0, 0, 0);
       }
 
       if (to) {
-        if (!isValidDate(to))
-          return res.status(400).json({ message: "Invalid to date" });
+        if (!isValidDate(to)) {
+          return res.status(400).json({
+            success: false,
+            message: "Invalid to date",
+          });
+        }
+
         toDate = new Date(to);
+        toDate.setHours(23, 59, 59, 999);
       }
 
       if (fromDate && toDate && fromDate > toDate) {
-        return res
-          .status(400)
-          .json({ message: "'from' cannot be greater than 'to'" });
+        return res.status(400).json({
+          success: false,
+          message: "'from' cannot be greater than 'to'",
+        });
       }
-
-      if (toDate) toDate.setHours(23, 59, 59, 999);
     }
 
-    //  USER ACCESS + USER IDS
-    let userIds = [];
+    // ======================================================
+    // USER + DOWNLINE IDS
+    // ======================================================
+
+    let allowedUserIds = [];
 
     if (user) {
-      //  ONLY selected user
       if (!mongoose.Types.ObjectId.isValid(user)) {
-        return res.status(400).json({ message: "Invalid user ID" });
+        return res.status(400).json({
+          success: false,
+          message: "Invalid user ID",
+        });
       }
 
-      const userExist = await User.findById(user).lean();
+      const requestedUser = await User.findById(user).lean();
 
-      if (!userExist) {
-        return res.status(404).json({ message: "User not found" });
+      if (!requestedUser) {
+        return res.status(404).json({
+          success: false,
+          message: "User not found",
+        });
       }
 
-      if (
-        userExist._id.toString() !== req.user.id.toString() &&
-        userExist.parentUserId?.toString() !== req.user.id.toString()
-      ) {
-        return res.status(403).json({ message: "Access denied" });
-      }
-
-      userIds = [new mongoose.Types.ObjectId(user)];
-    } else {
-      // SELF + DOWNLINE
       const downline = await User.aggregate([
-        { $match: { _id: new mongoose.Types.ObjectId(req.user.id) } },
+        {
+          $match: {
+            _id: new mongoose.Types.ObjectId(req.user.id),
+          },
+        },
+
         {
           $graphLookup: {
             from: "users",
@@ -533,6 +971,7 @@ exports.getWalletStats = async (req, res, next) => {
             as: "downline",
           },
         },
+
         {
           $project: {
             allIds: {
@@ -551,14 +990,68 @@ exports.getWalletStats = async (req, res, next) => {
         },
       ]);
 
-      userIds = downline[0]?.allIds || [
+      allowedUserIds = downline[0]?.allIds || [];
+
+      const isAllowed = allowedUserIds.some((id) => id.toString() === user);
+
+      if (!isAllowed) {
+        return res.status(403).json({
+          success: false,
+          message: "Access denied",
+        });
+      }
+
+      allowedUserIds = [new mongoose.Types.ObjectId(user)];
+    } else {
+      const downline = await User.aggregate([
+        {
+          $match: {
+            _id: new mongoose.Types.ObjectId(req.user.id),
+          },
+        },
+
+        {
+          $graphLookup: {
+            from: "users",
+            startWith: "$_id",
+            connectFromField: "_id",
+            connectToField: "parentUserId",
+            as: "downline",
+          },
+        },
+
+        {
+          $project: {
+            allIds: {
+              $concatArrays: [
+                ["$_id"],
+                {
+                  $map: {
+                    input: "$downline",
+                    as: "d",
+                    in: "$$d._id",
+                  },
+                },
+              ],
+            },
+          },
+        },
+      ]);
+
+      allowedUserIds = downline[0]?.allIds || [
         new mongoose.Types.ObjectId(req.user.id),
       ];
     }
 
-    //  BASE FILTER
-    const baseFilter = {
-      userId: { $in: userIds },
+    // ======================================================
+    // FILTERS
+    // ======================================================
+
+    const commonFilter = {
+      userId: {
+        $in: allowedUserIds,
+      },
+
       ...(fromDate || toDate
         ? {
             createdAt: {
@@ -569,113 +1062,546 @@ exports.getWalletStats = async (req, res, next) => {
         : {}),
     };
 
-    const rechargeFilter = {
-      ...baseFilter,
-      ...(status && { status: status.toUpperCase() }),
+    const reportFilter = {
+      ...commonFilter,
+
+      ...(status
+        ? {
+            status: status.toUpperCase(),
+          }
+        : {}),
     };
 
-    const bbpsFilter = {
-      ...baseFilter,
-      ...(status && { status: status.toUpperCase() }),
-    };
+    // ======================================================
+    // MAIN PIPELINE
+    // ======================================================
 
-    const walletFilter = {
-      ...baseFilter,
-    };
+    const walletLedgerPipeline = [
+      {
+        $match: commonFilter,
+      },
 
-    //  AGGREGATION
+      // ======================================================
+      // GROUP REFERENCE ENTRIES
+      // ======================================================
+
+      {
+        $group: {
+          _id: {
+            referenceId: "$referenceId",
+            userId: "$userId",
+          },
+
+          entries: {
+            $push: "$$ROOT",
+          },
+
+          createdAt: {
+            $max: "$createdAt",
+          },
+        },
+      },
+
+      // ======================================================
+      // FLAGS
+      // ======================================================
+
+      {
+        $addFields: {
+          hasRefund: {
+            $anyElementTrue: {
+              $map: {
+                input: "$entries",
+                as: "e",
+                in: {
+                  $eq: ["$$e.entryType", "REFUND"],
+                },
+              },
+            },
+          },
+
+          hasWalletRefill: {
+            $anyElementTrue: {
+              $map: {
+                input: "$entries",
+                as: "e",
+                in: {
+                  $eq: ["$$e.entryType", "WALLET_REFILL"],
+                },
+              },
+            },
+          },
+
+          hasAEPS: {
+            $anyElementTrue: {
+              $map: {
+                input: "$entries",
+                as: "e",
+                in: {
+                  $eq: ["$$e.serviceType", "AEPS_TO_MAIN"],
+                },
+              },
+            },
+          },
+        },
+      },
+
+      // ======================================================
+      // SHOULD MERGE
+      // ======================================================
+
+      {
+        $addFields: {
+          shouldMerge: {
+            $and: [
+              {
+                $not: ["$hasWalletRefill"],
+              },
+
+              {
+                $not: ["$hasAEPS"],
+              },
+
+              {
+                $not: ["$hasRefund"],
+              },
+            ],
+          },
+        },
+      },
+
+      // ======================================================
+      // MERGE
+      // ======================================================
+
+      {
+        $project: {
+          data: {
+            $cond: [
+              "$shouldMerge",
+
+              [
+                {
+                  $mergeObjects: [
+                    {
+                      $arrayElemAt: ["$entries", 0],
+                    },
+
+                    {
+                      $arrayElemAt: [
+                        {
+                          $filter: {
+                            input: "$entries",
+                            as: "e",
+
+                            cond: {
+                              $and: [
+                                {
+                                  $not: {
+                                    $in: [
+                                      "$$e.entryType",
+                                      ["CHARGES", "COMMISSION", "REFUND"],
+                                    ],
+                                  },
+                                },
+
+                                {
+                                  $ne: ["$$e.serviceType", null],
+                                },
+
+                                {
+                                  $ne: ["$$e.serviceType", ""],
+                                },
+                              ],
+                            },
+                          },
+                        },
+
+                        0,
+                      ],
+                    },
+
+                    {
+                      commission: {
+                        $sum: {
+                          $map: {
+                            input: "$entries",
+                            as: "e",
+
+                            in: {
+                              $cond: [
+                                {
+                                  $eq: ["$$e.entryType", "COMMISSION"],
+                                },
+
+                                "$$e.amount",
+
+                                0,
+                              ],
+                            },
+                          },
+                        },
+                      },
+
+                      charges: {
+                        $sum: {
+                          $map: {
+                            input: "$entries",
+                            as: "e",
+
+                            in: {
+                              $cond: [
+                                {
+                                  $eq: ["$$e.entryType", "CHARGES"],
+                                },
+
+                                "$$e.amount",
+
+                                0,
+                              ],
+                            },
+                          },
+                        },
+                      },
+                    },
+                  ],
+                },
+              ],
+
+              "$entries",
+            ],
+          },
+        },
+      },
+
+      {
+        $unwind: "$data",
+      },
+
+      {
+        $replaceRoot: {
+          newRoot: "$data",
+        },
+      },
+
+      // ======================================================
+      // TDS LOOKUP
+      // ======================================================
+
+      {
+        $lookup: {
+          from: "tdsledgers",
+
+          let: {
+            refId: "$referenceId",
+            uid: "$userId",
+          },
+
+          pipeline: [
+            {
+              $match: {
+                $expr: {
+                  $and: [
+                    {
+                      $eq: ["$referenceId", "$$refId"],
+                    },
+
+                    {
+                      $eq: ["$userId", "$$uid"],
+                    },
+                  ],
+                },
+              },
+            },
+
+            {
+              $group: {
+                _id: null,
+
+                commissionAmount: {
+                  $sum: "$commissionAmount",
+                },
+              },
+            },
+          ],
+
+          as: "tds",
+        },
+      },
+
+      {
+        $unwind: {
+          path: "$tds",
+          preserveNullAndEmptyArrays: true,
+        },
+      },
+
+      // ======================================================
+      // GST LOOKUP
+      // ======================================================
+
+      {
+        $lookup: {
+          from: "gstledgers",
+
+          let: {
+            refId: "$referenceId",
+            uid: "$userId",
+          },
+
+          pipeline: [
+            {
+              $match: {
+                $expr: {
+                  $and: [
+                    {
+                      $eq: ["$referenceId", "$$refId"],
+                    },
+
+                    {
+                      $eq: ["$userId", "$$uid"],
+                    },
+                  ],
+                },
+              },
+            },
+
+            {
+              $group: {
+                _id: null,
+
+                totalCharge: {
+                  $sum: "$totalCharge",
+                },
+              },
+            },
+          ],
+
+          as: "gst",
+        },
+      },
+
+      {
+        $unwind: {
+          path: "$gst",
+          preserveNullAndEmptyArrays: true,
+        },
+      },
+
+      // ======================================================
+      // FINAL PROJECT
+      // ======================================================
+
+      {
+        $project: {
+          amount: 1,
+          type: 1,
+
+          source: {
+            $literal: "WALLET",
+          },
+
+          status: {
+            $literal: null,
+          },
+
+          isRefunded: {
+            $literal: false,
+          },
+
+          netCommission: {
+            $ifNull: ["$tds.commissionAmount", 0],
+          },
+
+          charge: {
+            $ifNull: ["$gst.totalCharge", 0],
+          },
+        },
+      },
+    ];
+
+    // ======================================================
+    // FINAL AGGREGATION
+    // ======================================================
+
     const [result] = await RechargeReport.aggregate([
-      { $match: rechargeFilter },
+      // ======================================================
+      // RECHARGE
+      // ======================================================
+
+      {
+        $match: reportFilter,
+      },
+
       {
         $project: {
           amount: 1,
           status: 1,
           netCommission: 1,
           isRefunded: 1,
-          charge: { $literal: 0 },
-          type: { $literal: null },
-          source: { $literal: "RECHARGE" },
+
+          charge: {
+            $literal: 0,
+          },
+
+          type: {
+            $literal: null,
+          },
+
+          source: {
+            $literal: "RECHARGE",
+          },
         },
       },
+
+      // ======================================================
+      // BBPS
+      // ======================================================
 
       {
         $unionWith: {
           coll: "bbpsreports",
+
           pipeline: [
-            { $match: bbpsFilter },
+            {
+              $match: reportFilter,
+            },
+
             {
               $project: {
                 amount: 1,
                 status: 1,
                 netCommission: 1,
                 isRefunded: 1,
-                charge: { $literal: 0 },
-                type: { $literal: null },
-                source: { $literal: "BBPS" },
+
+                charge: {
+                  $literal: 0,
+                },
+
+                type: {
+                  $literal: null,
+                },
+
+                source: {
+                  $literal: "BBPS",
+                },
               },
             },
           ],
         },
       },
 
+      // ======================================================
+      // WALLET LEDGER
+      // ======================================================
+
       {
         $unionWith: {
           coll: "walletledgers",
-          pipeline: [
-            { $match: walletFilter },
-            {
-              $project: {
-                amount: 1,
-                type: 1,
-                source: { $literal: "WALLET" },
-                status: { $literal: null },
-                netCommission: { $literal: 0 },
-                isRefunded: { $literal: false },
-                charge: { $literal: 0 },
-              },
-            },
-          ],
+          pipeline: walletLedgerPipeline,
         },
       },
+
+      // ======================================================
+      // GROUP
+      // ======================================================
 
       {
         $group: {
           _id: null,
 
-          totalCount: { $sum: 1 },
+          totalTransactions: {
+            $sum: 1,
+          },
 
           successCount: {
-            $sum: { $cond: [{ $eq: ["$status", "SUCCESS"] }, 1, 0] },
+            $sum: {
+              $cond: [
+                {
+                  $eq: ["$status", "SUCCESS"],
+                },
+                1,
+                0,
+              ],
+            },
           },
+
           successAmount: {
             $sum: {
-              $cond: [{ $eq: ["$status", "SUCCESS"] }, "$amount", 0],
+              $cond: [
+                {
+                  $eq: ["$status", "SUCCESS"],
+                },
+
+                "$amount",
+
+                0,
+              ],
             },
           },
 
           pendingCount: {
-            $sum: { $cond: [{ $eq: ["$status", "PENDING"] }, 1, 0] },
+            $sum: {
+              $cond: [
+                {
+                  $eq: ["$status", "PENDING"],
+                },
+                1,
+                0,
+              ],
+            },
           },
+
           pendingAmount: {
             $sum: {
-              $cond: [{ $eq: ["$status", "PENDING"] }, "$amount", 0],
+              $cond: [
+                {
+                  $eq: ["$status", "PENDING"],
+                },
+
+                "$amount",
+
+                0,
+              ],
             },
           },
 
           failedCount: {
-            $sum: { $cond: [{ $eq: ["$status", "FAILED"] }, 1, 0] },
+            $sum: {
+              $cond: [
+                {
+                  $eq: ["$status", "FAILED"],
+                },
+                1,
+                0,
+              ],
+            },
           },
+
           failedAmount: {
             $sum: {
-              $cond: [{ $eq: ["$status", "FAILED"] }, "$amount", 0],
+              $cond: [
+                {
+                  $eq: ["$status", "FAILED"],
+                },
+
+                "$amount",
+
+                0,
+              ],
             },
           },
 
           refundCount: {
-            $sum: { $cond: ["$isRefunded", 1, 0] },
+            $sum: {
+              $cond: ["$isRefunded", 1, 0],
+            },
           },
+
           refundAmount: {
-            $sum: { $cond: ["$isRefunded", "$amount", 0] },
+            $sum: {
+              $cond: ["$isRefunded", "$amount", 0],
+            },
           },
 
           totalCredit: {
@@ -683,11 +1609,18 @@ exports.getWalletStats = async (req, res, next) => {
               $cond: [
                 {
                   $and: [
-                    { $eq: ["$type", "credit"] },
-                    { $eq: ["$source", "WALLET"] },
+                    {
+                      $eq: ["$source", "WALLET"],
+                    },
+
+                    {
+                      $eq: ["$type", "credit"],
+                    },
                   ],
                 },
+
                 "$amount",
+
                 0,
               ],
             },
@@ -698,29 +1631,63 @@ exports.getWalletStats = async (req, res, next) => {
               $cond: [
                 {
                   $and: [
-                    { $eq: ["$type", "debit"] },
-                    { $eq: ["$source", "WALLET"] },
+                    {
+                      $eq: ["$source", "WALLET"],
+                    },
+
+                    {
+                      $eq: ["$type", "debit"],
+                    },
                   ],
                 },
+
                 "$amount",
+
                 0,
               ],
             },
           },
 
-          totalCommission: { $sum: "$netCommission" },
-          totalCharges: { $sum: "$charge" },
+          totalCommission: {
+            $sum: "$netCommission",
+          },
+
+          totalCharges: {
+            $sum: "$charge",
+          },
         },
       },
+
+      // ======================================================
+      // PROJECT
+      // ======================================================
 
       {
         $project: {
           _id: 0,
-          total: { commission: "$totalCommission" },
-          success: { count: "$successCount", amount: "$successAmount" },
-          pending: { count: "$pendingCount", amount: "$pendingAmount" },
-          failed: { count: "$failedCount", amount: "$failedAmount" },
-          refund: { count: "$refundCount", amount: "$refundAmount" },
+
+          totalTransactions: 1,
+
+          success: {
+            count: "$successCount",
+            amount: "$successAmount",
+          },
+
+          pending: {
+            count: "$pendingCount",
+            amount: "$pendingAmount",
+          },
+
+          failed: {
+            count: "$failedCount",
+            amount: "$failedAmount",
+          },
+
+          refund: {
+            count: "$refundCount",
+            amount: "$refundAmount",
+          },
+
           totalCredit: 1,
           totalDebit: 1,
           totalCommission: 1,
@@ -729,57 +1696,78 @@ exports.getWalletStats = async (req, res, next) => {
       },
     ]);
 
-    const defaultStats = {
-      total: { commission: 0 },
-      success: { count: 0, amount: 0 },
-      pending: { count: 0, amount: 0 },
-      failed: { count: 0, amount: 0 },
-      refund: { count: 0, amount: 0 },
+    // ======================================================
+    // DEFAULT STATS
+    // ======================================================
+
+    const stats = result || {
+      totalTransactions: 0,
+
+      success: {
+        count: 0,
+        amount: 0,
+      },
+
+      pending: {
+        count: 0,
+        amount: 0,
+      },
+
+      failed: {
+        count: 0,
+        amount: 0,
+      },
+
+      refund: {
+        count: 0,
+        amount: 0,
+      },
+
       totalCredit: 0,
       totalDebit: 0,
       totalCommission: 0,
       totalCharges: 0,
     };
 
-    const formattedData = result
-      ? {
-          ...result,
-          total: {
-            // count: result?.total?.count,
-            // amount: paiseToRupee(result?.total?.amount),
-            commission: paiseToRupee(result?.total?.commission),
-          },
+    // ======================================================
+    // FORMAT
+    // ======================================================
 
-          success: {
-            count: result?.success?.count,
-            amount: paiseToRupee(result?.success?.amount),
-          },
+    const formattedData = {
+      ...stats,
 
-          pending: {
-            count: result?.pending?.count,
-            amount: paiseToRupee(result?.pending?.amount),
-          },
+      success: {
+        count: stats.success.count,
+        amount: paiseToRupee(stats.success.amount),
+      },
 
-          failed: {
-            count: result?.failed?.count,
-            amount: paiseToRupee(result?.failed?.amount),
-          },
+      pending: {
+        count: stats.pending.count,
+        amount: paiseToRupee(stats.pending.amount),
+      },
 
-          refund: {
-            count: result?.refund?.count,
-            amount: paiseToRupee(result?.refund?.amount),
-          },
+      failed: {
+        count: stats.failed.count,
+        amount: paiseToRupee(stats.failed.amount),
+      },
 
-          totalCredit: paiseToRupee(result?.totalCredit),
-          totalDebit: paiseToRupee(result?.totalDebit),
-          totalCommission: paiseToRupee(result?.totalCommission),
-          totalCharges: paiseToRupee(result?.totalCharges),
-        }
-      : defaultStats;
+      refund: {
+        count: stats.refund.count,
+        amount: paiseToRupee(stats.refund.amount),
+      },
+
+      totalCredit: paiseToRupee(stats.totalCredit),
+
+      totalDebit: paiseToRupee(stats.totalDebit),
+
+      totalCommission: paiseToRupee(stats.totalCommission),
+
+      totalCharges: paiseToRupee(stats.totalCharges),
+    };
 
     return res.status(200).json({
       success: true,
-      message: "Wallet Ledger - Report Stats ",
+      message: "Wallet stats fetched successfully",
       data: formattedData,
     });
   } catch (error) {
@@ -787,7 +1775,6 @@ exports.getWalletStats = async (req, res, next) => {
   }
 };
 
-// this api only for wallet aeps to main wallet transfer history
 exports.getWalletTransferHistory = async (req, res, next) => {
   try {
     let {
@@ -806,8 +1793,8 @@ exports.getWalletTransferHistory = async (req, res, next) => {
     status = status?.trim().toLowerCase();
 
     range = typeof range === "string" ? range?.trim().toLowerCase() : "";
-    from = typeof from === "string" ? from.trim().toLowerCase() : "";
-    to = typeof to === "string" ? to.trim().toLowerCase() : "";
+    from = typeof from === "string" ? from.trim() : "";
+    to = typeof to === "string" ? to.trim() : "";
 
     // normalize invalid inputs
     if (!from || from === "null" || from === "undefined") {
@@ -826,7 +1813,7 @@ exports.getWalletTransferHistory = async (req, res, next) => {
     const filter = {
       userId: new mongoose.Types.ObjectId(req.user.id),
       wallet: "main",
-      serviceType: "AEPSTOMAIN",
+      entryType: "AEPS_TO_MAIN",
     };
 
     console.log(req.query);
@@ -1069,8 +2056,8 @@ exports.getWalletTransferHistory = async (req, res, next) => {
 //     status = status?.trim().toLowerCase();
 
 //     range = typeof range === "string" ? range?.trim().toLowerCase() : "";
-//     from = typeof from === "string" ? from.trim().toLowerCase() : "";
-//     to = typeof to === "string" ? to.trim().toLowerCase() : "";
+//     from = typeof from === "string" ? from.trim() : "";
+//     to = typeof to === "string" ? to.trim() : "";
 
 //     // normalize invalid inputs
 //     if (!from || from === "null" || from === "undefined") {
@@ -1959,10 +2946,18 @@ exports.getWalletTransferHistory = async (req, res, next) => {
 
 exports.getWalletReport = async (req, res, next) => {
   try {
-    let { page = 1, limit = 10, search = "", userId = "" } = req.query;
+    let {
+      page = 1,
+      limit = 10,
+      search = "",
+      user = "",
+      status = "",
+    } = req.query;
 
     page = Number(page);
     limit = Number(limit);
+    search = search?.trim();
+    status = status?.trim().toLowerCase();
 
     // VALIDATION
     if (isNaN(page) || page < 1)
@@ -1980,6 +2975,18 @@ exports.getWalletReport = async (req, res, next) => {
     const loggedInUserId = req.user.id;
     console.log(loggedInUserId, "loggedInUserId");
 
+    // const allowedStatus = ["success", "failed", "pending", "refund"];
+
+    // if (status && !allowedStatus.includes(status)) {
+    //   const err = new Error("Invalid Status");
+    //   err.statusCode = 400;
+    //   throw err;
+    // }
+
+    // if (status) {
+    //   filter.status = status;
+    // }
+
     const downlineIds = await getDownlineUserIds(loggedInUserId);
 
     const allowedUserIds = [
@@ -1987,14 +2994,14 @@ exports.getWalletReport = async (req, res, next) => {
       ...downlineIds,
     ];
 
-    if (userId) {
-      if (!mongoose.Types.ObjectId.isValid(userId)) {
+    if (user) {
+      if (!mongoose.Types.ObjectId.isValid(user)) {
         return res
           .status(400)
           .json({ success: false, message: "Invalid userId" });
       }
 
-      const isAllowed = allowedUserIds.some((id) => id.equals(userId));
+      const isAllowed = allowedUserIds.some((id) => id.equals(user));
 
       if (!isAllowed) {
         return res.status(403).json({
@@ -2003,14 +3010,16 @@ exports.getWalletReport = async (req, res, next) => {
         });
       }
 
-      filter.userId = new mongoose.Types.ObjectId(userId);
+      filter.userId = new mongoose.Types.ObjectId(user);
     } else {
       filter.userId = { $in: allowedUserIds };
     }
 
-    if (search) {
-      filter.referenceId = { $regex: search, $options: "i" };
-    }
+    const escapeRegex = (text) => {
+      return text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    };
+
+    const safeSearch = escapeRegex(search);
 
     // ===============================
     //  PIPELINE
@@ -2122,7 +3131,7 @@ exports.getWalletReport = async (req, res, next) => {
                                       [
                                         "CHARGES",
                                         "COMMISSION",
-                                        "BONUS",
+                                        // "BONUS",
                                         "REFUND",
                                       ],
                                     ],
@@ -2170,21 +3179,21 @@ exports.getWalletReport = async (req, res, next) => {
                           },
                         },
                       },
-                      bonus: {
-                        $sum: {
-                          $map: {
-                            input: "$entries",
-                            as: "e",
-                            in: {
-                              $cond: [
-                                { $eq: ["$$e.entryType", "BONUS"] },
-                                "$$e.amount",
-                                0,
-                              ],
-                            },
-                          },
-                        },
-                      },
+                      // bonus: {
+                      //   $sum: {
+                      //     $map: {
+                      //       input: "$entries",
+                      //       as: "e",
+                      //       in: {
+                      //         $cond: [
+                      //           { $eq: ["$$e.entryType", "BONUS"] },
+                      //           "$$e.amount",
+                      //           0,
+                      //         ],
+                      //       },
+                      //     },
+                      //   },
+                      // },
                       refund: {
                         $sum: {
                           $map: {
@@ -2247,7 +3256,7 @@ exports.getWalletReport = async (req, res, next) => {
                 },
               },
             },
-            { $project: { tdsAmount: 1 } },
+            { $project: { tdsAmount: 1, commissionAmount: 1 } },
           ],
           as: "tds",
         },
@@ -2255,7 +3264,21 @@ exports.getWalletReport = async (req, res, next) => {
       { $unwind: { path: "$tds", preserveNullAndEmptyArrays: true } },
       {
         $addFields: {
-          tdsAmount: { $ifNull: ["$tds.tdsAmount", 0] },
+          tdsAmount: {
+            $cond: [
+              { $eq: ["$entryType", "BONUS"] },
+              0,
+              { $ifNull: ["$tds.tdsAmount", 0] },
+            ],
+          },
+
+          commission: {
+            $cond: [
+              { $eq: ["$entryType", "BONUS"] },
+              0,
+              { $ifNull: ["$tds.commissionAmount", 0] },
+            ],
+          },
         },
       },
       { $unset: "tds" },
@@ -2272,11 +3295,75 @@ exports.getWalletReport = async (req, res, next) => {
       { $unwind: { path: "$gst", preserveNullAndEmptyArrays: true } },
       {
         $addFields: {
-          gstAmount: { $ifNull: ["$gst.gstAmount", 0] },
-          chargesAmount: { $ifNull: ["$gst.chargesAmount", 0] },
+          gstAmount: {
+            $cond: [
+              { $eq: ["$entryType", "BONUS"] },
+              0,
+              { $ifNull: ["$gst.gstAmount", 0] },
+            ],
+          },
+
+          chargesAmount: {
+            $cond: [
+              { $eq: ["$entryType", "BONUS"] },
+              0,
+              { $ifNull: ["$gst.chargesAmount", 0] },
+            ],
+          },
         },
       },
       { $unset: "gst" },
+      ...(search
+        ? [
+            {
+              $match: {
+                $or: [
+                  {
+                    "user.phone": {
+                      $regex: safeSearch,
+                      $options: "i",
+                    },
+                  },
+
+                  {
+                    "user.email": {
+                      $regex: safeSearch,
+                      $options: "i",
+                    },
+                  },
+
+                  {
+                    "user.userName": {
+                      $regex: safeSearch,
+                      $options: "i",
+                    },
+                  },
+
+                  {
+                    fullName: {
+                      $regex: safeSearch,
+                      $options: "i",
+                    },
+                  },
+
+                  {
+                    referenceId: {
+                      $regex: safeSearch,
+                      $options: "i",
+                    },
+                  },
+
+                  {
+                    description: {
+                      $regex: safeSearch,
+                      $options: "i",
+                    },
+                  },
+                ],
+              },
+            },
+          ]
+        : []),
     ];
 
     // ===============================
@@ -2299,21 +3386,33 @@ exports.getWalletReport = async (req, res, next) => {
     // ===============================
     // FORMAT
     // ===============================
-    const formattedData = walletLedger.map((item) => ({
-      ...item,
-      amount: paiseToRupee(item?.amount),
-      openingBalance: paiseToRupee(item?.openingBalance),
-      closingBalance: paiseToRupee(item?.closingBalance),
-      commission: paiseToRupee(item?.commission || 0),
-      bonus: paiseToRupee(item?.bonus || 0),
-      chargesAmount: paiseToRupee(item?.chargesAmount || 0),
-      gstAmount: paiseToRupee(item?.gstAmount || 0),
+    const formattedData = walletLedger.map((item) => {
+      const { amount, ...rest } = item;
 
-      totalCharges: paiseToRupee(
-        (item?.chargesAmount || 0) + (item?.gstAmount || 0),
-      ),
-      tdsAmount: paiseToRupee(item?.tdsAmount || 0),
-    }));
+      return {
+        ...rest,
+
+        amount: paiseToRupee(amount),
+
+        openingBalance: paiseToRupee(item?.openingBalance),
+
+        closingBalance: paiseToRupee(item?.closingBalance),
+
+        commission: paiseToRupee(item?.commission || 0),
+
+        bonus: paiseToRupee(item?.bonus || 0),
+
+        chargesAmount: paiseToRupee(item?.chargesAmount || 0),
+
+        gstAmount: paiseToRupee(item?.gstAmount || 0),
+
+        totalCharges: paiseToRupee(
+          (item?.chargesAmount || 0) + (item?.gstAmount || 0),
+        ),
+
+        tdsAmount: paiseToRupee(item?.tdsAmount || 0),
+      };
+    });
 
     return res.status(200).json({
       success: true,

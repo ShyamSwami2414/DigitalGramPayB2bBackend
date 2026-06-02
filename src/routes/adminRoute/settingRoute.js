@@ -11,6 +11,8 @@ const createUploader = require("../../middleware/uploadMiddleware");
 const multerErrorHandler = require("../../middleware/multerErrorHandler");
 const checkAllowedPermission = require("../../middleware/adminPermissionCheck");
 
+const asyncHandler = require("../../utils/asyncHandler");
+
 const settingUpload = createUploader("settings", /jpeg|jpg|png|pdf/, 2048);
 
 router.get(
@@ -18,7 +20,7 @@ router.get(
   authenticateUser,
   authorizeRoles("admin"),
   checkAllowedPermission("SETTINGS"),
-  getSetting,
+  asyncHandler(getSetting),
 );
 
 router.post(
@@ -34,7 +36,7 @@ router.post(
     ]),
   ),
 
-  createSetting,
+  asyncHandler(createSetting),
 );
 
 router.put(
@@ -49,7 +51,7 @@ router.put(
       { name: "qrCode", maxCount: 1 },
     ]),
   ),
-  updateSetting,
+  asyncHandler(updateSetting),
 );
 
 module.exports = router;

@@ -118,10 +118,11 @@ const processCharges = async ({
             userId: userId,
             serviceType: serviceType,
             serviceCategory: serviceCategory,
-            entryType: "PAYOUT",
+            entryType: serviceType === "DMT" ? "DMT" : "PAYOUT",
             wallet: walletType,
             type: "debit",
-            amount: totalDebitAmount, //with charge and gst
+            amount: amount,
+            // settledAmount: totalDebitAmount, //with charge and gst
             referenceId: referenceId,
             openingBalance: openingBalance,
             closingBalance: closingBalance,

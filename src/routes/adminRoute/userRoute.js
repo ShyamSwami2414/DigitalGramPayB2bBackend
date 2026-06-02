@@ -13,9 +13,10 @@ const {
 const { authenticateUser } = require("../../middleware/authMiddleware");
 const { authorizeRoles } = require("../../middleware/roleMiddleware");
 const checkAllowedPermission = require("../../middleware/adminPermissionCheck");
+const asyncHandler = require("../../utils/asyncHandler");
 const router = express.Router();
 
-router.get("/stats", authenticateUser, authorizeRoles("admin"), getUserStats);
+router.get("/stats", authenticateUser, authorizeRoles("admin"), asyncHandler(getUserStats));
 
 //get all users list without pagination
 router.get(
@@ -23,7 +24,7 @@ router.get(
   authenticateUser,
   authorizeRoles("admin"),
   checkAllowedPermission("USERS"),
-  getAllUserList,
+  asyncHandler(getAllUserList),
 );
 
 // with pagination max 50 users per page
@@ -32,7 +33,7 @@ router.get(
   authenticateUser,
   authorizeRoles("admin"),
   checkAllowedPermission("USERS"),
-  getAllUsers,
+  asyncHandler(getAllUsers),
 );
 
 router.post(
@@ -40,7 +41,7 @@ router.post(
   authenticateUser,
   authorizeRoles("admin"),
   checkAllowedPermission("USERS"),
-  createUser,
+  asyncHandler(createUser),
 );
 
 router.patch(
@@ -48,7 +49,7 @@ router.patch(
   authenticateUser,
   authorizeRoles("admin"),
   checkAllowedPermission("USERS"),
-  updateUserStatus,
+  asyncHandler(updateUserStatus),
 );
 
 router.get(
@@ -56,7 +57,7 @@ router.get(
   authenticateUser,
   authorizeRoles("admin"),
   checkAllowedPermission("USERS"),
-  getParticularUserDetail,
+  asyncHandler(getParticularUserDetail),
 );
 
 router.patch(
@@ -64,7 +65,7 @@ router.patch(
   authenticateUser,
   authorizeRoles("admin"),
   checkAllowedPermission("PACKAGE"),
-  assignPackageToUser,
+  asyncHandler(assignPackageToUser),
 );
 
 router.patch(
@@ -72,7 +73,7 @@ router.patch(
   authenticateUser,
   authorizeRoles("admin"),
   checkAllowedPermission("SERVICE"),
-  assignServiceToUser,
+  asyncHandler(assignServiceToUser),
 );
 
 router.get(
@@ -80,7 +81,7 @@ router.get(
   authenticateUser,
   authorizeRoles("admin"),
   checkAllowedPermission("SERVICE"),
-  getAssignedServices,
+  asyncHandler(getAssignedServices),
 );
 
 module.exports = router;

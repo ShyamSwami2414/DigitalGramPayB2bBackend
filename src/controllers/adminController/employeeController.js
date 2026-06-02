@@ -87,19 +87,78 @@ exports.getEmployeeById = async (req, res, next) => {
 
 exports.getEmployeeList = async (req, res, next) => {
   try {
-    let { page = 1, limit = 10 } = req.query;
+    let { page = 1, limit = 10, search = "" } = req.query;
+    page = Number(page);
+    limit = Number(limit);
+
+    search = search?.trim();
     const skip = (page - 1) * limit;
 
-    const employees = await Admin.find({ type: "employee", isDeleted: false })
-      .select("name email phone type level userName")
-      .sort({ createdAt: -1 });
+    const filter = {
+      type: "employee",
+      isDeleted: false,
+    };
 
-    const total = await Admin.countDocuments({ type: "employee" });
+    const employees = await Admin.aggregate([
+      {
+        $match: filter,
+      },
+      {
+        $sort: {
+          createdAt: -1,
+        },
+      },
+      ...(search
+        ? [
+            {
+              $match: {
+                $or: [
+                  { phone: { $regex: search, $options: "i" } },
+                  { email: { $regex: search, $options: "i" } },
+                  { name: { $regex: search, $options: "i" } },
+                  { userName: { $regex: search, $options: "i" } },
+                ],
+              },
+            },
+          ]
+        : []),
+      {
+        $facet: {
+          data: [
+            {
+              $skip: skip,
+            },
+            {
+              $limit: limit,
+            },
+            {
+              $project: {
+                name: 1,
+                email: 1,
+                phone: 1,
+                type: 1,
+                level: 1,
+                userName: 1,
+              },
+            },
+          ],
+
+          totalCount: [
+            {
+              $count: "total",
+            },
+          ],
+        },
+      },
+    ]);
+
+    const data = employees[0]?.data || [];
+    const total = employees[0]?.totalCount[0]?.total || 0;
 
     res.status(200).json({
       success: true,
       message: "Employee list fetched successfully",
-      data: employees,
+      data: data,
       pagination: {
         page,
         limit,

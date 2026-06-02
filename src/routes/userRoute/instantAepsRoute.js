@@ -14,6 +14,7 @@ const idempotencyMiddleware = require("../../middleware/idempotencyMiddleware");
 const validatePipeline = require("../../middleware/pipelineCheckMiddleware");
 const apiLogger = require("../../middleware/apiLogger");
 const checkAepsSession = require("../../middleware/instantAepsOutletAuth");
+const asyncHandler = require("../../utils/asyncHandler");
 const router = express.Router();
 router.use(validatePipeline("aeps1"));
 
@@ -24,7 +25,7 @@ router.post(
   checkUserPaymentAndKYC,
   idempotencyMiddleware,
   apiLogger,
-  registerOutlet,
+  asyncHandler(registerOutlet),
 );
 
 router.get(
@@ -33,7 +34,7 @@ router.get(
   checkUserPaymentAndKYC,
   idempotencyMiddleware,
   apiLogger,
-  getBiometricKycStatus,
+  asyncHandler(getBiometricKycStatus),
 );
 
 router.post(
@@ -42,7 +43,7 @@ router.post(
   checkUserPaymentAndKYC,
   idempotencyMiddleware,
   // apiLogger,
-  completetBiometricKyc,
+  asyncHandler(completetBiometricKyc),
 );
 
 router.get(
@@ -50,14 +51,14 @@ router.get(
   authenticateUser,
   checkUserPaymentAndKYC,
   checkAepsSession,
-  (req, res) => {
+  asyncHandler((req, res) => {
     res.json({
       success: true,
       status: "SUCCESS",
       message: "AEPS session active",
       code: "LOGIN_NOT_REQUIRED",
     });
-  },
+  }),
 );
 
 router.post(
@@ -66,7 +67,7 @@ router.post(
   checkUserPaymentAndKYC,
   idempotencyMiddleware,
   apiLogger,
-  dailyAepsLogin,
+  asyncHandler(dailyAepsLogin),
 );
 
 router.post(
@@ -76,7 +77,7 @@ router.post(
   idempotencyMiddleware,
   checkAepsSession,
   apiLogger,
-  balanceEnquiry,
+  asyncHandler(balanceEnquiry),
 );
 
 router.post(
@@ -86,7 +87,7 @@ router.post(
   idempotencyMiddleware,
   checkAepsSession,
   apiLogger,
-  miniStatement,
+  asyncHandler(miniStatement),
 );
 
 router.post(
@@ -96,7 +97,7 @@ router.post(
   idempotencyMiddleware,
   checkAepsSession,
   apiLogger,
-  cashWithdraw,
+  asyncHandler(cashWithdraw),
 );
 
 module.exports = router;

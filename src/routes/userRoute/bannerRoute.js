@@ -5,12 +5,13 @@ const {
 const { authenticateUser } = require("../../middleware/authMiddleware");
 const checkUserPaymentAndKYC = require("../../middleware/kycPaymentCheckMiddleware");
 const router = express.Router();
+const asyncHandler = require("../../utils/asyncHandler");
 
 router.get(
   "/all-banners",
   authenticateUser,
   checkUserPaymentAndKYC,
-  getAllBanner,
+  asyncHandler(getAllBanner),
 );
 
 module.exports = router;

@@ -5,6 +5,7 @@ const {
   getLoginLogs,
 } = require("../../controllers/adminController/loginLogsController");
 const checkAllowedPermission = require("../../middleware/adminPermissionCheck");
+const asyncHandler = require("../../utils/asyncHandler");
 const router = express.Router();
 
 router.get(
@@ -12,7 +13,7 @@ router.get(
   authenticateUser,
   authorizeRoles("admin"),
   checkAllowedPermission("SETTINGS"),
-  getLoginLogs,
+  asyncHandler(getLoginLogs),
 );
 
 module.exports = router;

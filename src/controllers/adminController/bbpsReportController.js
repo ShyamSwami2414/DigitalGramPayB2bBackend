@@ -12,8 +12,8 @@ exports.getBbpsStats = async (req, res, next) => {
     status = status?.trim().toLowerCase();
 
     range = typeof range === "string" ? range?.trim().toLowerCase() : "";
-    from = typeof from === "string" ? from.trim().toLowerCase() : "";
-    to = typeof to === "string" ? to.trim().toLowerCase() : "";
+    from = typeof from === "string" ? from.trim() : "";
+    to = typeof to === "string" ? to.trim() : "";
 
     // normalize invalid inputs
     if (!from || from === "null" || from === "undefined") {
@@ -198,12 +198,14 @@ exports.getBbpsStats = async (req, res, next) => {
               },
             },
           ],
-          commissionOverview: [
+
+          total: [
+            { $match: {} },
             {
               $group: {
                 _id: null,
-                totalDays: { $sum: 1 }, // Or calculate distinct days if needed
-                totalCommission: { $sum: "$commission" },
+                totalCount: { $sum: 1 },
+                totalAmount: { $sum: "$amount" },
               },
             },
           ],
@@ -216,7 +218,7 @@ exports.getBbpsStats = async (req, res, next) => {
       totalSuccess: { totalCount: 0, totalAmount: 0 },
       totalPending: { totalCount: 0, totalAmount: 0 },
       totalFailed: { totalCount: 0, totalAmount: 0 },
-      commissionOverview: { totalDays: 0, totalCommission: 0 },
+      total: { totalCount: 0, totalAmount: 0 },
     };
 
     if (result.length) {
@@ -224,8 +226,7 @@ exports.getBbpsStats = async (req, res, next) => {
       stats.totalSuccess = resObj.totalSuccess[0] || stats.totalSuccess;
       stats.totalPending = resObj.totalPending[0] || stats.totalPending;
       stats.totalFailed = resObj.totalFailed[0] || stats.totalFailed;
-      stats.commissionOverview =
-        resObj.commissionOverview[0] || stats.commissionOverview;
+      stats.total = resObj.total[0] || stats.total;
     }
 
     // Respond with proper numbers formatted
@@ -245,11 +246,9 @@ exports.getBbpsStats = async (req, res, next) => {
           count: stats.totalFailed.totalCount,
           amount: paiseToRupee(stats.totalFailed.totalAmount),
         },
-        commissionOverview: {
-          totalDays: stats.commissionOverview.totalDays,
-          totalCommission: paiseToRupee(
-            stats.commissionOverview.totalCommission,
-          ),
+        total: {
+          totalCount: stats.total.totalCount,
+          totalAmount: paiseToRupee(stats.total.totalAmount),
         },
       },
     });
@@ -294,6 +293,48 @@ exports.getBbpsReportById = async (req, res, next) => {
         },
       },
       {
+        $lookup: {
+          from: "transactions",
+          let: {
+            refId: "$referenceId",
+            uid: "$userId",
+          },
+          pipeline: [
+            {
+              $match: {
+                $expr: {
+                  $and: [
+                    {
+                      $eq: ["$referenceId", "$$refId"],
+                    },
+                    {
+                      $eq: ["$userId", "$$uid"],
+                    },
+                  ],
+                },
+              },
+            },
+
+            {
+              $project: {
+                _id: 0,
+                status: 1,
+                meta: 1,
+                serviceType: 1,
+              },
+            },
+          ],
+          as: "transaction",
+        },
+      },
+
+      {
+        $unwind: {
+          path: "$transaction",
+          preserveNullAndEmptyArrays: true,
+        },
+      },
+      {
         $project: {
           user: 0,
         },
@@ -301,11 +342,18 @@ exports.getBbpsReportById = async (req, res, next) => {
     ]);
 
     if (!report) {
-      return res.status(404).json({
-        success: false,
+      return res.status(200).json({
+        success: true,
         message: "Bbps report not found",
+        data: {},
       });
     }
+
+    const request = report?.transaction?.meta?.request || {};
+    const response = report?.transaction?.meta?.response || {};
+
+    const { amount, ...formattedRequest } = request;
+    const { data, ...formattedResponse } = response;
 
     const formattedData = report
       ? {
@@ -314,6 +362,9 @@ exports.getBbpsReportById = async (req, res, next) => {
           commission: paiseToRupee(report?.commission),
           tds: paiseToRupee(report?.tds),
           netCommission: paiseToRupee(report?.netCommission),
+          request: formattedRequest,
+          response: formattedResponse,
+          transaction: undefined,
         }
       : null;
 
@@ -333,7 +384,7 @@ exports.getBbpsReport = async (req, res, next) => {
       page = 1,
       limit = 10,
       search = "",
-      user = "",
+      userId = "",
       status = "",
       from = "",
       to = "",
@@ -345,12 +396,12 @@ exports.getBbpsReport = async (req, res, next) => {
     page = Number(page);
     limit = Number(limit);
     search = search?.trim();
-    user = user?.trim();
+
     status = status?.trim().toLowerCase();
 
     range = typeof range === "string" ? range?.trim().toLowerCase() : "";
-    from = typeof from === "string" ? from.trim().toLowerCase() : "";
-    to = typeof to === "string" ? to.trim().toLowerCase() : "";
+    from = typeof from === "string" ? from.trim() : "";
+    to = typeof to === "string" ? to.trim() : "";
 
     // normalize invalid inputs
     if (!from || from === "null" || from === "undefined") {
@@ -493,14 +544,14 @@ exports.getBbpsReport = async (req, res, next) => {
       if (toDate) filter.createdAt.$lte = toDate;
     }
 
-    if (user) {
-      if (!mongoose.Types.ObjectId.isValid(user)) {
+    if (userId) {
+      if (!mongoose.Types.ObjectId.isValid(userId)) {
         return res
           .status(400)
           .json({ success: false, message: "Invalid user ID" });
       }
 
-      const userExist = await User.findOne({ _id: user }).lean();
+      const userExist = await User.findOne({ _id: userId }).lean();
 
       if (!userExist) {
         return res
@@ -508,21 +559,17 @@ exports.getBbpsReport = async (req, res, next) => {
           .json({ success: false, message: "User not found" });
       }
 
-      filter.userId = new mongoose.Types.ObjectId(user);
+      filter.userId = new mongoose.Types.ObjectId(userId);
     }
 
     console.log(filter, "filter");
 
-    if (search) {
-      const isNumber = !isNaN(search);
+    const isNumber = /^\d+(\.\d+)?$/.test(search);
+    const escapeRegex = (text) => {
+      return text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    };
 
-      if (search) {
-        filter.$or = [
-          { mobileNumber: { $regex: search, $options: "i" } },
-          ...(isNumber ? [{ amount: Number(search) }] : []),
-        ];
-      }
-    }
+    const safeSearch = escapeRegex(search);
 
     const bbpsReport = await BbpsReport.aggregate([
       {
@@ -550,10 +597,13 @@ exports.getBbpsReport = async (req, res, next) => {
             {
               $match: {
                 $or: [
-                  { mobileNumber: { $regex: search, $options: "i" } },
-                  { fullName: { $regex: search, $options: "i" } },
-                  { userName: { $regex: search, $options: "i" } },
-                  ...(isNumber ? [{ amount: Number(search) }] : []),
+                  { category: { $regex: safeSearch, $options: "i" } },
+                  { referenceId: { $regex: safeSearch, $options: "i" } },
+                  { description: { $regex: safeSearch, $options: "i" } },
+                  { mobileNumber: { $regex: safeSearch, $options: "i" } },
+                  { fullName: { $regex: safeSearch, $options: "i" } },
+                  { userName: { $regex: safeSearch, $options: "i" } },
+                  ...(isNumber ? [{ amount: Number(safeSearch) }] : []),
                 ],
               },
             },

@@ -14,6 +14,8 @@ const idempotencyMiddleware = require("../../middleware/idempotencyMiddleware");
 
 const apiLogger = require("../../middleware/apiLogger");
 const validatePipeline = require("../../middleware/pipelineCheckMiddleware");
+const asyncHandler = require("../../utils/asyncHandler");
+
 const router = express.Router();
 
 router.use(validatePipeline("bbps1"));
@@ -22,13 +24,13 @@ router.get(
   "/fetch-bbps-categories",
   authenticateUser,
   checkUserPaymentAndKYC,
-  fetchBbpsCategories,
+  asyncHandler(fetchBbpsCategories),
 );
 router.get(
   "/fetch-particular-category-billers",
   authenticateUser,
   checkUserPaymentAndKYC,
-  fetchParticularCategoryBillersList,
+  asyncHandler(fetchParticularCategoryBillersList),
 );
 
 // -----------------------------TPA------------------------------
@@ -37,20 +39,20 @@ router.get(
   "/fetch-biller-info",
   authenticateUser,
   checkUserPaymentAndKYC,
-  fetchBbpsBillerInfo,
+  asyncHandler(fetchBbpsBillerInfo),
 );
 router.post(
   "/fetch-bill",
   authenticateUser,
   checkUserPaymentAndKYC,
-  fetchBbpsBill,
+  asyncHandler(fetchBbpsBill),
 );
 
 router.post(
   "/validate-bill",
   authenticateUser,
   checkUserPaymentAndKYC,
-  validateBbpsBill,
+  asyncHandler(validateBbpsBill),
 );
 
 router.post(
@@ -59,7 +61,7 @@ router.post(
   checkUserPaymentAndKYC,
   idempotencyMiddleware,
   apiLogger,
-  payBbpsBill,
+  asyncHandler(payBbpsBill),
 );
 
 // -----------------------------TPA------------------------------

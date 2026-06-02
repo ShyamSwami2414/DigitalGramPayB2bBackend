@@ -8,6 +8,7 @@ const {
   getNobleDmtBeneficiary,
   deleteNobleDmtBeneficiary,
 } = require("../../controllers/userController/nobleDmtBeneficiaryController");
+const asyncHandler = require("../../utils/asyncHandler");
 const router = express.Router();
 
 // get all list whether approved or not
@@ -17,7 +18,7 @@ router.post(
   checkUserPaymentAndKYC,
   idempotencyMiddleware,
   apiLogger,
-  addNobleDmtBeneficiary,
+  asyncHandler(addNobleDmtBeneficiary),
 );
 
 router.post(
@@ -26,7 +27,7 @@ router.post(
   checkUserPaymentAndKYC,
   idempotencyMiddleware,
   apiLogger,
-  getNobleDmtBeneficiary,
+  asyncHandler(getNobleDmtBeneficiary),
 );
 
 router.post(
@@ -35,7 +36,7 @@ router.post(
   checkUserPaymentAndKYC,
   idempotencyMiddleware,
   apiLogger,
-  deleteNobleDmtBeneficiary,
+  asyncHandler(deleteNobleDmtBeneficiary),
 );
 
 module.exports = router;

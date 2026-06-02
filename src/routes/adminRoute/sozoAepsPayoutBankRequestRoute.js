@@ -9,12 +9,14 @@ const { authenticateUser } = require("../../middleware/authMiddleware");
 const { authorizeRoles } = require("../../middleware/roleMiddleware");
 const checkAllowedPermission = require("../../middleware/adminPermissionCheck");
 
+const asyncHandler = require("../../utils/asyncHandler");
+
 router.get(
   "/payout-bank-requests",
   authenticateUser,
   authorizeRoles("admin"),
   checkAllowedPermission("PAYOUT_BANK"),
-  aepsPayoutBankRequests,
+  asyncHandler(aepsPayoutBankRequests),
 );
 
 router.patch(
@@ -22,7 +24,7 @@ router.patch(
   authenticateUser,
   authorizeRoles("admin"),
   checkAllowedPermission("PAYOUT_BANK"),
-  approveRejectAepsPayoutBankRequest,
+  asyncHandler(approveRejectAepsPayoutBankRequest),
 );
 
 module.exports = router;

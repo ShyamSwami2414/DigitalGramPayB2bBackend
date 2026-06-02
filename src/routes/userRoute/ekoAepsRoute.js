@@ -15,6 +15,8 @@ const apiLogger = require("../../middleware/apiLogger");
 const multerErrorHandler = require("../../middleware/multerErrorHandler");
 const createUploader = require("../../middleware/uploadMiddleware");
 const validatePipeline = require("../../middleware/pipelineCheckMiddleware");
+const asyncHandler = require("../../utils/asyncHandler");
+const checkAepsSession = require("../../middleware/ekoAepsOutletAuth");
 
 const router = express.Router();
 router.use(validatePipeline("aeps2"));
@@ -27,7 +29,7 @@ router.post(
   checkUserPaymentAndKYC,
   idempotencyMiddleware,
   apiLogger,
-  onboardAepsUser,
+  asyncHandler(onboardAepsUser),
 );
 
 router.post(
@@ -43,7 +45,7 @@ router.post(
     ]),
   ),
   apiLogger,
-  activateUser,
+  asyncHandler(activateUser),
 );
 
 router.post(
@@ -52,7 +54,7 @@ router.post(
   checkUserPaymentAndKYC,
   idempotencyMiddleware,
   apiLogger,
-  generateKycOtp,
+  asyncHandler(generateKycOtp),
 );
 
 router.post(
@@ -61,7 +63,7 @@ router.post(
   checkUserPaymentAndKYC,
   idempotencyMiddleware,
   apiLogger,
-  verifyKycOtp,
+  asyncHandler(verifyKycOtp),
 );
 
 router.post(
@@ -70,7 +72,7 @@ router.post(
   checkUserPaymentAndKYC,
   idempotencyMiddleware,
   apiLogger,
-  doEkycBiometric,
+  asyncHandler(doEkycBiometric),
 );
 
 router.post(
@@ -79,7 +81,7 @@ router.post(
   checkUserPaymentAndKYC,
   idempotencyMiddleware,
   apiLogger,
-  dailyAepsLogin,
+  asyncHandler(dailyAepsLogin),
 );
 
 router.post(
@@ -88,7 +90,22 @@ router.post(
   checkUserPaymentAndKYC,
   idempotencyMiddleware,
   apiLogger,
-  doAepsTransaction,
+  asyncHandler(doAepsTransaction),
+);
+
+router.get(
+  "/aeps-status",
+  authenticateUser,
+  checkUserPaymentAndKYC,
+  checkAepsSession,
+  asyncHandler((req, res) => {
+    res.json({
+      success: true,
+      status: "SUCCESS",
+      message: "AEPS session active",
+      code: "LOGIN_NOT_REQUIRED",
+    });
+  }),
 );
 
 module.exports = router;

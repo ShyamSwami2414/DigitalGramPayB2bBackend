@@ -10,6 +10,7 @@ const {
   aepsToEwalletHistory,
 } = require("../../controllers/adminController/userWalletController");
 const checkAllowedPermission = require("../../middleware/adminPermissionCheck");
+const asyncHandler = require("../../utils/asyncHandler");
 const router = express.Router();
 
 router.get(
@@ -17,7 +18,7 @@ router.get(
   authenticateUser,
   authorizeRoles("admin"),
   checkAllowedPermission("WALLET"),
-  getWalletBalances,
+  asyncHandler(getWalletBalances),
 );
 
 router.get(
@@ -25,7 +26,7 @@ router.get(
   authenticateUser,
   authorizeRoles("admin"),
   checkAllowedPermission("WALLET"),
-  getAllUserWallet,
+  asyncHandler(getAllUserWallet),
 );
 
 router.patch(
@@ -33,7 +34,7 @@ router.patch(
   authenticateUser,
   authorizeRoles("admin"),
   checkAllowedPermission("WALLET"),
-  holdReleaseAmount,
+  asyncHandler(holdReleaseAmount),
 );
 
 router.patch(
@@ -41,7 +42,7 @@ router.patch(
   authenticateUser,
   authorizeRoles("admin"),
   checkAllowedPermission("WALLET"),
-  creditDebitAmount,
+  asyncHandler(creditDebitAmount),
 );
 
 module.exports = router;

@@ -38,7 +38,7 @@ exports.initiateXpressPayoutTransfer = async ({
   const session = await mongoose.startSession();
   try {
     session.startTransaction();
-    const referenceId = generateUniqueRefernceId(); //backend unique
+    const referenceId = generateUniqueRefernceId("AER"); //backend unique
     const amountInRupee = paiseToRupee(amount);
     console.log("bankProfle ID", bankProfileId);
 
@@ -167,7 +167,7 @@ exports.initiateXpressPayoutTransfer = async ({
 
         await PayoutTransaction.updateOne(
           { referenceId: referenceId, serviceType: "XPRESS_PAYOUT" },
-          { $set: { status: result?.status } },
+          { $set: { status: result?.status, description: result?.message } },
           { session: successSesion },
         );
 
@@ -227,8 +227,14 @@ exports.initiateXpressPayoutTransfer = async ({
         });
 
         await PayoutTransaction.findOneAndUpdate(
-          { referenceId },
-          { $set: { status: "FAILED", isRefunded: true } },
+          { referenceId: referenceId },
+          {
+            $set: {
+              status: "FAILED",
+              description: result?.message,
+              isRefunded: true,
+            },
+          },
           { session: refundSession },
         );
 

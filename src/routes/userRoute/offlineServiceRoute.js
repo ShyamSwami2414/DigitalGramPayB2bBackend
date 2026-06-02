@@ -7,6 +7,7 @@ const { authenticateUser } = require("../../middleware/authMiddleware");
 const { authorizeRoles } = require("../../middleware/roleMiddleware");
 const checkUserPaymentAndKYC = require("../../middleware/kycPaymentCheckMiddleware");
 const validatePipeline = require("../../middleware/pipelineCheckMiddleware");
+const asyncHandler = require("../../utils/asyncHandler");
 const router = express.Router();
 router.use(validatePipeline("offline-service"));
 
@@ -14,14 +15,14 @@ router.get(
   "/all-offline-service",
   authenticateUser,
   checkUserPaymentAndKYC,
-  listAllOfflineServices,
+  asyncHandler(listAllOfflineServices),
 );
 
 router.get(
   "/offline-service-form/:id",
   authenticateUser,
   checkUserPaymentAndKYC,
-  getFormByServiceId,
+  asyncHandler(getFormByServiceId),
 );
 
 module.exports = router;

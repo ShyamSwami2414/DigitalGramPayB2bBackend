@@ -11,6 +11,7 @@ const { authorizeRoles } = require("../../middleware/roleMiddleware");
 const createUploader = require("../../middleware/uploadMiddleware");
 const multerErrorHandler = require("../../middleware/multerErrorHandler");
 const checkAllowedPermission = require("../../middleware/adminPermissionCheck");
+const asyncHandler = require("../../utils/asyncHandler");
 const router = express.Router();
 
 const upload = createUploader("onlineServices", /jpeg|jpg|png|pdf/, 2048);
@@ -20,7 +21,7 @@ router.get(
   authenticateUser,
   authorizeRoles("admin"),
   checkAllowedPermission("ONLINE_SERVICE"),
-  listAllOnlineServices,
+  asyncHandler(listAllOnlineServices),
 );
 
 router.post(
@@ -29,7 +30,7 @@ router.post(
   authorizeRoles("admin"),
   multerErrorHandler(upload.single("onlineServiceImage")),
   checkAllowedPermission("ONLINE_SERVICE"),
-  createOnlineService,
+  asyncHandler(createOnlineService),
 );
 
 router.get(
@@ -37,7 +38,7 @@ router.get(
   authenticateUser,
   authorizeRoles("admin"),
   checkAllowedPermission("ONLINE_SERVICE"),
-  getOnlineServiceById,
+  asyncHandler(getOnlineServiceById),
 );
 
 router.put(
@@ -46,7 +47,7 @@ router.put(
   authorizeRoles("admin"),
   multerErrorHandler(upload.single("onlineServiceImage")),
   checkAllowedPermission("ONLINE_SERVICE"),
-  updateOnlineService,
+  asyncHandler(updateOnlineService),
 );
 
 router.delete(
@@ -54,7 +55,7 @@ router.delete(
   authenticateUser,
   authorizeRoles("admin"),
   checkAllowedPermission("ONLINE_SERVICE"),
-  deleteOnlineService,
+  asyncHandler(deleteOnlineService),
 );
 
 module.exports = router;

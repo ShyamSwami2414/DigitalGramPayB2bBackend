@@ -6,6 +6,8 @@ const {
   getPolicyByType,
 } = require("../../controllers/userController/policyController");
 
-router.get("/policy-by-type",  getPolicyByType);
+const asyncHandler = require("../../utils/asyncHandler");
+
+router.get("/policy-by-type",  asyncHandler(getPolicyByType));
 
 module.exports = router;

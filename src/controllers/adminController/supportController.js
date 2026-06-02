@@ -3,11 +3,192 @@ const mongoose = require("mongoose");
 
 exports.getSupportStats = async (req, res, next) => {
   try {
+    let {
+      page = 1,
+      limit = 10,
+      status = "",
+      userId = "",
+
+      from = "",
+      to = "",
+      range = "",
+      search = "",
+    } = req.query;
+    page = Number(page);
+    limit = Number(limit);
+    status = status?.trim().toLowerCase();
+    search = search?.trim();
+    range = typeof range === "string" ? range?.trim().toLowerCase() : "";
+    from = typeof from === "string" ? from.trim() : "";
+    to = typeof to === "string" ? to.trim() : "";
+
+    // normalize invalid inputs
+    if (!from || from === "null" || from === "undefined") {
+      from = undefined;
+    }
+
+    if (!to || to === "null" || to === "undefined") {
+      to = undefined;
+    }
+
+    if (!range || range === "null" || range === "undefined") {
+      range = undefined;
+    }
+
+    const skip = (page - 1) * limit;
+    const filter = {
+      isDeleted: false,
+    };
+
+    const now = new Date();
+    let fromDate, toDate;
+
+    const allowedStatus = ["resolved", "closed", "pending"];
+    const allowedRanges = ["today", "yesterday", "last7days", "thismonth"];
+
+    if (isNaN(page) || page < 1) {
+      return res.status(400).json({
+        success: false,
+        message: "Page must be a valid number greater than 0",
+      });
+    }
+
+    if (isNaN(limit) || limit < 1 || limit > 100) {
+      return res.status(400).json({
+        success: false,
+        message: "Limit must be between 1 and 100",
+      });
+    }
+
+    if (status && !allowedStatus.includes(status)) {
+      const err = new Error("Invalid Status");
+      err.statusCode = 400;
+      throw err;
+    }
+
+    if (range && !allowedRanges.includes(range)) {
+      const err = new Error("Invalid Range");
+      err.statusCode = 400;
+      throw err;
+    }
+
+    if (from && new Date(from) > now) {
+      const err = new Error("Starting Date can not be in future");
+      err.statusCode = 400;
+      throw err;
+    }
+
+    if (to && new Date(to) > now) {
+      const err = new Error("Ending Date can not be in future");
+      err.statusCode = 400;
+      throw err;
+    }
+
+    if (status) {
+      filter.status = status?.toLowerCase();
+    }
+
+    if (range) {
+      switch (range) {
+        case "today":
+          fromDate = new Date();
+          fromDate.setHours(0, 0, 0, 0);
+
+          toDate = new Date();
+          toDate.setHours(23, 59, 59, 999);
+          break;
+
+        case "yesterday":
+          fromDate = new Date();
+          fromDate.setDate(fromDate.getDate() - 1);
+          fromDate.setHours(0, 0, 0, 0);
+
+          toDate = new Date();
+          toDate.setDate(toDate.getDate() - 1);
+          toDate.setHours(23, 59, 59, 999);
+          break;
+
+        case "last7days":
+          fromDate = new Date();
+          fromDate.setDate(fromDate.getDate() - 6); // includes today
+          fromDate.setHours(0, 0, 0, 0);
+
+          toDate = new Date();
+          toDate.setHours(23, 59, 59, 999);
+          break;
+
+        case "thismonth":
+          fromDate = new Date(now.getFullYear(), now.getMonth(), 1);
+
+          toDate = new Date();
+          toDate.setHours(23, 59, 59, 999);
+          break;
+      }
+    } else {
+      //  MANUAL DATE VALIDATION
+
+      const isValidDate = (date) => !isNaN(new Date(date).getTime());
+
+      if (from) {
+        if (!isValidDate(from)) {
+          const err = new Error("Invalid 'from' date");
+          err.statusCode = 400;
+          throw err;
+        }
+        fromDate = new Date(from);
+      }
+
+      if (to) {
+        if (!isValidDate(to)) {
+          const err = new Error("Invalid 'to' date");
+          err.statusCode = 400;
+          throw err;
+        }
+        toDate = new Date(to);
+      }
+
+      if (fromDate && toDate && fromDate > toDate) {
+        const err = new Error("'from' cannot be greater than 'to'");
+        err.statusCode = 400;
+        throw err;
+      }
+
+      if (toDate) {
+        toDate.setHours(23, 59, 59, 999);
+      }
+    }
+
+    //  APPLY DATE FILTER
+    if (fromDate || toDate) {
+      filter.createdAt = {};
+
+      if (fromDate) filter.createdAt.$gte = fromDate;
+      if (toDate) filter.createdAt.$lte = toDate;
+    }
+
+    if (userId) {
+      if (!mongoose.Types.ObjectId.isValid(userId)) {
+        return res
+          .status(400)
+          .json({ success: false, message: "Invalid user ID" });
+      }
+
+      const userExist = await User.findOne({ _id: userId }).lean();
+
+      if (!userExist) {
+        return res
+          .status(404)
+          .json({ success: false, message: "User not found" });
+      }
+
+      filter.userId = new mongoose.Types.ObjectId(userId);
+    }
+
+    console.log(filter, "filter");
+
     const [result] = await Support.aggregate([
       {
-        $match: {
-          isDeleted: false,
-        },
+        $match: filter,
       },
       {
         $group: {
@@ -39,10 +220,19 @@ exports.getSupportStats = async (req, res, next) => {
       },
     ]);
 
+    const defaultStats = {
+      total: 0,
+      pending: 0,
+      resolved: 0,
+      closed: 0,
+    };
+
+    const stats = result || defaultStats;
+
     return res.status(200).json({
       success: true,
       message: "Support stats fetched successfully",
-      data: result,
+      data: stats,
     });
   } catch (error) {
     next(error);
@@ -143,14 +333,39 @@ exports.getSupportRequestById = async (req, res, next) => {
 
 exports.getSupportRequests = async (req, res, next) => {
   try {
-    let { page = 1, limit = 10, status = "", search = "" } = req.query;
+    let {
+      page = 1,
+      limit = 10,
+      status = "",
+      userId = "",
+
+      from = "",
+      to = "",
+      range = "",
+      search = "",
+    } = req.query;
     page = Number(page);
     limit = Number(limit);
     status = status?.trim().toLowerCase();
-    search = search?.trim().toLowerCase();
+    search = search?.trim();
+    range = typeof range === "string" ? range?.trim().toLowerCase() : "";
+    from = typeof from === "string" ? from.trim() : "";
+    to = typeof to === "string" ? to.trim() : "";
+
+    // normalize invalid inputs
+    if (!from || from === "null" || from === "undefined") {
+      from = undefined;
+    }
+
+    if (!to || to === "null" || to === "undefined") {
+      to = undefined;
+    }
+
+    if (!range || range === "null" || range === "undefined") {
+      range = undefined;
+    }
 
     const skip = (page - 1) * limit;
-
     const filter = {
       isDeleted: false,
     };
@@ -159,11 +374,157 @@ exports.getSupportRequests = async (req, res, next) => {
       filter.status = status;
     }
 
-    if (search) {
-      filter.$or = [{ ticketId: { $regex: search, $options: "i" } }];
+    const now = new Date();
+    let fromDate, toDate;
+
+    const allowedStatus = ["resolved", "closed", "pending"];
+    const allowedRanges = ["today", "yesterday", "last7days", "thismonth"];
+
+    if (isNaN(page) || page < 1) {
+      return res.status(400).json({
+        success: false,
+        message: "Page must be a valid number greater than 0",
+      });
     }
 
-    const supportRequests = await Support.aggregate([
+    if (isNaN(limit) || limit < 1 || limit > 100) {
+      return res.status(400).json({
+        success: false,
+        message: "Limit must be between 1 and 100",
+      });
+    }
+
+    if (status && !allowedStatus.includes(status)) {
+      const err = new Error("Invalid Status");
+      err.statusCode = 400;
+      throw err;
+    }
+
+    if (range && !allowedRanges.includes(range)) {
+      const err = new Error("Invalid Range");
+      err.statusCode = 400;
+      throw err;
+    }
+
+    if (from && new Date(from) > now) {
+      const err = new Error("Starting Date can not be in future");
+      err.statusCode = 400;
+      throw err;
+    }
+
+    if (to && new Date(to) > now) {
+      const err = new Error("Ending Date can not be in future");
+      err.statusCode = 400;
+      throw err;
+    }
+
+    if (status) {
+      filter.status = status?.toLowerCase();
+    }
+
+    if (range) {
+      switch (range) {
+        case "today":
+          fromDate = new Date();
+          fromDate.setHours(0, 0, 0, 0);
+
+          toDate = new Date();
+          toDate.setHours(23, 59, 59, 999);
+          break;
+
+        case "yesterday":
+          fromDate = new Date();
+          fromDate.setDate(fromDate.getDate() - 1);
+          fromDate.setHours(0, 0, 0, 0);
+
+          toDate = new Date();
+          toDate.setDate(toDate.getDate() - 1);
+          toDate.setHours(23, 59, 59, 999);
+          break;
+
+        case "last7days":
+          fromDate = new Date();
+          fromDate.setDate(fromDate.getDate() - 6); // includes today
+          fromDate.setHours(0, 0, 0, 0);
+
+          toDate = new Date();
+          toDate.setHours(23, 59, 59, 999);
+          break;
+
+        case "thismonth":
+          fromDate = new Date(now.getFullYear(), now.getMonth(), 1);
+
+          toDate = new Date();
+          toDate.setHours(23, 59, 59, 999);
+          break;
+      }
+    } else {
+      //  MANUAL DATE VALIDATION
+
+      const isValidDate = (date) => !isNaN(new Date(date).getTime());
+
+      if (from) {
+        if (!isValidDate(from)) {
+          const err = new Error("Invalid 'from' date");
+          err.statusCode = 400;
+          throw err;
+        }
+        fromDate = new Date(from);
+      }
+
+      if (to) {
+        if (!isValidDate(to)) {
+          const err = new Error("Invalid 'to' date");
+          err.statusCode = 400;
+          throw err;
+        }
+        toDate = new Date(to);
+      }
+
+      if (fromDate && toDate && fromDate > toDate) {
+        const err = new Error("'from' cannot be greater than 'to'");
+        err.statusCode = 400;
+        throw err;
+      }
+
+      if (toDate) {
+        toDate.setHours(23, 59, 59, 999);
+      }
+    }
+
+    //  APPLY DATE FILTER
+    if (fromDate || toDate) {
+      filter.createdAt = {};
+
+      if (fromDate) filter.createdAt.$gte = fromDate;
+      if (toDate) filter.createdAt.$lte = toDate;
+    }
+
+    if (userId) {
+      if (!mongoose.Types.ObjectId.isValid(userId)) {
+        return res
+          .status(400)
+          .json({ success: false, message: "Invalid user ID" });
+      }
+
+      const userExist = await User.findOne({ _id: userId }).lean();
+
+      if (!userExist) {
+        return res
+          .status(404)
+          .json({ success: false, message: "User not found" });
+      }
+
+      filter.userId = new mongoose.Types.ObjectId(userId);
+    }
+
+    console.log(filter, "filter");
+    const escapeRegex = (text) => {
+      return text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    };
+
+    const safeSearch = escapeRegex(search);
+    const result = await Support.aggregate([
       {
         $match: filter,
       },
@@ -206,6 +567,23 @@ exports.getSupportRequests = async (req, res, next) => {
           serviceName: { $concat: ["$service.name"] },
         },
       },
+      ...(search
+        ? [
+            {
+              $match: {
+                $or: [
+                  { ticketId: { $regex: safeSearch, $options: "i" } },
+                  { transactionId: { $regex: safeSearch, $options: "i" } },
+                  { supportDetails: { $regex: safeSearch, $options: "i" } },
+                  { status: { $regex: safeSearch, $options: "i" } },
+                  { fullName: { $regex: safeSearch, $options: "i" } },
+                  { userName: { $regex: safeSearch, $options: "i" } },
+                  { serviceName: { $regex: safeSearch, $options: "i" } },
+                ],
+              },
+            },
+          ]
+        : []),
       {
         $project: {
           ticketId: 1,
@@ -224,20 +602,35 @@ exports.getSupportRequests = async (req, res, next) => {
           createdAt: -1,
         },
       },
+
       {
-        $skip: skip,
-      },
-      {
-        $limit: limit,
+        $facet: {
+          data: [
+            {
+              $skip: skip,
+            },
+
+            {
+              $limit: limit,
+            },
+          ],
+
+          totalCount: [
+            {
+              $count: "count",
+            },
+          ],
+        },
       },
     ]);
 
-    const total = await Support.countDocuments(filter);
+    const data = result?.[0]?.data || [];
+    const total = result?.[0]?.totalCount?.[0]?.count || 0;
 
     return res.status(200).json({
       success: true,
       message: "Support requests fetched successfully",
-      data: supportRequests,
+      data: data,
       pagination: {
         page,
         limit,

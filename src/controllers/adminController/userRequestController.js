@@ -17,10 +17,11 @@ const config = require("../../config/client");
 
 exports.getAllUserRequests = async (req, res, next) => {
   try {
-    let { page = 1, limit = 10, status = "" } = req.query;
+    let { page = 1, limit = 10, status = "", search = "" } = req.query;
     page = Number(page);
     limit = Number(limit);
     status = status?.trim()?.toLowerCase();
+    search = search?.trim()?.toLowerCase();
 
     const skip = (page - 1) * limit;
     const filter = { isDeleted: false };
@@ -46,7 +47,7 @@ exports.getAllUserRequests = async (req, res, next) => {
         .json({ success: false, message: "Invalid page or limit" });
     }
 
-    const userRequests = await UserRequest.aggregate([
+    const result = await UserRequest.aggregate([
       { $match: filter },
 
       {
@@ -100,6 +101,29 @@ exports.getAllUserRequests = async (req, res, next) => {
         },
       },
 
+      ...(search
+        ? [
+            {
+              $match: {
+                $or: [
+                  { firstName: { $regex: search, $options: "i" } },
+                  { lastName: { $regex: search, $options: "i" } },
+                  { fullName: { $regex: search, $options: "i" } },
+                  { email: { $regex: search, $options: "i" } },
+                  { phone: { $regex: search, $options: "i" } },
+                  { userName: { $regex: search, $options: "i" } },
+                  {
+                    role: {
+                      $regex: search,
+                      $options: "i",
+                    },
+                  },
+                ],
+              },
+            },
+          ]
+        : []),
+
       {
         $project: {
           parentUserData: 0,
@@ -111,11 +135,27 @@ exports.getAllUserRequests = async (req, res, next) => {
 
       { $sort: { createdAt: -1 } },
 
-      { $skip: skip },
-      { $limit: limit },
+      {
+        $facet: {
+          data: [
+            {
+              $skip: skip,
+            },
+            {
+              $limit: limit,
+            },
+          ],
+          totalCount: [
+            {
+              $count: "total",
+            },
+          ],
+        },
+      },
     ]);
 
-    const total = await UserRequest.countDocuments(filter);
+    const userRequests = result[0]?.data;
+    const total = result[0]?.totalCount[0]?.total || 0;
 
     return res.status(200).json({
       success: true,
@@ -253,7 +293,7 @@ exports.updateUserRequestStatus = async (req, res, next) => {
         existingUserRequest.email,
         [],
         [],
-       `Welcome to ${config.COMPANY}`,
+        `Welcome to ${config.COMPANY}`,
         html,
       );
 

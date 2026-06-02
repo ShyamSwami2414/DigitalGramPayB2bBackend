@@ -1,20 +1,182 @@
 const UserWhitelistAccount = require("../../models/userWhitelistAccountModel");
+const User = require("../../models/userModel");
 const mongoose = require("mongoose");
 
 exports.getAccountWhitelistRequest = async (req, res, next) => {
   try {
-    let { page = 1, limit = 10 } = req.query;
+    let {
+      page = 1,
+      limit = 10,
+      search = "",
+      userId = "",
+      status = "",
+      from = "",
+      to = "",
+      range = "",
+    } = req.query;
     page = Number(page);
     limit = Number(limit);
-    const skip = (page - 1) * limit;
+    search = search?.trim();
+    userId = userId?.trim();
+    status = status?.trim().toLowerCase();
+
+    from = typeof from === "string" ? from.trim() : "";
+    to = typeof to === "string" ? to.trim() : "";
+    range = typeof range === "string" ? range?.trim().toLowerCase() : "";
+
+    // normalize invalid inputs
+    if (!from || from === "null" || from === "undefined") {
+      from = undefined;
+    }
+
+    if (!to || to === "null" || to === "undefined") {
+      to = undefined;
+    }
+
+    if (!range || range === "null" || range === "undefined") {
+      range = undefined;
+    }
 
     const filter = {
       // status: "pending",
       isActive: true,
       isDeleted: false,
     };
+    const skip = (page - 1) * limit;
 
-    const accountWhitelistRequests = await UserWhitelistAccount.aggregate([
+    const now = new Date();
+    let fromDate, toDate;
+
+    const allowedStatus = ["approved", "rejected", "pending"];
+    const allowedRanges = ["today", "yesterday", "last7days", "thismonth"];
+
+    if (status && !allowedStatus.includes(status)) {
+      const err = new Error("Invalid Status");
+      err.statusCode = 400;
+      throw err;
+    }
+
+    if (range && !allowedRanges.includes(range)) {
+      const err = new Error("Invalid Range");
+      err.statusCode = 400;
+      throw err;
+    }
+
+    if (from && new Date(from) > now) {
+      const err = new Error("Starting Date can not be in future");
+      err.statusCode = 400;
+      throw err;
+    }
+
+    if (to && new Date(to) > now) {
+      const err = new Error("Ending Date can not be in future");
+      err.statusCode = 400;
+      throw err;
+    }
+
+    if (status) {
+      filter.status = status?.toLowerCase();
+    }
+
+    if (range) {
+      switch (range) {
+        case "today":
+          fromDate = new Date();
+          fromDate.setHours(0, 0, 0, 0);
+
+          toDate = new Date();
+          toDate.setHours(23, 59, 59, 999);
+          break;
+
+        case "yesterday":
+          fromDate = new Date();
+          fromDate.setDate(fromDate.getDate() - 1);
+          fromDate.setHours(0, 0, 0, 0);
+
+          toDate = new Date();
+          toDate.setDate(toDate.getDate() - 1);
+          toDate.setHours(23, 59, 59, 999);
+          break;
+
+        case "last7days":
+          fromDate = new Date();
+          fromDate.setDate(fromDate.getDate() - 6); // includes today
+          fromDate.setHours(0, 0, 0, 0);
+
+          toDate = new Date();
+          toDate.setHours(23, 59, 59, 999);
+          break;
+
+        case "thismonth":
+          fromDate = new Date(now.getFullYear(), now.getMonth(), 1);
+
+          toDate = new Date();
+          toDate.setHours(23, 59, 59, 999);
+          break;
+      }
+    } else {
+      //  MANUAL DATE VALIDATION
+
+      const isValidDate = (date) => !isNaN(new Date(date).getTime());
+
+      if (from) {
+        if (!isValidDate(from)) {
+          const err = new Error("Invalid 'from' date");
+          err.statusCode = 400;
+          throw err;
+        }
+        fromDate = new Date(from);
+      }
+
+      if (to) {
+        if (!isValidDate(to)) {
+          const err = new Error("Invalid 'to' date");
+          err.statusCode = 400;
+          throw err;
+        }
+        toDate = new Date(to);
+      }
+
+      if (fromDate && toDate && fromDate > toDate) {
+        const err = new Error("'from' cannot be greater than 'to'");
+        err.statusCode = 400;
+        throw err;
+      }
+
+      if (toDate) {
+        toDate.setHours(23, 59, 59, 999);
+      }
+    }
+
+    //  APPLY DATE FILTER
+    if (fromDate || toDate) {
+      filter.createdAt = {};
+
+      if (fromDate) filter.createdAt.$gte = fromDate;
+      if (toDate) filter.createdAt.$lte = toDate;
+    }
+
+    if (userId) {
+      if (!mongoose.Types.ObjectId.isValid(userId)) {
+        return res
+          .status(400)
+          .json({ success: false, message: "Invalid user ID" });
+      }
+
+      const userExist = await User.findOne({ _id: userId }).lean();
+
+      if (!userExist) {
+        return res
+          .status(404)
+          .json({ success: false, message: "User not found" });
+      }
+
+      filter.userId = new mongoose.Types.ObjectId(userId);
+    }
+
+    console.log(filter, "filter");
+
+    const result = await UserWhitelistAccount.aggregate([
       {
         $match: filter, //  same as find(filter)
       },
@@ -33,6 +195,29 @@ exports.getAccountWhitelistRequest = async (req, res, next) => {
         },
       },
 
+      ...(search
+        ? [
+            {
+              $match: {
+                $or: [
+                  { "user.firstName": { $regex: search, $options: "i" } },
+                  { "user.lastName": { $regex: search, $options: "i" } },
+                  { "user.email": { $regex: search, $options: "i" } },
+                  { "user.phone": { $regex: search, $options: "i" } },
+                  { "user.userName": { $regex: search, $options: "i" } },
+
+                  // lookup fields
+                  { ifscCode: { $regex: search, $options: "i" } },
+                  { accountNumber: { $regex: search, $options: "i" } },
+                  { parentUser: { $regex: search, $options: "i" } },
+
+                  { parentUserName: { $regex: search, $options: "i" } },
+                ],
+              },
+            },
+          ]
+        : []),
+
       {
         $project: {
           // keep all fields + only selected user fields
@@ -41,7 +226,7 @@ exports.getAccountWhitelistRequest = async (req, res, next) => {
           name: "$user.name",
           email: "$user.email",
           phone: "$user.phone",
-          userName : "$user.userName",
+          userName: "$user.userName",
           // include other fields you want
           accountNumber: 1,
           ifscCode: 1,
@@ -57,14 +242,26 @@ exports.getAccountWhitelistRequest = async (req, res, next) => {
         $sort: { createdAt: -1 },
       },
       {
-        $skip: skip,
-      },
-      {
-        $limit: limit,
+        $facet: {
+          data: [
+            {
+              $skip: skip,
+            },
+            {
+              $limit: limit,
+            },
+          ],
+          totalCount: [
+            {
+              $count: "total",
+            },
+          ],
+        },
       },
     ]);
 
-    const total = await UserWhitelistAccount.countDocuments(filter);
+    const accountWhitelistRequests = result[0]?.data;
+    const total = result[0]?.totalCount[0]?.total || 0;
 
     if (!accountWhitelistRequests) {
       return res.status(200).json({
@@ -75,7 +272,7 @@ exports.getAccountWhitelistRequest = async (req, res, next) => {
           page,
           limit,
           totalPages: Math.ceil(total / limit),
-          total,
+          total: total,
         },
       });
     }

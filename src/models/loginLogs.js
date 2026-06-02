@@ -20,6 +20,14 @@ const loginLogsSchema = new mongoose.Schema(
     browser: { type: String, required: true },
     os: { type: String, required: true },
 
+    channel: {
+      type: String,
+      trim: true,
+      uppercase: true,
+      enum: ["WEB", "MOBILE", "API"],
+      default: "WEB",
+    },
+
     isLoginSuccess: { type: Boolean, required: true, default: false },
 
     loginTime: { type: Date, default: Date.now },

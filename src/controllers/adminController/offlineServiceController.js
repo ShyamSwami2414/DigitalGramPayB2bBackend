@@ -70,20 +70,44 @@ exports.getOfflineServiceById = async (req, res, next) => {
 
 exports.listAllOfflineServices = async (req, res, next) => {
   try {
-    let { page = 1, limit = 10 } = req.query;
+    let { page = 1, limit = 10, search = "" } = req.query;
     page = Number(page);
     limit = Number(limit);
+    search = search?.trim();
 
     const skip = (page - 1) * limit;
 
-    const offlineServices = await OfflineService.aggregate([
+    const result = await OfflineService.aggregate([
       { $match: { isDeleted: false } },
+      ...(search
+        ? [
+            {
+              $match: {
+                $or: [
+                  { serviceName: { $regex: search, $options: "i" } },
+                  { amount: { $regex: search, $options: "i" } },
+                ],
+              },
+            },
+          ]
+        : []),
       { $sort: { createdAt: -1 } },
-      { $skip: skip },
-      { $limit: limit },
+
+      {
+        $facet: {
+          data: [
+            { $sort: { createdAt: -1 } },
+            { $skip: skip },
+            { $limit: limit },
+          ],
+
+          totalCount: [{ $count: "count" }],
+        },
+      },
     ]);
 
-    const total = await OfflineService.countDocuments();
+    const offlineServices = result[0]?.data || [];
+    const total = result[0]?.totalCount?.[0]?.count || 0;
 
     const formattedData = offlineServices.map((item) => ({
       ...item,

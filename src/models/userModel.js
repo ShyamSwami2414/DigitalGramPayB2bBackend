@@ -100,6 +100,12 @@ const userSchema = new mongoose.Schema(
       default: false,
     },
 
+    passwordResetToken: {
+      type: String,
+    },
+
+    resetPasswordExpires: { type: Date },
+
     idPaymentStatus: {
       type: String,
       enum: ["pending", "complete", "approved", "rejected", "coupon"],

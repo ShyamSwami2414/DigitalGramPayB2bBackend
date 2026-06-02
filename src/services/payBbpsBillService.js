@@ -38,7 +38,7 @@ exports.payBbpsBillService = async ({
   try {
     session.startTransaction();
 
-    const referenceId = generateUniqueRefernceId();
+    const referenceId = generateUniqueRefernceId("BPS");
 
     let packageId, serviceId;
 
@@ -246,7 +246,7 @@ exports.payBbpsBillService = async ({
         pendingSession.endSession();
       }
     } else if (
-      (result?.status === "SUCCESS" || result.status === "SUCCESSFUL") &&
+      ["SUCCESS", "SUCCESSFUL"].includes(result?.status) &&
       result?.data?.responseCode === "000"
     ) {
       const { commission, tdsAmount, netCommission } = await processCommission({
@@ -268,6 +268,11 @@ exports.payBbpsBillService = async ({
           "Transaction Successful",
         apiResponse: result,
       });
+
+      result = {
+        ...result,
+        referenceId: referenceId,
+      };
 
       return result;
     } else if (result?.status === "FAILED" || result?.status === "ERROR") {

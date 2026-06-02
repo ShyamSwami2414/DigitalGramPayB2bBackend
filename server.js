@@ -1,4 +1,5 @@
 const express = require("express");
+const rateLimit = require("express-rate-limit");
 const app = express();
 const dotenv = require("dotenv").config();
 const cors = require("cors");
@@ -12,6 +13,16 @@ dbConnection();
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+const limiter = rateLimit({
+  windowMs: 2 * 60 * 1000,
+  max: 300,
+  message: "Too many requests from this IP, please try again after 5 minutes",
+});
+
+app.set("trust proxy", true);
+
+// app.use(limiter);
 
 // Serve static files from the public folder
 app.use(express.static(path.join(__dirname, "public")));

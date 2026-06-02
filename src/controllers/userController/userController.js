@@ -58,7 +58,7 @@ exports.getAllUsers = async (req, res, next) => {
       parentUserId: new mongoose.Types.ObjectId(req.user.id),
     };
 
-    const users = await User.aggregate([
+    const result = await User.aggregate([
       { $match: filter },
       {
         $lookup: {
@@ -119,17 +119,28 @@ exports.getAllUsers = async (req, res, next) => {
         },
       },
       { $sort: { createdAt: -1 } },
-      { $skip: skip },
-      { $limit: limit },
+
+      {
+        $facet: {
+          data: [{ $skip: skip }, { $limit: limit }],
+
+          totalCount: [
+            {
+              $count: "count",
+            },
+          ],
+        },
+      },
     ]);
 
+    const users = result[0]?.data || [];
     console.log(users, "users");
 
-    const total = await User.countDocuments(filter);
+    const total = result[0]?.totalCount?.[0]?.count || 0;
 
     return res.status(200).json({
       success: true,
-      message: "Users fetched successfully",
+      message: "All Users fetched successfully",
       data: users,
       pagination: {
         total,
@@ -318,14 +329,19 @@ exports.createUser = async (req, res, next) => {
 
     console.log(isRoleValid, "Role");
 
-    const existingUser = await User.findOne({ email });
+    const existingUser = await User.findOne({
+      $or: [{ email: email }, { phone: phone }],
+    }).select("email, phone");
+
     if (existingUser) {
       return res
         .status(400)
         .json({ success: false, message: "User already exists" });
     }
 
-    const userRole = await Role.findById(req.user.role).select("level").lean();
+    const userRole = await Role.findById(req?.user?.role)
+      .select("level")
+      .lean();
     if (!userRole) {
       return res.status(404).json({
         success: false,
@@ -336,7 +352,7 @@ exports.createUser = async (req, res, next) => {
     if (isRoleValid.level <= userRole.level) {
       return res.status(400).json({
         success: false,
-        message: `You are not authorized to create user with ${isRoleValid.name} role`,
+        message: `You are not authorized to create user with ${isRoleValid?.name} role`,
       });
     }
 

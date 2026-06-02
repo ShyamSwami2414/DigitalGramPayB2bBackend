@@ -1,8 +1,8 @@
 const mongoose = require("mongoose");
 const User = require("../../models/userModel");
-const HoldReleaseHistory = require("../../models/holdReleaseHistoryModel");
+const UserWalletReport = require("../../models/userWalletReportModel");
 
-exports.getCompleteHoldReleaseHistory = async (req, res, next) => {
+exports.getCompleteUserWalletReportHistory = async (req, res, next) => {
   try {
     let {
       page = 1,
@@ -12,6 +12,7 @@ exports.getCompleteHoldReleaseHistory = async (req, res, next) => {
       wallet = "",
       from = "",
       to = "",
+      search = "",
     } = req.query;
 
     page = Number(page);
@@ -20,6 +21,7 @@ exports.getCompleteHoldReleaseHistory = async (req, res, next) => {
 
     type = type?.trim().toLowerCase();
     wallet = wallet?.trim().toLowerCase();
+    search = search?.trim();
 
     const match = {};
 
@@ -34,7 +36,7 @@ exports.getCompleteHoldReleaseHistory = async (req, res, next) => {
     }
 
     if (type) {
-      if (!["hold", "release"].includes(type)) {
+      if (!["hold", "release", "credit", "debit"].includes(type)) {
         return res.status(400).json({ message: "Invalid type" });
       }
       match.type = type;
@@ -67,7 +69,7 @@ exports.getCompleteHoldReleaseHistory = async (req, res, next) => {
       }
     }
 
-    const result = await HoldReleaseHistory.aggregate([
+    const result = await UserWalletReport.aggregate([
       { $match: match },
 
       {
@@ -83,28 +85,15 @@ exports.getCompleteHoldReleaseHistory = async (req, res, next) => {
       {
         $lookup: {
           from: "admins",
-          localField: "holdBy",
+          localField: "actionBy",
           foreignField: "_id",
-          as: "holdByUser",
+          as: "actionTaker",
         },
       },
-      { $unwind: { path: "$holdByUser", preserveNullAndEmptyArrays: true } },
-
-      {
-        $lookup: {
-          from: "admins",
-          localField: "releasedBy",
-          foreignField: "_id",
-          as: "releasedByUser",
-        },
-      },
-      {
-        $unwind: { path: "$releasedByUser", preserveNullAndEmptyArrays: true },
-      },
-
+      { $unwind: { path: "$actionTaker", preserveNullAndEmptyArrays: true } },
       {
         $addFields: {
-          userName: {
+          fullName: {
             $trim: {
               input: {
                 $concat: [
@@ -115,10 +104,26 @@ exports.getCompleteHoldReleaseHistory = async (req, res, next) => {
               },
             },
           },
-          holdByName: "$holdByUser.userName",
-          releasedByName: "$releasedByUser.userName",
+          userName: "$actionTaker.userName" || "",
         },
       },
+
+      ...(search
+        ? [
+            {
+              $match: {
+                $or: [
+                  { firstName: { $regex: search, $options: "i" } },
+                  { lastName: { $regex: search, $options: "i" } },
+                  { fullName: { $regex: search, $options: "i" } },
+                  { reason: { $regex: search, $options: "i" } },
+                  { type: { $regex: search, $options: "i" } },
+                  { wallet: { $regex: search, $options: "i" } },
+                ],
+              },
+            },
+          ]
+        : []),
 
       { $sort: { createdAt: -1 } },
 
@@ -134,9 +139,8 @@ exports.getCompleteHoldReleaseHistory = async (req, res, next) => {
                 wallet: 1,
                 amount: 1,
                 type: 1,
-                holdReason: 1,
-                holdByName: 1,
-                releasedByName: 1,
+                reason: 1,
+                // actionBy: 1,
                 createdAt: 1,
               },
             },
@@ -151,7 +155,7 @@ exports.getCompleteHoldReleaseHistory = async (req, res, next) => {
 
     return res.status(200).json({
       success: true,
-      message: "Hold-Release History fetched successfully",
+      message: "Wallet Report History fetched successfully",
       data: history,
       pagination: {
         total,

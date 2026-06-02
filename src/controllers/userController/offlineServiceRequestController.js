@@ -1,10 +1,19 @@
 const OfflineServiceRequest = require("../../models/offlineServiceRequestModel");
 const OfflineService = require("../../models/offlineServiceModel");
+const User = require("../../models/userModel");
+const UserWallet = require("../../models/userWallet");
+const WalletLedger = require("../../models/walletLedgerModel");
 const mongoose = require("mongoose");
 const { rupeeToPaise, paiseToRupee } = require("../../utils/money");
+const { sendEmail } = require("../../utils/email");
+const {
+  generateUniqueRefernceId,
+} = require("../../utils/generateUniqueReferenceId");
 
 exports.createOfflineServiceRequest = async (req, res, next) => {
+  const session = await mongoose.startSession();
   try {
+    session.startTransaction();
     const userId = req.user.id;
     let { offlineServiceId, fieldData } = req.body;
 
@@ -12,7 +21,9 @@ exports.createOfflineServiceRequest = async (req, res, next) => {
       !offlineServiceId ||
       !mongoose.Types.ObjectId.isValid(offlineServiceId)
     ) {
-      return res.status(400).json({ message: "Invalid Offline Service ID" });
+      const err = new Error("Invalid Offline Service ID");
+      err.statusCode = 400;
+      throw err;
     }
 
     if (typeof fieldData === "string") {
@@ -20,16 +31,35 @@ exports.createOfflineServiceRequest = async (req, res, next) => {
     }
 
     if (!Array.isArray(fieldData) || fieldData.length === 0) {
-      return res.status(400).json({ message: "FieldData required" });
+      const err = new Error("FieldData required");
+      err.statusCode = 400;
+      throw err;
+    }
+
+    const user = await User.findOne({
+      _id: userId,
+      isActive: true,
+      isDeleted: false,
+    })
+      .select("email userName")
+      .lean()
+      .session(session);
+
+    if (!user) {
+      const err = new Error("User not found");
+      err.statusCode = 404;
+      throw err;
     }
 
     const offlineService = await OfflineService.findOne({
       _id: offlineServiceId,
       isDeleted: false,
-    });
+    }).session(session);
 
     if (!offlineService) {
-      return res.status(404).json({ message: "Offline Service not found" });
+      const err = new Error("Offline Service not found");
+      err.statusCode = 404;
+      throw err;
     }
 
     const requiredFieldIds = offlineService.requiredFields.map((id) =>
@@ -43,45 +73,61 @@ exports.createOfflineServiceRequest = async (req, res, next) => {
 
     // Duplicate field check
     if (new Set(submittedFieldIds).size !== submittedFieldIds.length) {
-      return res.status(400).json({ message: "Duplicate fields submitted" });
+      const err = new Error("Duplicate fields submitted");
+      err.statusCode = 400;
+      throw err;
     }
 
     // Validate fields
     for (let f of fieldData) {
       if (!f.fieldId || !mongoose.Types.ObjectId.isValid(f.fieldId)) {
-        return res.status(400).json({ message: "Invalid fieldId" });
+        const err = new Error("Invalid fieldId");
+        err.statusCode = 400;
+        throw err;
       }
 
       if (!requiredFieldIds.includes(f.fieldId)) {
-        return res.status(400).json({ message: "Invalid field submitted" });
+        const err = new Error("Invalid field submitted");
+        err.statusCode = 400;
+        throw err;
       }
 
       if (!f.value || f.value.toString().trim() === "") {
-        return res.status(400).json({ message: "Field value cannot be empty" });
+        const err = new Error("Field value cannot be empty");
+        err.statusCode = 400;
+        throw err;
       }
     }
 
     if (!req.files || req.files.length === 0) {
-      return res.status(400).json({ message: "Documents required" });
+      const err = new Error("Documents required");
+      err.statusCode = 400;
+      throw err;
     }
 
     const uploadedDocumentIds = req.files.map((f) => f.fieldname);
 
     // Duplicate document check
     if (new Set(uploadedDocumentIds).size !== uploadedDocumentIds.length) {
-      return res.status(400).json({ message: "Duplicate documents uploaded" });
+      const err = new Error("Duplicate documents uploaded");
+      err.statusCode = 400;
+      throw err;
     }
 
     // Validate documents
     for (let docId of uploadedDocumentIds) {
       if (!requiredDocumentIds.includes(docId)) {
-        return res.status(400).json({ message: "Invalid document uploaded" });
+        const err = new Error("Invalid document uploaded");
+        err.statusCode = 400;
+        throw err;
       }
     }
 
     for (let id of requiredDocumentIds) {
       if (!uploadedDocumentIds.includes(id)) {
-        return res.status(400).json({ message: "Missing required documents" });
+        const err = new Error("Missing required documents");
+        err.statusCode = 400;
+        throw err;
       }
     }
 
@@ -90,29 +136,111 @@ exports.createOfflineServiceRequest = async (req, res, next) => {
       fileUrl: `/uploads/offlineServiceRequest/${file.filename}`,
     }));
 
-    const newRequest = await OfflineServiceRequest.create({
-      userId,
-      offlineServiceId,
-      amount: offlineService?.amount,
-      fieldData,
-      documentData,
-    });
+    let openingBalance = 0;
+    let closingBalance = 0;
+
+    const query = {
+      userId: userId,
+      isDeleted: false,
+      isActive: true,
+      $expr: {
+        $gte: [
+          { $subtract: ["$mainWallet", "$mainHoldAmount"] },
+          offlineService.amount,
+        ],
+      },
+    };
+
+    const updatedWallet = await UserWallet.findOneAndUpdate(
+      query,
+      {
+        $inc: {
+          mainWallet: -offlineService.amount,
+        },
+      },
+      {
+        session: session,
+        new: true,
+      },
+    );
+
+    if (!updatedWallet) {
+      const err = new Error("Insufficient Wallet Balance, Contact to Admin");
+      err.statusCode = 400;
+      throw err;
+    }
+
+    closingBalance = updatedWallet.mainWallet;
+    openingBalance = closingBalance + offlineService.amount;
+
+    const referenceId = generateUniqueRefernceId("OSR");
+    await WalletLedger.create(
+      [
+        {
+          userId: userId,
+          referenceId: referenceId,
+          serviceType: "OFFLINE_SERVICE",
+          entryType: "OFFLINE_SERVICE_REQUEST",
+          wallet: "main",
+          type: "debit",
+          amount: offlineService.amount,
+          openingBalance: openingBalance,
+          closingBalance: closingBalance,
+          description: "New Offline Service Request",
+        },
+      ],
+      { session: session },
+    );
+
+    const newRequest = await OfflineServiceRequest.create(
+      [
+        {
+          userId,
+          offlineServiceId,
+          amount: offlineService.amount,
+          fieldData,
+          documentData,
+          status: "pending",
+        },
+      ],
+      { session: session },
+    );
+
+    await session.commitTransaction();
+
+    try {
+      await sendEmail(
+        user.email,
+        [],
+        [],
+        "New Offline Service Request",
+        `Your offline service request has been received, Will get it check by our team and get it processed as soon as possible.`,
+      );
+    } catch (emailError) {
+      console.error("Email Send Failed:", emailError);
+    }
 
     res.status(201).json({
       success: true,
       message: "Request Created Successfully",
     });
   } catch (error) {
+    if (session.inTransaction()) {
+      await session.abortTransaction();
+    }
     next(error);
+  } finally {
+    session.endSession();
   }
 };
 
 exports.listOfflineServiceRequests = async (req, res, next) => {
   try {
-    let { page = 1, limit = 10 } = req.query;
+    let { page = 1, limit = 10, search = "" } = req.query;
     let userId = req.user.id;
     page = Number(page);
     limit = Number(limit);
+    search = search?.trim();
 
     const skip = (page - 1) * limit;
 
@@ -163,6 +291,19 @@ exports.listOfflineServiceRequests = async (req, res, next) => {
           serviceName: "$offlineService.serviceName",
         },
       },
+
+      ...(search
+        ? [
+            {
+              $match: {
+                $or: [
+                  { serviceName: { $regex: search, $options: "i" } },
+                  { status: { $regex: search, $options: "i" } },
+                ],
+              },
+            },
+          ]
+        : []),
       {
         $project: {
           userId: 0,

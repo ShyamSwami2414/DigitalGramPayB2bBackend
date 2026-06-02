@@ -11,6 +11,7 @@ const {
 const { authenticateUser } = require("../../middleware/authMiddleware");
 const { authorizeRoles } = require("../../middleware/roleMiddleware");
 const checkAllowedPermission = require("../../middleware/adminPermissionCheck");
+const asyncHandler = require("../../utils/asyncHandler");
 const router = express.Router();
 
 // router.post(
@@ -26,7 +27,7 @@ router.get(
   authenticateUser,
   authorizeRoles("admin"),
   checkAllowedPermission("SERVICE"),
-  serviceListWithPipeline,
+  asyncHandler(serviceListWithPipeline),
 );
 
 router.get(
@@ -34,7 +35,7 @@ router.get(
   authenticateUser,
   authorizeRoles("admin"),
   checkAllowedPermission("SERVICE"),
-  getActiveServiceList,
+  asyncHandler(getActiveServiceList),
 );
 
 router.get(
@@ -42,7 +43,7 @@ router.get(
   authenticateUser,
   authorizeRoles("admin"),
   checkAllowedPermission("SERVICE"),
-  getSelectedServicePipelineList,
+  asyncHandler(getSelectedServicePipelineList),
 );
 
 // router.put(
@@ -58,7 +59,7 @@ router.patch(
   authenticateUser,
   authorizeRoles("admin"),
 checkAllowedPermission("SERVICE"),
-  updateServiceStatus,
+  asyncHandler(updateServiceStatus),
 );
 
 // router.delete(

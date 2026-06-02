@@ -17,14 +17,19 @@ const getRolePrefix = (role) => {
 exports.generateUsername = async ({ role }) => {
   const prefix = "CAM" + getRolePrefix(role);
 
-  const counter = await Counter.findOneAndUpdate(
-    { _id: prefix }, //
-    { $inc: { seq: 1 } },
-    { new: true, upsert: true },
-  );
+  let userName;
+  let exists = true;
 
-  // Build username with 5-digit padded number
-  const userName = `${prefix}${String(counter.seq).padStart(5, "0")}`;
+  while (exists) {
+    // random 6 digit number
+    const randomNumber = Math.floor(10000 + Math.random() * 90000);
+
+    userName = `${prefix}${randomNumber}`;
+
+    exists = await User.exists({
+      userName,
+    });
+  }
 
   return userName;
 };

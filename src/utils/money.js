@@ -1,9 +1,17 @@
 const rupeeToPaise = (rupees) => {
   console.log("rupees", rupees);
-  if (rupees == null || isNaN(rupees)) {
+
+  if (rupees == null) {
     throw new Error("Invalid amount");
   }
-  return Math.round(Number(rupees) * 100);
+
+  const normalizedAmount = String(rupees).replace(/,/g, "").trim();
+
+  if (isNaN(normalizedAmount)) {
+    throw new Error(`Invalid amount: ${rupees}`);
+  }
+
+  return Math.round(Number(normalizedAmount) * 100);
 };
 
 const paiseToRupee = (paise) => {

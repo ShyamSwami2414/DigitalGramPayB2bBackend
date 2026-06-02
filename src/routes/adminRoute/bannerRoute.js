@@ -14,6 +14,8 @@ const createUploader = require("../../middleware/uploadMiddleware");
 const multerErrorHandler = require("../../middleware/multerErrorHandler");
 const checkAllowedPermission = require("../../middleware/adminPermissionCheck");
 
+const asyncHandler = require("../../utils/asyncHandler");
+
 const upload = createUploader("banner", /jpeg|jpg|png/, 2048);
 
 router.get(
@@ -21,7 +23,7 @@ router.get(
   authenticateUser,
   authorizeRoles("admin"),
   checkAllowedPermission("SETTINGS"),
-  getAllBanners,
+  asyncHandler(getAllBanners),
 );
 
 router.post(
@@ -30,7 +32,7 @@ router.post(
   authorizeRoles("admin"),
   multerErrorHandler(upload.single("bannerImage")),
   checkAllowedPermission("SETTINGS"),
-  addBanner,
+  asyncHandler(addBanner),
 );
 
 router.delete(
@@ -38,7 +40,7 @@ router.delete(
   authenticateUser,
   authorizeRoles("admin"),
   checkAllowedPermission("SETTINGS"),
-  deleteBanner,
+  asyncHandler(deleteBanner),
 );
 
 router.patch(
@@ -46,7 +48,7 @@ router.patch(
   authenticateUser,
   authorizeRoles("admin"),
   checkAllowedPermission("SETTINGS"),
-  toggleBannerStatus,
+  asyncHandler(toggleBannerStatus),
 );
 
 module.exports = router;

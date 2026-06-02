@@ -8,6 +8,8 @@ const {
   getRechargeReportById,
 } = require("../../controllers/userController/rechargeReportController");
 
+const asyncHandler = require("../../utils/asyncHandler");
+
 const router = express.Router();
 
 //get my last 5 recharge transaction
@@ -15,14 +17,14 @@ router.get(
   "/my-recharge-history",
   authenticateUser,
   checkUserPaymentAndKYC,
-  getMyLastRechargeHistory,
+  asyncHandler(getMyLastRechargeHistory),
 );
 
 router.get(
   "/recharge-stats",
   authenticateUser,
   checkUserPaymentAndKYC,
-  getRechargeStats,
+  asyncHandler(getRechargeStats),
 );
 
 //get all recharge transaction of me and my downline
@@ -30,14 +32,14 @@ router.get(
   "/complete-recharge-report",
   authenticateUser,
   checkUserPaymentAndKYC,
-  getCompleteRechargeReport,
+  asyncHandler(getCompleteRechargeReport),
 );
 
 router.get(
   "/report/:id",
   authenticateUser,
   checkUserPaymentAndKYC,
-  getRechargeReportById,
+  asyncHandler(getRechargeReportById),
 );
 
 module.exports = router;

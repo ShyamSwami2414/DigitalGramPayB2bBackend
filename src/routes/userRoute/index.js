@@ -51,6 +51,7 @@ module.exports = (app) => {
 
   app.use(`${apiPrefix}/dmt`, require("./nobleFinoDmtRoute"));
   app.use(`${apiPrefix}/dmt-ben`, require("./nobleDmtBeneficiaryRoute"));
+  app.use(`${apiPrefix}/commissionReport`, require("./commissionReportRoute"));
 
   app.use(
     `${apiPrefix}/aepsPayoutBank`,
@@ -72,4 +73,9 @@ module.exports = (app) => {
     require("./sozoXpressPayoutReportRoute"),
   );
   app.use(`${apiPrefix}/dashboard`, require("./dashboardRoute"));
+  app.use(`${apiPrefix}/charge`, require("./chargeRoute"));
+  app.use(`${apiPrefix}/config`, require("./webConfigRoute"));
+
+  app.use(`${apiPrefix}/nAeps`, require("./nobleAepsRoute"));
+  app.use(`${apiPrefix}/nAepsReport`, require("./nobleAepsReportRoute"));
 };
