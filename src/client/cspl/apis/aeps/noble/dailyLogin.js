@@ -53,7 +53,8 @@ exports.dailyLogin = async ({
 
     const isSuccess =
       response?.data?.data?.status === 1 &&
-      response?.data?.data?.statusCode === "AG0001";
+      response?.data?.data?.statusCode === "AG0001" &&
+      response?.data?.data?.responseData?.[0]?.tranStatus === "Success";
 
     console.log("isSuccess", isSuccess);
 
@@ -62,7 +63,10 @@ exports.dailyLogin = async ({
     if (providerStatus !== "SUCCESS") {
       throw {
         providerStatus: providerStatus,
-        message: response?.data?.message,
+        message:
+          response?.data?.data?.description ||
+          response?.data?.data?.message ||
+          response?.data?.message,
         fullResponse: response?.data,
       };
     }

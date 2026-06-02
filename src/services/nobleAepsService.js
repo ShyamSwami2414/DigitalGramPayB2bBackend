@@ -478,7 +478,8 @@ exports.biometricKyc = async ({
     if (
       result?.status === "FAILED" ||
       result?.status === "ERROR" ||
-      result?.data?.statusCode !== "AG0001"
+      result?.data?.statusCode !== "AG0001" ||
+      result?.data?.responseData?.[0]?.tranStatus !== "Success"
     ) {
       const err = new Error(result?.message || "API Failed");
       err.statusCode = 400;
@@ -583,7 +584,11 @@ exports.daily2faLogin = async ({
 
     console.log("Status", result?.data?.statusCode || result?.status);
 
-    if (result?.status === "FAILED" || result?.data?.statusCode !== "AG0001") {
+    if (
+      result?.status === "FAILED" ||
+      result?.data?.statusCode !== "AG0001" ||
+      result?.data?.responseData?.[0]?.tranStatus !== "Success"
+    ) {
       console.log("Entered");
       const { openingBalance, closingBalance } = await processRefund({
         userId: userId,
@@ -602,7 +607,8 @@ exports.daily2faLogin = async ({
     if (
       result?.status === "FAILED" ||
       result?.status === "ERROR" ||
-      result?.data?.statusCode !== "AG0001"
+      result?.data?.statusCode !== "AG0001" ||
+      result?.data?.responseData?.[0]?.tranStatus === "Success"
     ) {
       throw result;
     }
