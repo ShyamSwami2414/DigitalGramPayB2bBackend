@@ -608,7 +608,7 @@ exports.daily2faLogin = async ({
       result?.status === "FAILED" ||
       result?.status === "ERROR" ||
       result?.data?.statusCode !== "AG0001" ||
-      result?.data?.responseData?.[0]?.tranStatus === "Success"
+      result?.data?.responseData?.[0]?.tranStatus !== "Success"
     ) {
       throw result;
     }
