@@ -549,7 +549,11 @@ exports.completetBiometricKyc = async (req, res, next) => {
 
     console.log(response, "response");
 
-    if (response && response?.data?.statusCode === "AG0001") {
+    if (
+      response &&
+      response?.data?.statusCode === "AG0001" &&
+      response?.data?.responseData?.[0]?.tranStatus === "Success"
+    ) {
       const data = response?.data?.responseData?.[0];
 
       console.log(data, "data");
@@ -755,7 +759,11 @@ exports.dailyLogin = async (req, res, next) => {
 
     console.log(response, "response");
 
-    if (response && response?.data?.statusCode === "AG0001") {
+    if (
+      response &&
+      response?.data?.statusCode === "AG0001" &&
+      response?.data?.responseData?.[0]?.tranStatus === "Success"
+    ) {
       const data = response?.data?.responseData?.[0];
 
       console.log(data, "data");
