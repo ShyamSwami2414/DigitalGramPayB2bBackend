@@ -3,6 +3,8 @@ const {
   latestTransactions,
   transactionStatusStats,
   getDashboardOverview,
+  totalVolumeStats,
+  channelWiseStats,
 } = require("../../controllers/adminController/dashboardController");
 const { authenticateUser } = require("../../middleware/authMiddleware");
 const { authorizeRoles } = require("../../middleware/roleMiddleware");
@@ -33,6 +35,22 @@ router.get(
   authorizeRoles("admin"),
   checkAllowedPermission("DASHBOARD"),
   asyncHandler(getDashboardOverview),
+);
+
+router.get(
+  "/volume-stats",
+  authenticateUser,
+  authorizeRoles("admin"),
+  checkAllowedPermission("DASHBOARD"),
+  asyncHandler(totalVolumeStats),
+);
+
+router.get(
+  "/channel-stats",
+  authenticateUser,
+  authorizeRoles("admin"),
+  checkAllowedPermission("DASHBOARD"),
+  asyncHandler(channelWiseStats),
 );
 
 module.exports = router;

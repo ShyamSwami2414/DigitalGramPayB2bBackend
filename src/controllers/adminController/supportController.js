@@ -220,10 +220,19 @@ exports.getSupportStats = async (req, res, next) => {
       },
     ]);
 
+    const defaultStats = {
+      total: 0,
+      pending: 0,
+      resolved: 0,
+      closed: 0,
+    };
+
+    const stats = result || defaultStats;
+
     return res.status(200).json({
       success: true,
       message: "Support stats fetched successfully",
-      data: result,
+      data: stats,
     });
   } catch (error) {
     next(error);

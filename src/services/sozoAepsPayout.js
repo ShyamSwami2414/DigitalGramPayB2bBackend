@@ -160,7 +160,7 @@ exports.initiateAepsPayoutTransfer = async ({
         successSesion.startTransaction();
         await walletLedgerModel.updateOne(
           { referenceId: referenceId, serviceType: "AEPS_PAYOUT" },
-          { $set: { status: result?.status } },
+          { $set: { status: result?.status, description: result?.message } },
           { session: successSesion },
         );
 
@@ -169,6 +169,7 @@ exports.initiateAepsPayoutTransfer = async ({
           {
             $set: {
               status: result?.status,
+              description: result?.message,
             },
           },
           { session: successSesion },
@@ -222,6 +223,7 @@ exports.initiateAepsPayoutTransfer = async ({
         await processRefund({
           userId: userId,
           amount: amountInPaiseWithChargeGst, //paise
+          serviceType: "AEPS_PAYOUT",
           referenceId: referenceId,
           walletType: "aeps",
           description: `Complete Refund With Charges: AepsPayout Failed`,
@@ -230,7 +232,13 @@ exports.initiateAepsPayoutTransfer = async ({
 
         await PayoutTransaction.findOneAndUpdate(
           { referenceId },
-          { $set: { status: "FAILED", isRefunded: true } },
+          {
+            $set: {
+              status: "FAILED",
+              description: result?.message,
+              isRefunded: true,
+            },
+          },
           { session: refundSession },
         );
 

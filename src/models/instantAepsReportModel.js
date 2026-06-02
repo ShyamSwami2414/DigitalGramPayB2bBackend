@@ -16,7 +16,13 @@ const instantAepsReportSchema = new mongoose.Schema(
 
     serviceType: {
       type: String,
-      enum: ["CASH-WITHDRAW", "BALANCE-INQUIRY", "MINI-STATEMENT"],
+      enum: [
+        "CASH-WITHDRAWAL",
+        "CASH-WITHDRAW",
+        "BALANCE-ENQUIRY",
+        "BALANCE-INQUIRY",
+        "MINI-STATEMENT",
+      ],
       required: true,
       index: true,
     },

@@ -1,6 +1,7 @@
 const AepsPayoutBank = require("../../models/sozoAepsPayoutBankRequestModel");
 const User = require("../../models/userModel");
 const mongoose = require("mongoose");
+const InstantAepsOutlet = require("../../models/instantAepsOutletModel");
 
 exports.aepsPayoutBankRequests = async (req, res, next) => {
   try {
@@ -303,37 +304,72 @@ exports.aepsPayoutBankRequests = async (req, res, next) => {
 };
 
 exports.approveRejectAepsPayoutBankRequest = async (req, res, next) => {
+  const session = await mongoose.startSession();
   try {
+    session.startTransaction();
     const { id } = req.params;
     let { status } = req.body;
     status = status?.trim()?.toLowerCase();
 
     if (!id) {
-      return res.status(400).json({
-        success: false,
-        message: "Bank ID is required",
-      });
+      const err = new Error("Bank ID is required");
+      err.status = 400;
+      throw err;
     }
 
     if (!mongoose.Types.ObjectId.isValid(id)) {
-      return res.status(400).json({
-        success: false,
-        message: "Invalid Bank ID",
-      });
+      const err = new Error("Invalid Bank ID");
+      err.status = 400;
+      throw err;
     }
 
     if (!status) {
-      return res.status(400).json({
-        success: false,
-        message: "Status is required",
-      });
+      const err = new Error("Status is required");
+      err.status = 400;
+      throw err;
     }
 
     if (!["approved", "rejected"].includes(status)) {
-      return res.status(400).json({
-        success: false,
-        message: "Invalid status",
-      });
+      const err = new Error("Invalid status");
+      err.status = 400;
+      throw err;
+    }
+
+    const payoutBank = await AepsPayoutBank.findOne({
+      _id: new mongoose.Types.ObjectId(id),
+      isDeleted: false,
+      status: "pending",
+    }).session(session);
+
+    if (!payoutBank) {
+      const err = new Error("Payout Bank Request not found");
+      err.status = 404;
+      throw err;
+    }
+
+    const instantOutlet = await InstantAepsOutlet.findOne({
+      userId: payoutBank.userId,
+    })
+      .select("aepsLimits aepsPayoutBanksAdded")
+      .lean();
+
+    if (!instantOutlet) {
+      const err = new Error("Outlet not found");
+      err.status = 404;
+      throw err;
+    }
+
+    console.log(instantOutlet, "instantOutlet");
+
+    if (
+      instantOutlet?.aepsPayoutBanksAdded >=
+      instantOutlet?.aepsLimits?.allowedBankLimits
+    ) {
+      const err = new Error(
+        `Maximum account adding limit : ${instantOutlet?.aepsLimits?.allowedBankLimits}  `,
+      );
+      err.status = 400;
+      throw err;
     }
 
     const payoutBankRequest = await AepsPayoutBank.findOneAndUpdate(
@@ -347,15 +383,26 @@ exports.approveRejectAepsPayoutBankRequest = async (req, res, next) => {
           status: status,
         },
       },
-      { new: true },
+      { new: true, session: session },
     );
 
     if (!payoutBankRequest) {
-      return res.status(404).json({
-        success: false,
-        message: "Payout bank request not found or already approved/rejected",
-      });
+      const err = new Error(
+        "Payout bank request not found or already approved/rejected",
+      );
+      err.status = 404;
+      throw err;
     }
+
+    await InstantAepsOutlet.findOneAndUpdate(
+      {
+        userId: payoutBankRequest.userId,
+      },
+      { $inc: { aepsPayoutBanksAdded: 1 } },
+      { session: session },
+    );
+
+    await session.commitTransaction();
 
     return res.status(200).json({
       success: true,
@@ -366,6 +413,11 @@ exports.approveRejectAepsPayoutBankRequest = async (req, res, next) => {
       data: payoutBankRequest,
     });
   } catch (error) {
+    if (session.inTransaction()) {
+      await session.abortTransaction();
+    }
     next(error);
+  } finally {
+    session.endSession();
   }
 };

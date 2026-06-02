@@ -978,10 +978,13 @@ const getCompleteAepsReport = async (req, res, next) => {
               $project: {
                 amount: 1,
                 balance: 1,
+                message: {
+                  $ifNull: ["$rawResponse.message", "$rawResponse.reason"],
+                },
                 miniStatement: 1,
                 serviceType: 1,
                 type: 1,
-                message: "$reason" || "$message",
+
                 mobileNumber: 1,
                 status: "$txnStatus",
                 commission: 1,
@@ -1100,6 +1103,7 @@ const getAepsReportById = async (req, res, next) => {
           phone: "$user.phone",
           serviceName: "AEPS",
           providerTxnId: "$provider.providerTxnId",
+          // message: "$rawResponse.message",
           // requestBody: "$provider.request",
           // responseBody: "$provider.response",
         },

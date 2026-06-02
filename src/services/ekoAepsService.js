@@ -59,6 +59,7 @@ exports.onboardEkoAepsUser = async ({
       userId: userId,
       amount: registrationCharges, //paise
       serviceType: "AEPS",
+      serviceCategory: "ONE_TIME_CHARGES",
       referenceId: referenceId,
       description: "Aeps User Onboard Charges",
       session: session,
@@ -108,6 +109,8 @@ exports.onboardEkoAepsUser = async ({
       console.log("Entered Error Dealing block");
       const { openingBalance, closingBalance } = await processRefund({
         userId: userId,
+        serviceType: "AEPS",
+        serviceCategory: "ONE_TIME_CHARGES",
         amount: registrationCharges, //paise
         referenceId: referenceId,
         walletType: "main",
@@ -503,6 +506,7 @@ exports.dailyBiometricLogin = async ({
       userId: userId,
       amount: dailyAepsLoginCharge, //paise
       serviceType: "AEPS",
+      serviceCategory: "DAILY_LOGIN",
       referenceId: referenceId,
       description: "Aeps Eko Daily Login Charges",
       session: session,
@@ -609,6 +613,8 @@ exports.dailyBiometricLogin = async ({
 
         await processRefund({
           userId: userId,
+          serviceType: "AEPS",
+          serviceCategory: "DAILY_LOGIN",
           amount: dailyAepsLoginCharge,
           referenceId: referenceId,
           walletType: "main",
@@ -680,6 +686,7 @@ exports.initiateAepsTransaction = async ({
     const { packageId, serviceId } = await validateUserPackageAndService({
       userId: userId,
       serviceName: "aeps",
+      serviceTypeName: serviceTypeName,
       pipeline: "aeps2",
       amount: amount, //paise
     });
@@ -881,7 +888,7 @@ exports.initiateAepsTransaction = async ({
             amount: amount, // paise
             walletType: "aeps",
             serviceType: "AEPS",
-            serviceCategory: "CASH_WITHDRAW",
+            serviceCategory: "CASH_WITHDRAWAL",
             referenceId: referenceId,
             description: "Aeps Cash Withdrawal",
             session: successSession,
@@ -895,11 +902,11 @@ exports.initiateAepsTransaction = async ({
               serviceId: serviceId,
               serviceType: "AEPS",
               walletType: "aeps",
-              serviceCategory: "CASH_WITHDRAW",
+              serviceCategory: "CASH_WITHDRAWAL",
               pipeline: "aeps2",
               referenceId: referenceId,
               providerTxnId: result?.txn_ref,
-              description: "Aeps Withdraw Commission",
+              description: "Aeps Withdrawal Commission",
               apiMessage: result?.message,
               apiResponse: result,
               session: successSession,

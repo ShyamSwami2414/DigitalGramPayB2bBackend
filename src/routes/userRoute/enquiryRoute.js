@@ -7,7 +7,7 @@ const { authenticateUser } = require("../../middleware/authMiddleware");
 const asyncHandler = require("../../utils/asyncHandler");
 
 router.post("/create-enquiry",
-    authenticateUser,
+    // authenticateUser,
     asyncHandler(createEnquiry)
 );
 

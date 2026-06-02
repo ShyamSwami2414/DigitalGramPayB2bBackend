@@ -1,7 +1,9 @@
 const FundRequest = require("../../models/fundRequestModel");
 const Transaction = require("../../models/transactionModel");
+const WalletLedger = require("../../models/walletLedgerModel");
 const User = require("../../models/userModel");
 const Service = require("../../models/serviceModel");
+const LoginLogs = require("../../models/loginLogs");
 const mongoose = require("mongoose");
 const { paiseToRupee } = require("../../utils/money");
 
@@ -188,7 +190,7 @@ exports.latestTransactions = async (req, res, next) => {
 
     console.log(filter, "filter");
 
-    const result = await Transaction.aggregate([
+    const result = await WalletLedger.aggregate([
       {
         $match: filter,
       },
@@ -413,6 +415,8 @@ exports.transactionStatusStats = async (req, res, next) => {
       filter.userId = new mongoose.Types.ObjectId(user);
     }
 
+    let serviceExist;
+
     if (service) {
       if (!mongoose.Types.ObjectId.isValid(service)) {
         return res
@@ -420,7 +424,7 @@ exports.transactionStatusStats = async (req, res, next) => {
           .json({ success: false, message: "Invalid service ID" });
       }
 
-      const serviceExist = await Service.findOne({ _id: service }).lean();
+      serviceExist = await Service.findOne({ _id: service }).lean();
 
       if (!serviceExist) {
         return res
@@ -428,6 +432,8 @@ exports.transactionStatusStats = async (req, res, next) => {
           .json({ success: false, message: "Service not found" });
       }
     }
+
+    filter.serviceType = serviceExist?.name?.toUpperCase();
 
     console.log(filter, "filter");
 
@@ -487,7 +493,7 @@ exports.transactionStatusStats = async (req, res, next) => {
             amount: "$pendingAmount",
           },
 
-          rejected: {
+          failed: {
             count: "$failedCount",
             amount: "$failedAmount",
           },
@@ -832,6 +838,511 @@ exports.getDashboardOverview = async (req, res, next) => {
       success: true,
       message: "Fetched Successful",
       data: formattedData,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+exports.totalVolumeStats = async (req, res, next) => {
+  try {
+    let {
+      user = "",
+      service = "",
+      status = "",
+      from = "",
+      to = "",
+      range = "",
+    } = req.query;
+
+    console.log(req.query);
+    user = user?.trim();
+    service = service?.trim();
+    status = status?.trim().toLowerCase();
+
+    range = typeof range === "string" ? range?.trim().toLowerCase() : "";
+    from = typeof from === "string" ? from.trim() : "";
+    to = typeof to === "string" ? to.trim() : "";
+
+    // normalize invalid inputs
+    if (!from || from === "null" || from === "undefined") {
+      from = undefined;
+    }
+
+    if (!to || to === "null" || to === "undefined") {
+      to = undefined;
+    }
+
+    if (!range || range === "null" || range === "undefined") {
+      range = undefined;
+    }
+
+    const filter = {};
+
+    const now = new Date();
+    let fromDate, toDate;
+
+    const allowedStatus = ["success", "failed", "pending"];
+    const allowedRanges = ["today", "yesterday", "last7days", "thismonth"];
+
+    if (status && !allowedStatus.includes(status)) {
+      const err = new Error("Invalid Status");
+      err.statusCode = 400;
+      throw err;
+    }
+
+    if (range && !allowedRanges.includes(range)) {
+      const err = new Error("Invalid Range");
+      err.statusCode = 400;
+      throw err;
+    }
+
+    if (from && new Date(from) > now) {
+      const err = new Error("Starting Date can not be in future");
+      err.statusCode = 400;
+      throw err;
+    }
+
+    if (to && new Date(to) > now) {
+      const err = new Error("Ending Date can not be in future");
+      err.statusCode = 400;
+      throw err;
+    }
+
+    if (status) {
+      filter.status = status?.toLowerCase();
+    }
+
+    if (range) {
+      switch (range) {
+        case "today":
+          fromDate = new Date();
+          fromDate.setHours(0, 0, 0, 0);
+
+          toDate = new Date();
+          toDate.setHours(23, 59, 59, 999);
+          break;
+
+        case "yesterday":
+          fromDate = new Date();
+          fromDate.setDate(fromDate.getDate() - 1);
+          fromDate.setHours(0, 0, 0, 0);
+
+          toDate = new Date();
+          toDate.setDate(toDate.getDate() - 1);
+          toDate.setHours(23, 59, 59, 999);
+          break;
+
+        case "last7days":
+          fromDate = new Date();
+          fromDate.setDate(fromDate.getDate() - 6); // includes today
+          fromDate.setHours(0, 0, 0, 0);
+
+          toDate = new Date();
+          toDate.setHours(23, 59, 59, 999);
+          break;
+
+        case "thismonth":
+          fromDate = new Date(now.getFullYear(), now.getMonth(), 1);
+
+          toDate = new Date();
+          toDate.setHours(23, 59, 59, 999);
+          break;
+      }
+    } else {
+      //  MANUAL DATE VALIDATION
+
+      const isValidDate = (date) => !isNaN(new Date(date).getTime());
+
+      if (from) {
+        if (!isValidDate(from)) {
+          const err = new Error("Invalid 'from' date");
+          err.statusCode = 400;
+          throw err;
+        }
+        fromDate = new Date(from);
+      }
+
+      if (to) {
+        if (!isValidDate(to)) {
+          const err = new Error("Invalid 'to' date");
+          err.statusCode = 400;
+          throw err;
+        }
+        toDate = new Date(to);
+      }
+
+      if (fromDate && toDate && fromDate > toDate) {
+        const err = new Error("'from' cannot be greater than 'to'");
+        err.statusCode = 400;
+        throw err;
+      }
+
+      if (toDate) {
+        toDate.setHours(23, 59, 59, 999);
+      }
+    }
+
+    //  APPLY DATE FILTER
+    if (fromDate || toDate) {
+      filter.createdAt = {};
+
+      if (fromDate) filter.createdAt.$gte = fromDate;
+      if (toDate) filter.createdAt.$lte = toDate;
+    }
+
+    if (user) {
+      if (!mongoose.Types.ObjectId.isValid(user)) {
+        return res
+          .status(400)
+          .json({ success: false, message: "Invalid user ID" });
+      }
+
+      const userExist = await User.findOne({ _id: user }).lean();
+
+      if (!userExist) {
+        return res
+          .status(404)
+          .json({ success: false, message: "User not found" });
+      }
+
+      filter.userId = new mongoose.Types.ObjectId(user);
+    }
+
+    let serviceExist;
+
+    if (service) {
+      if (!mongoose.Types.ObjectId.isValid(service)) {
+        return res
+          .status(400)
+          .json({ success: false, message: "Invalid service ID" });
+      }
+
+      serviceExist = await Service.findOne({ _id: service }).lean();
+
+      if (!serviceExist) {
+        return res
+          .status(404)
+          .json({ success: false, message: "Service not found" });
+      }
+    }
+
+    filter.serviceType = serviceExist?.name?.toUpperCase();
+
+    console.log(filter, "filter");
+
+    // Today range
+    const todayStart = new Date();
+    todayStart.setHours(0, 0, 0, 0);
+
+    const todayEnd = new Date();
+    todayEnd.setHours(23, 59, 59, 999);
+
+    // This month range
+    const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+
+    const monthEnd = new Date();
+    monthEnd.setHours(23, 59, 59, 999);
+
+    const result = await Transaction.aggregate([
+      {
+        $match: {
+          ...filter,
+          status: "SUCCESS",
+        },
+      },
+
+      {
+        $group: {
+          _id: null,
+
+          todayVolume: {
+            $sum: {
+              $cond: [
+                {
+                  $and: [
+                    { $gte: ["$createdAt", todayStart] },
+                    { $lte: ["$createdAt", todayEnd] },
+                  ],
+                },
+                "$amount",
+                0,
+              ],
+            },
+          },
+
+          monthVolume: {
+            $sum: {
+              $cond: [
+                {
+                  $and: [
+                    { $gte: ["$createdAt", monthStart] },
+                    { $lte: ["$createdAt", monthEnd] },
+                  ],
+                },
+                "$amount",
+                0,
+              ],
+            },
+          },
+
+          todayTransactions: {
+            $sum: {
+              $cond: [
+                {
+                  $and: [
+                    { $gte: ["$createdAt", todayStart] },
+                    { $lte: ["$createdAt", todayEnd] },
+                  ],
+                },
+                1,
+                0,
+              ],
+            },
+          },
+
+          monthTransactions: {
+            $sum: {
+              $cond: [
+                {
+                  $and: [
+                    { $gte: ["$createdAt", monthStart] },
+                    { $lte: ["$createdAt", monthEnd] },
+                  ],
+                },
+                1,
+                0,
+              ],
+            },
+          },
+        },
+      },
+    ]);
+
+    if (result.length === 0) {
+      return res.status(200).json({
+        success: true,
+        message: "No Data available",
+        data: [],
+      });
+    }
+
+    const stats = result[0] || {
+      todayVolume: 0,
+      monthVolume: 0,
+      todayTransactions: 0,
+      monthTransactions: 0,
+    };
+
+    return res.status(200).json({
+      success: true,
+      message: "Volume stats fetched successfully",
+
+      data: {
+        todayVolume: paiseToRupee(stats.todayVolume),
+
+        monthVolume: paiseToRupee(stats.monthVolume),
+
+        todayTransactions: stats.todayTransactions,
+
+        monthTransactions: stats.monthTransactions,
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+exports.channelWiseStats = async (req, res, next) => {
+  try {
+    let { from = "", to = "", range = "" } = req.query;
+
+    range = typeof range === "string" ? range.trim().toLowerCase() : "";
+
+    from = typeof from === "string" ? from.trim() : "";
+
+    to = typeof to === "string" ? to.trim() : "";
+
+    if (!from || from === "null" || from === "undefined") {
+      from = undefined;
+    }
+
+    if (!to || to === "null" || to === "undefined") {
+      to = undefined;
+    }
+
+    if (!range || range === "null" || range === "undefined") {
+      range = undefined;
+    }
+
+    const filter = {
+      isLoginSuccess: true,
+    };
+
+    const now = new Date();
+
+    let fromDate;
+    let toDate;
+
+    const allowedRanges = ["today", "yesterday", "last7days", "thismonth"];
+
+    if (range && !allowedRanges.includes(range)) {
+      const err = new Error("Invalid Range");
+      err.statusCode = 400;
+      throw err;
+    }
+
+    // =========================
+    // Future Date Validation
+    // =========================
+
+    if (from && new Date(from) > now) {
+      const err = new Error("Starting Date can not be in future");
+      err.statusCode = 400;
+      throw err;
+    }
+
+    if (to && new Date(to) > now) {
+      const err = new Error("Ending Date can not be in future");
+      err.statusCode = 400;
+      throw err;
+    }
+
+    if (range) {
+      switch (range) {
+        case "today":
+          fromDate = new Date();
+          fromDate.setHours(0, 0, 0, 0);
+
+          toDate = new Date();
+          toDate.setHours(23, 59, 59, 999);
+          break;
+
+        case "yesterday":
+          fromDate = new Date();
+          fromDate.setDate(fromDate.getDate() - 1);
+          fromDate.setHours(0, 0, 0, 0);
+
+          toDate = new Date();
+          toDate.setDate(toDate.getDate() - 1);
+          toDate.setHours(23, 59, 59, 999);
+          break;
+
+        case "last7days":
+          fromDate = new Date();
+          fromDate.setDate(fromDate.getDate() - 6);
+          fromDate.setHours(0, 0, 0, 0);
+
+          toDate = new Date();
+          toDate.setHours(23, 59, 59, 999);
+          break;
+
+        case "thismonth":
+          fromDate = new Date(now.getFullYear(), now.getMonth(), 1);
+
+          toDate = new Date();
+          toDate.setHours(23, 59, 59, 999);
+          break;
+      }
+    } else {
+      // =========================
+      // MANUAL DATE VALIDATION
+      // =========================
+
+      const isValidDate = (date) => !isNaN(new Date(date).getTime());
+
+      if (from) {
+        if (!isValidDate(from)) {
+          const err = new Error("Invalid 'from' date");
+          err.statusCode = 400;
+          throw err;
+        }
+
+        fromDate = new Date(from);
+      }
+
+      if (to) {
+        if (!isValidDate(to)) {
+          const err = new Error("Invalid 'to' date");
+          err.statusCode = 400;
+          throw err;
+        }
+
+        toDate = new Date(to);
+      }
+
+      if (fromDate && toDate && fromDate > toDate) {
+        const err = new Error("'from' cannot be greater than 'to'");
+        err.statusCode = 400;
+        throw err;
+      }
+
+      if (toDate) {
+        toDate.setHours(23, 59, 59, 999);
+      }
+    }
+
+    if (fromDate || toDate) {
+      filter.createdAt = {};
+
+      if (fromDate) {
+        filter.createdAt.$gte = fromDate;
+      }
+
+      if (toDate) {
+        filter.createdAt.$lte = toDate;
+      }
+    }
+
+    const stats = await LoginLogs.aggregate([
+      {
+        $match: {
+          ...filter,
+
+          channel: {
+            $in: ["WEB", "MOBILE", "API"],
+          },
+        },
+      },
+
+      {
+        $group: {
+          _id: "$channel",
+
+          totalLogins: {
+            $sum: 1,
+          },
+        },
+      },
+
+      {
+        $project: {
+          _id: 0,
+          channel: "$_id",
+          totalLogins: 1,
+        },
+      },
+    ]);
+
+    const formattedStats = {
+      WEB: 0,
+      MOBILE: 0,
+      API: 0,
+    };
+
+    // =========================
+    // FILL DATA
+    // =========================
+
+    stats.forEach((item) => {
+      formattedStats[item.channel] = item.totalLogins;
+    });
+
+    return res.status(200).json({
+      success: true,
+      message: "Channel wise stats fetched successfully",
+
+      data: formattedStats,
     });
   } catch (error) {
     next(error);

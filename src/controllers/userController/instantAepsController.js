@@ -585,6 +585,19 @@ const dailyAepsLogin = async (req, res, next) => {
 
     console.log(response, "response");
 
+    // const cleanResponse = {
+    //   message: response?.message,
+    //   transactionId: response?.transactionId,
+
+    //   data: {
+    //     actcode: response?.data?.actcode,
+    //     status: response?.data?.actcode,
+    //     data: {
+    //       isFaceAuthAvailable: response?.data?.data?.isFaceAuthAvailable,
+    //     },
+    //   },
+    // };
+
     return res.status(200).json({
       success: true,
       data: response,
@@ -1026,6 +1039,7 @@ const miniStatement = async (req, res, next) => {
       transactionId: response?.transactionId,
 
       data: {
+        bankAccountBalance: response?.response?.data?.bankAccountBalance,
         bankName: response?.response?.data?.bankName,
         aadhaarNumber: response?.response?.data?.accountNumber,
         miniStatement: response?.response?.data?.miniStatement,

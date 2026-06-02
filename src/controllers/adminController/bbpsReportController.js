@@ -198,12 +198,14 @@ exports.getBbpsStats = async (req, res, next) => {
               },
             },
           ],
-          commissionOverview: [
+
+          total: [
+            { $match: {} },
             {
               $group: {
                 _id: null,
-                totalDays: { $sum: 1 }, // Or calculate distinct days if needed
-                totalCommission: { $sum: "$commission" },
+                totalCount: { $sum: 1 },
+                totalAmount: { $sum: "$amount" },
               },
             },
           ],
@@ -216,7 +218,7 @@ exports.getBbpsStats = async (req, res, next) => {
       totalSuccess: { totalCount: 0, totalAmount: 0 },
       totalPending: { totalCount: 0, totalAmount: 0 },
       totalFailed: { totalCount: 0, totalAmount: 0 },
-      commissionOverview: { totalDays: 0, totalCommission: 0 },
+      total: { totalCount: 0, totalAmount: 0 },
     };
 
     if (result.length) {
@@ -224,8 +226,7 @@ exports.getBbpsStats = async (req, res, next) => {
       stats.totalSuccess = resObj.totalSuccess[0] || stats.totalSuccess;
       stats.totalPending = resObj.totalPending[0] || stats.totalPending;
       stats.totalFailed = resObj.totalFailed[0] || stats.totalFailed;
-      stats.commissionOverview =
-        resObj.commissionOverview[0] || stats.commissionOverview;
+      stats.total = resObj.total[0] || stats.total;
     }
 
     // Respond with proper numbers formatted
@@ -245,11 +246,9 @@ exports.getBbpsStats = async (req, res, next) => {
           count: stats.totalFailed.totalCount,
           amount: paiseToRupee(stats.totalFailed.totalAmount),
         },
-        commissionOverview: {
-          totalDays: stats.commissionOverview.totalDays,
-          totalCommission: paiseToRupee(
-            stats.commissionOverview.totalCommission,
-          ),
+        total: {
+          totalCount: stats.total.totalCount,
+          totalAmount: paiseToRupee(stats.total.totalAmount),
         },
       },
     });
