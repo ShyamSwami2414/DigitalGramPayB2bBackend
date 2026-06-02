@@ -1,0 +1,8 @@
+# DO NOT REMOVE. CLOUDLINUX PASSENGER CONFIGURATION BEGIN
+PassengerAppRoot "/home/oseuqxlt/b2b.digitalgrampay.co.in/api"
+PassengerBaseURI "/api"
+PassengerNodejs "/home/oseuqxlt/nodevenv/b2b.digitalgrampay.co.in/api/20/bin/node"
+PassengerAppType node
+PassengerStartupFile server.js
+# DO NOT REMOVE. CLOUDLINUX PASSENGER CONFIGURATION END
+# DO NOT REMOVE OR MODIFY. CLOUDLINUX ENV VARS CONFIGURATION BEGIN

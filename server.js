@@ -6,6 +6,7 @@ const path = require("path");
 const dbConnection = require("./src/config/dbConfig");
 const errorHandler = require("./src/middleware/errorHandler");
 const { globalErrorHandler } = require("./src/middleware/errorMiddleware");
+const config = require("./src/config/client")
 
 dbConnection();
 app.use(cors());
@@ -17,9 +18,10 @@ app.use(express.static(path.join(__dirname, "public")));
 
 // Serve user uploads
 console.log("path", path.join(__dirname, "uploads"));
+console.log(config.LOGO_URL);
 
 app.use(
-  "/uploads",
+  "/api/uploads",
   express.static(path.join(__dirname, "uploads"), {
     setHeaders: (res, filePath) => {
       if (filePath.endsWith(".pdf")) {
@@ -55,7 +57,7 @@ process.on("unhandledRejection", async (err) => {
 app.use(globalErrorHandler);
 app.use(errorHandler);
 
-const PORT = process.env.PORT || 8000;
+const PORT = process.env.PORT || 3000;
 app.listen(PORT, "0.0.0.0", () => {
   console.log(`Server is listening on PORT : ${PORT}`);
 });

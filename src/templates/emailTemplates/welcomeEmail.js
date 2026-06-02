@@ -7,6 +7,7 @@ exports.generateWelcomeEmail = ({
   pin,
   loginUrl,
 }) => {
+    console.log(config.LOGO_URL);
   return `
   <!DOCTYPE html>
   <html>
@@ -23,7 +24,17 @@ exports.generateWelcomeEmail = ({
             <!-- Logo -->
             <tr>
               <td align="center">
-                 <img src="${config.LOGO_URL}" alt="Logo" width="150" />
+                 <img
+                 src="${config.LOGO_URL}"
+                  alt="${config.COMPANY}"
+                  width="20"
+                  style="
+                    display:block;
+                    border:0;
+                    outline:none;
+                    text-decoration:none;
+                    margin:auto;"
+                />
               </td>
             </tr>
 
