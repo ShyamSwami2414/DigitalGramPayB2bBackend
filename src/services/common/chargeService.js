@@ -118,7 +118,7 @@ const processCharges = async ({
             userId: userId,
             serviceType: serviceType,
             serviceCategory: serviceCategory,
-            entryType: "PAYOUT",
+            entryType: serviceType === "DMT" ? "DMT" : "PAYOUT",
             wallet: walletType,
             type: "debit",
             amount: amount,

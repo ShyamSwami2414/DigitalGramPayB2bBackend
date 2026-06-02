@@ -16,7 +16,7 @@ const ekoAepsReportSchema = new mongoose.Schema(
 
     serviceType: {
       type: String,
-      enum: ["WITHDRAW", "INQUIRY", "STATEMENT"],
+      enum: ["WITHDRAWAL", "WITHDRAW", "ENQUIRY", "INQUIRY", "STATEMENT"],
       required: true,
       index: true,
     },

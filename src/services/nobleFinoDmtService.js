@@ -425,6 +425,7 @@ exports.registerCustomer = async ({
 
         await processRefund({
           userId: userId,
+          serviceType: "DMT",
           amount: registrationCharges,
           referenceId: referenceId,
           walletType: "main",

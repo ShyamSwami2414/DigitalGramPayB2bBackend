@@ -931,7 +931,7 @@ const initiateTransaction = async (req, res, next) => {
       });
     }
 
-    if (amount < 10) {
+    if (amount < 100) {
       //rupee
       return res.status(400).json({
         success: false,

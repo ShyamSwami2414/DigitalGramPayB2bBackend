@@ -33,7 +33,10 @@ exports.getProductById = async (req, res, next) => {
       ? {
           ...product,
           price: paiseToRupee(product?.price),
-          discount: paiseToRupee(product?.discount),
+          discount:
+            product?.discountType === "percentage"
+              ? product?.discount
+              : paiseToRupee(product?.discount),
           priceAfterDiscount: paiseToRupee(product?.priceAfterDiscount),
         }
       : null;
@@ -68,7 +71,10 @@ exports.getProductList = async (req, res, next) => {
     const formattedData = products.map((item) => ({
       ...item,
       price: paiseToRupee(item?.price),
-      discount: paiseToRupee(item?.discount),
+      discount:
+        item?.discountType === "percentage"
+          ? item?.discount
+          : paiseToRupee(item?.discount),
       priceAfterDiscount: paiseToRupee(item?.priceAfterDiscount),
     }));
 
@@ -100,9 +106,11 @@ exports.addProduct = async (req, res, next) => {
     description = description?.trim();
     price = Number(price);
     stock = Number(stock);
+    discount = Number(discount);
     discountType = discountType?.trim().toLowerCase();
 
     const productImage = req.file?.filename;
+    console.log(req.body, "Body");
 
     const requiredFields = [
       "name",
@@ -170,6 +178,10 @@ exports.addProduct = async (req, res, next) => {
       });
     }
 
+    console.log(discountType, "discountType");
+    console.log(discount, "discount");
+    console.log(typeof discount, "type of discount");
+
     if (discountType === "percentage" && discount > 100) {
       return res.status(400).json({
         success: false,
@@ -178,7 +190,8 @@ exports.addProduct = async (req, res, next) => {
     }
 
     const priceInPaise = rupeeToPaise(price);
-    const discountInPaise = rupeeToPaise(discount);
+    const discountInPaise =
+      discountType === "percentage" ? discount : rupeeToPaise(discount);
     const priceAfterDiscountInPaise = rupeeToPaise(priceAfterDiscount);
 
     const product = await Product.create({
@@ -222,9 +235,13 @@ exports.updateProduct = async (req, res, next) => {
     description = description?.trim();
     price = Number(price);
     stock = Number(stock);
+    discount = Number(discount);
     discountType = discountType?.trim().toLowerCase();
 
+    console.log(req.body, "Body");
+
     const productImage = req.file?.filename;
+    console.log(productImage, "productImage");
 
     const requiredFields = [
       "name",
@@ -311,7 +328,8 @@ exports.updateProduct = async (req, res, next) => {
     }
 
     const priceInPaise = rupeeToPaise(price);
-    const discountInPaise = rupeeToPaise(discount);
+    const discountInPaise =
+      discountType === "percentage" ? discount : rupeeToPaise(discount);
     const priceAfterDiscountInPaise = rupeeToPaise(priceAfterDiscount);
 
     const updatesProduct = {
@@ -323,7 +341,9 @@ exports.updateProduct = async (req, res, next) => {
       stock,
       description,
       priceAfterDiscount: priceAfterDiscountInPaise,
-      productImageUrl: `/uploads/products/${productImage}`,
+      ...(productImage && {
+        productImageUrl: `/uploads/products/${productImage}`,
+      }),
     };
 
     const product = await Product.findOneAndUpdate(

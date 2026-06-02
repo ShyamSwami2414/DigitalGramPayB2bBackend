@@ -6,6 +6,9 @@ const {
   getServiceMonthlyStats,
   getPerformanceStats,
   getVolumeAnalytics,
+  latestTransactions,
+  transactionStats,
+  creditDebitStats,
 } = require("../../controllers/userController/dashboardController");
 
 const checkUserPaymentAndKYC = require("../../middleware/kycPaymentCheckMiddleware");
@@ -40,6 +43,33 @@ router.get(
   authenticateUser,
   checkUserPaymentAndKYC,
   asyncHandler(getVolumeAnalytics),
+);
+
+//for app
+
+router.get(
+  "/latest-transaction",
+  authenticateUser,
+  checkUserPaymentAndKYC,
+  asyncHandler(latestTransactions),
+);
+
+//for app
+
+router.get(
+  "/card-stats",
+  authenticateUser,
+  checkUserPaymentAndKYC,
+  asyncHandler(transactionStats),
+);
+
+//for app
+
+router.get(
+  "/credit-debit-stats",
+  authenticateUser,
+  checkUserPaymentAndKYC,
+  asyncHandler(creditDebitStats),
 );
 
 module.exports = router;

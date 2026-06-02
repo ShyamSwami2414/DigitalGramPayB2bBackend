@@ -189,7 +189,7 @@ exports.completeCommissionReport = async (req, res, next) => {
     }
 
     if (service) {
-      if (!mongoose.Types.ObjectId.isValid(userId)) {
+      if (!mongoose.Types.ObjectId.isValid(service)) {
         return res
           .status(400)
           .json({ success: false, message: "Invalid service ID" });
@@ -203,7 +203,7 @@ exports.completeCommissionReport = async (req, res, next) => {
           .json({ success: false, message: "Service not found" });
       }
 
-      // filter.service = new mongoose.Types.ObjectId(userId);
+      filter.serviceType = serviceExist?.name.toUpperCase();
     }
 
     console.log(filter, "filter");

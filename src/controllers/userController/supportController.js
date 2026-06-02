@@ -51,15 +51,28 @@ exports.getTicketStats = async (req, res, next) => {
 
 exports.getMySupportRequests = async (req, res, next) => {
   try {
-    let { page = 1, limit = 10 } = req.query;
+    let { page = 1, limit = 10, status = "", search = "" } = req.query;
     page = Number(page);
     limit = Number(limit);
+    status = status?.trim().toLowerCase();
+    search = search?.trim();
 
     const skip = (page - 1) * limit;
     const filter = {
       userId: new mongoose.Types.ObjectId(req.user.id),
       isDeleted: false,
     };
+
+    const allowedStatus = ["resolved", "closed", "pending"];
+    if (status && !allowedStatus.includes(status)) {
+      const err = new Error("Invalid Status");
+      err.statusCode = 400;
+      throw err;
+    }
+
+    if (status) {
+      filter.status = status?.toLowerCase();
+    }
 
     const supportRequests = await Support.aggregate([
       {
@@ -84,6 +97,21 @@ exports.getMySupportRequests = async (req, res, next) => {
           serviceName: "$service.name",
         },
       },
+      ...(search
+        ? [
+            {
+              $match: {
+                $or: [
+                  { transactionId: { $regex: search, $options: "i" } },
+                  { status: { $regex: search, $options: "i" } },
+                  { supportDetails: { $regex: search, $options: "i" } },
+                  { ticketId: { $regex: search, $options: "i" } },
+                  { serviceName: { $regex: search, $options: "i" } },
+                ],
+              },
+            },
+          ]
+        : []),
       {
         $project: {
           service: 0,
